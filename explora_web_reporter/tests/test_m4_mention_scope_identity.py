@@ -363,15 +363,94 @@ def test_mscope_017_rm_respondent_ledger_unchanged() -> None:
 
 
 def test_mscope_018_duplicate_policy_unchanged() -> None:
-    spec = rm_spec(
-        variable_bindings=(
-            VariableBinding("a1", "row1_a", row_id="row1", option_id="opt_a"),
-            VariableBinding("a2", "row2_b", row_id="row2", option_id="opt_a"),
+    duplicate_bindings = (
+        VariableBinding(
+            "dup_a1",
+            "row1_a",
+            row_id="row1",
+            option_id="opt_a",
         ),
-        duplicate_policy=DuplicatePolicy.KEEP,
+        VariableBinding(
+            "dup_a2",
+            "row1_a",
+            row_id="row1",
+            option_id="opt_a",
+        ),
     )
-    result = run(spec)
-    assert result.denominator_ledgers[1].selected_n == 3
+    values = {
+        "row1_a": {"r1": 1, "r2": 0},
+    }
+    keep = evaluate_structure(
+        project_spec=project(),
+        question_spec=question(),
+        structure_spec=rm_spec(
+            structure_type="RM",
+            axes=(
+                StructureAxis(
+                    "options",
+                    AxisRole.OPTION,
+                    (StructureMember("opt_a"),),
+                ),
+            ),
+            variable_bindings=duplicate_bindings,
+            mention_denominator_scope="row:row1",
+            duplicate_policy=DuplicatePolicy.KEEP,
+        ),
+        context=ctx(values),
+        authority_mode=StructureAuthorityMode.RELEASED_SPEC,
+    )
+    respondent = keep.denominator_ledgers[0]
+    mention = keep.denominator_ledgers[1]
+
+    assert keep.status is StructureExecutionStatus.PASS
+    assert respondent.selected_n == 1
+    assert respondent.traceability["selected_by_option"] == {"opt_a": 1}
+    assert mention.selected_n == 2
+    assert mention.traceability["mention_by_option"] == {"opt_a": 2}
+
+    deduplicated = evaluate_structure(
+        project_spec=project(),
+        question_spec=question(),
+        structure_spec=rm_spec(
+            structure_type="RM",
+            axes=(
+                StructureAxis(
+                    "options",
+                    AxisRole.OPTION,
+                    (StructureMember("opt_a"),),
+                ),
+            ),
+            variable_bindings=duplicate_bindings,
+            mention_denominator_scope="row:row1",
+            duplicate_policy=DuplicatePolicy.DEDUPLICATE_BY_CATEGORY,
+        ),
+        context=ctx(values),
+        authority_mode=StructureAuthorityMode.RELEASED_SPEC,
+    )
+    assert deduplicated.status is StructureExecutionStatus.PASS
+    assert deduplicated.denominator_ledgers[1].selected_n == 1
+
+    error = evaluate_structure(
+        project_spec=project(),
+        question_spec=question(),
+        structure_spec=rm_spec(
+            structure_type="RM",
+            axes=(
+                StructureAxis(
+                    "options",
+                    AxisRole.OPTION,
+                    (StructureMember("opt_a"),),
+                ),
+            ),
+            variable_bindings=duplicate_bindings,
+            mention_denominator_scope="row:row1",
+            duplicate_policy=DuplicatePolicy.ERROR,
+        ),
+        context=ctx(values),
+        authority_mode=StructureAuthorityMode.RELEASED_SPEC,
+    )
+    assert error.status is StructureExecutionStatus.FAIL
+    assert "duplicate selected mention" in error.failures[0]
 
 
 def test_mscope_019_exclusive_policy_unchanged() -> None:
@@ -451,20 +530,57 @@ def test_mscope_024_null_expansion_emits_separate_ledgers_not_pooled() -> None:
 
 
 def test_mscope_025_scope_registry_only_from_released_structure_spec() -> None:
-    result = run(
-        replace(
-            rm_spec(mention_denominator_scope="row:observed_only"),
-            variable_bindings=(
-                VariableBinding(
-                    "observed",
-                    "row1_a",
-                    row_id="row1",
-                    option_id="opt_a",
-                ),
+    spec = rm_spec(
+        structure_type="RM",
+        axes=(
+            StructureAxis(
+                "options",
+                AxisRole.OPTION,
+                (StructureMember("opt_a"),),
             ),
-        )
+        ),
+        variable_bindings=(
+            VariableBinding(
+                "declared_row_binding",
+                "row1_a",
+                row_id="declared_binding_row",
+                option_id="opt_a",
+            ),
+        ),
+        mention_denominator_scope="row:declared_binding_row",
     )
-    assert result.status is StructureExecutionStatus.FAIL
+    empty_context = StructureEvaluationContext(
+        respondent_ids=(),
+        values_by_variable={"row1_a": {}},
+        universe_results={"u": universe({})},
+        available_variables={"row1_a"},
+        universe_ids={"u"},
+    )
+    result = evaluate_structure(
+        project_spec=project(),
+        question_spec=question(),
+        structure_spec=spec,
+        context=empty_context,
+        authority_mode=StructureAuthorityMode.RELEASED_SPEC,
+    )
+    mention = result.denominator_ledgers[1]
+    assert result.status is StructureExecutionStatus.PASS
+    assert len(result.records) == 0
+    assert mention.resolved_scope_identity == scope(
+        MentionScopeType.ROW,
+        "declared_binding_row",
+    )
+    assert mention.zero_base_status == "VALID_ZERO_BASE"
+
+    undeclared = evaluate_structure(
+        project_spec=project(),
+        question_spec=question(),
+        structure_spec=replace(spec, mention_denominator_scope="row:observed_only"),
+        context=empty_context,
+        authority_mode=StructureAuthorityMode.RELEASED_SPEC,
+    )
+    assert undeclared.status is StructureExecutionStatus.FAIL
+    assert "unknown mention_denominator_scope row id" in undeclared.failures[0]
 
 
 def test_mscope_026_m5_parent_rm_matching_uses_exact_typed_identity() -> None:

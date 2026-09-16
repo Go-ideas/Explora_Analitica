@@ -103,3 +103,27 @@ Unauthorized production source changes: `NO`
 ## Blockers
 
 None.
+
+## Gate 27 Test-Only Corrective Remediation
+
+Review result addressed: `FAIL - TEST EVIDENCE NONCONFORMANT`.
+
+No productive code defect was identified. No productive source file was
+modified in this corrective pass.
+
+Corrected evidence:
+
+- B-M4-MSI-TEST-01 / MSCOPE-018 now uses two distinct bindings/events with
+  the same respondent, same option, and same row identity. Under
+  `duplicate_policy=KEEP`, respondent contribution remains deduplicated while
+  mention count preserves both duplicate mention events. The same fixture
+  contrasts against `DEDUPLICATE_BY_CATEGORY` and `ERROR`.
+- B-M4-MSI-TEST-02 / MSCOPE-025 now uses zero observed analytical records and
+  a row ID declared only by `VariableBinding.row_id`, with no ROW axis. The
+  declared binding row ID resolves successfully from the RELEASED
+  `StructureSpec`; an undeclared row ID still fails closed.
+
+Corrective focused result:
+
+- `python -m pytest tests/test_m4_mention_scope_identity.py -q --basetemp "..._pytest_tmp_mscope_corrective_focus"`
+  - Result: `29 PASS / 0 FAIL / 0 SKIP`
