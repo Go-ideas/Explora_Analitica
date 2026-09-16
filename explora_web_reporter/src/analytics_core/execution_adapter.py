@@ -14,7 +14,9 @@ from src.analytics_core.result_identity import new_result_run_id
 from src.analytics_core.structure import (
     AnalyticalRecord,
     DenominatorLedger,
+    MENTION_SCOPE_IDENTITY_SCHEMA_VERSION,
     StructureExecutionResult,
+    normalize_mention_scope_identity,
 )
 from src.analytics_core.universe import (
     UniverseEvaluationResult,
@@ -25,6 +27,7 @@ from src.contracts.models import (
     CanonicalResult,
     CanonicalSlice,
     CanonicalValue,
+    MentionScopeIdentity,
     MetricSpec,
     QAEvent,
     RequestSnapshot,
@@ -581,15 +584,94 @@ def _compatible_mention_ledger(
     ctx: CanonicalExecutionContext,
     metric: MetricSpec,
 ) -> DenominatorLedger:
-    ledger = _require_ledger(ctx.structure_result, DenominatorUnit.MENTION)
     expected = metric.parameters.get("mention_denominator_scope")
-    if expected and str(expected) not in ledger.scope_id:
+    if expected is None:
+        return _require_ledger(ctx.structure_result, DenominatorUnit.MENTION)
+    expected_identity = _expected_mention_scope_identity(
+        expected,
+        structure_id=ctx.structure_result.structure_id,
+    )
+    matches = tuple(
+        ledger
+        for ledger in ctx.structure_result.denominator_ledgers
+        if DenominatorUnit(str(ledger.denominator_unit)) is DenominatorUnit.MENTION
+        and _ledger_matches_scope_identity(
+            ledger,
+            expected_identity,
+            structure_id=ctx.structure_result.structure_id,
+        )
+    )
+    if not matches:
         raise ExecutionAdapterError(
             "mention denominator scope is incompatible with request"
         )
-    if not ledger.scope_id.startswith("mention:"):
-        raise ExecutionAdapterError("mention ledger scope must start with mention:")
-    return ledger
+    if len(matches) > 1:
+        raise ExecutionAdapterError("ambiguous mention denominator ledger")
+    return matches[0]
+
+
+def _expected_mention_scope_identity(
+    value: object,
+    *,
+    structure_id: str,
+) -> MentionScopeIdentity:
+    if isinstance(value, MentionScopeIdentity):
+        return value
+    if isinstance(value, str):
+        try:
+            normalized = normalize_mention_scope_identity(
+                value,
+                structure_id=structure_id,
+            )
+        except ValueError as exc:
+            raise ExecutionAdapterError(
+                "mention denominator scope is incompatible with request"
+            ) from exc
+        if normalized is None:
+            raise ExecutionAdapterError(
+                "mention denominator scope is incompatible with request"
+            )
+        return normalized
+    if isinstance(value, Mapping):
+        try:
+            return MentionScopeIdentity(
+                schema_version=str(value.get("schema_version") or ""),
+                scope_type=str(value.get("scope_type") or ""),
+                scope_ref=value.get("scope_ref"),
+            )
+        except AttributeError as exc:
+            raise ExecutionAdapterError(
+                "mention denominator scope is incompatible with request"
+            ) from exc
+    raise ExecutionAdapterError(
+        "mention denominator scope is incompatible with request"
+    )
+
+
+def _ledger_matches_scope_identity(
+    ledger: DenominatorLedger,
+    expected: MentionScopeIdentity,
+    *,
+    structure_id: str,
+) -> bool:
+    if expected.schema_version != MENTION_SCOPE_IDENTITY_SCHEMA_VERSION:
+        raise ExecutionAdapterError("unknown mention scope identity schema_version")
+    if ledger.structure_id not in {None, structure_id}:
+        raise ExecutionAdapterError(
+            "mention denominator structure identity mismatch"
+        )
+    actual = ledger.resolved_scope_identity or ledger.requested_scope_identity
+    if actual is None:
+        return False
+    return _scope_identity_key(actual) == _scope_identity_key(expected)
+
+
+def _scope_identity_key(identity: MentionScopeIdentity) -> tuple[str, str, str | None]:
+    return (
+        identity.schema_version,
+        str(getattr(identity.scope_type, "value", identity.scope_type)),
+        identity.scope_ref,
+    )
 
 
 def _mention_keys(
@@ -701,6 +783,16 @@ def _provenance_refs(
         f"structure:{ctx.structure_result.structure_id}",
         f"m4_source_ledger:{source_ledger.scope_id}",
         f"m4_source_ledger_unit:{_enum_value(source_ledger.denominator_unit)}",
+        *(
+            _scope_provenance_refs("m4_requested_scope", source_ledger.requested_scope_identity)
+            if source_ledger.requested_scope_identity is not None
+            else ()
+        ),
+        *(
+            _scope_provenance_refs("m4_resolved_scope", source_ledger.resolved_scope_identity)
+            if source_ledger.resolved_scope_identity is not None
+            else ()
+        ),
         f"derived_ledger:{ledger.scope_id}",
         f"denominator_unit:{_enum_value(ledger.denominator_unit)}",
         f"denominator_scope:{ledger.scope_id}",
@@ -715,6 +807,18 @@ def _provenance_refs(
             f"m3_qa:{_enum_value(ctx.weight_result.qa_envelope.aggregate_state)}",
         )
     return tuple(dict.fromkeys(refs))
+
+
+def _scope_provenance_refs(
+    prefix: str,
+    identity: MentionScopeIdentity,
+) -> tuple[str, ...]:
+    scope_type = str(getattr(identity.scope_type, "value", identity.scope_type))
+    return (
+        f"{prefix}_schema:{identity.schema_version}",
+        f"{prefix}_type:{scope_type}",
+        f"{prefix}_ref:{identity.scope_ref}",
+    )
 
 
 def _weight_ref(ctx: CanonicalExecutionContext) -> str:

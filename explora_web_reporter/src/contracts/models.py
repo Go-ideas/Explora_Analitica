@@ -12,6 +12,7 @@ from src.contracts.vocabulary import (
     DenominatorUnit,
     DuplicatePolicy,
     LegacyCanonicalComparisonStatus,
+    MentionScopeType,
     QADomain,
     QAIssueLifecycle,
     QAIssueState,
@@ -218,6 +219,13 @@ class StructureAxis:
 
 
 @dataclass(frozen=True)
+class MentionScopeIdentity:
+    schema_version: str
+    scope_type: MentionScopeType | str
+    scope_ref: str | None
+
+
+@dataclass(frozen=True)
 class VariableBinding:
     binding_id: str
     variable_ref: str
@@ -267,7 +275,7 @@ class StructureSpec:
     exclusive_option_ids: tuple[str, ...] = field(default_factory=tuple)
     storage_encoding: StorageEncoding | str = StorageEncoding.SINGLE_VARIABLE
     loop_instance_binding: str | None = None
-    mention_denominator_scope: str | None = None
+    mention_denominator_scope: MentionScopeIdentity | str | None = None
     structural_zero_provenance: str | None = None
     structural_missing_semantics: str | None = None
     response_state_version: str = "M4_STRUCTURE_V1"
