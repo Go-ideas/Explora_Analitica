@@ -37,7 +37,7 @@ Unauthorized production source changes: `NO`
 - `a54b10edb65f8851bc0647e0d2468ecc5421877a51b833d1c9aaff2c9be54c12`  `explora_web_reporter/src/contracts/__init__.py`
 - `99be9070d739338e189110841bdf124d324575cbdce727ff8190ea69b4c32986`  `explora_web_reporter/src/analytics_core/structure.py`
 - `a11cea8d7984ea3007da7c49477ca15e29fda951607c15f6b91e4ffdc88ea986`  `explora_web_reporter/src/analytics_core/execution_adapter.py`
-- `5ff5c823feb151bb0c925df09fb45f9f00266f15ea86ee9df913cd1b5b1e2116`  `explora_web_reporter/tests/test_m4_mention_scope_identity.py`
+- `958f8b54acfcca0ed8c257b5b3cdf6041240d90da764d17fcfd704bb1b2e6bcd`  `explora_web_reporter/tests/test_m4_mention_scope_identity.py`
 
 ## Commands and Results
 
@@ -127,3 +127,35 @@ Corrective focused result:
 
 - `python -m pytest tests/test_m4_mention_scope_identity.py -q --basetemp "..._pytest_tmp_mscope_corrective_focus"`
   - Result: `29 PASS / 0 FAIL / 0 SKIP`
+
+## Gate 27 Final Corrective Validation
+
+B-M4-MSI-PROV-01 resolved: the manifest SHA-256 for
+`explora_web_reporter/tests/test_m4_mention_scope_identity.py` now matches the
+current PR head artifact exactly.
+
+Current test artifact SHA-256:
+
+- `958f8b54acfcca0ed8c257b5b3cdf6041240d90da764d17fcfd704bb1b2e6bcd`  `explora_web_reporter/tests/test_m4_mention_scope_identity.py`
+
+Validation evidence:
+
+- Focused MSCOPE: `29 PASS / 0 FAIL / 0 SKIP`
+- Full regression: `479 PASS / 0 FAIL / 0 SKIP`
+- Legacy parity: `3 PASS / 0 FAIL / 0 SKIP`
+
+Confirmations:
+
+- Productive source modified after `36e59eee497852159d0219b3c4ea92b476c7a2ce`: `NO`
+- B-M4-MSI-TEST-01 remains resolved: MSCOPE-018 materially exercises true duplicate analytical identity and discriminates `KEEP`, `DEDUPLICATE_BY_CATEGORY`, and `ERROR`.
+- B-M4-MSI-TEST-02 remains resolved: MSCOPE-025 materially exercises zero observed records, row identity declared only through `VariableBinding.row_id`, successful RELEASED `StructureSpec` resolution, and undeclared identity fail-closed.
+- B-M4-MSI-PROV-01 resolved: manifest hash reconciled to the current test artifact.
+
+Warnings:
+
+- Git line-ending warnings may appear on Windows worktrees.
+- GitHub CI is not configured by this task.
+- The exact `python -m pytest` command encountered a local Windows
+  `%TEMP%\pytest-of-conta` permission error during `tmp_path` setup for the
+  database validation tests. A controlled rerun using an external
+  `--basetemp` completed with `479 PASS / 0 FAIL / 0 SKIP`.
