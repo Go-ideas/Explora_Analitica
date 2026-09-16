@@ -1,99 +1,98 @@
 # EXPLORA PROGRAM STATE
 
-Date: 2026-09-15
+Date: 2026-09-16
 Repository: Go-ideas/Explora_Analitica
 Migration branch: migration/t0-canonical-baseline
 
-## Repository adoption status
+## Repository Adoption Status
 
-T0 — REPOSITORY ADOPTION: IN PROGRESS
+T0 — REPOSITORY ADOPTION: IN PROGRESS / BLOCKED ON REPRODUCIBILITY
 
 The existing `main` branch is preserved as the pre-migration Streamlit-era repository state. It MUST NOT be overwritten during T0.
 
-Current pre-migration `main` / migration branch ancestor:
+Pre-migration GitHub state:
 
-- commit: `124384890b3fa048ca5c554ffb1e5ead1d68ee2a`
-- date: 2026-09-08
-- current GitHub CI status checks at this commit: none reported
+- `main`: `124384890b3fa048ca5c554ffb1e5ead1d68ee2a`
+- PR #1 / migration branch before adoption: `80cd6032c4d8a29d54c4dcd870f484c745ee92ec`
 
-## Canonical program state carried into migration
+## Canonical Program State Carried Into Migration
 
-Methodological authorities already established outside this repository remain authoritative and must be imported without semantic reinterpretation:
+Methodological authorities remain authoritative and were imported without semantic reinterpretation:
 
 - B1 — Weight Methodology: HUMAN APPROVED / CANONICAL
 - B2 — Significance / Statistical Policy: HUMAN APPROVED / CANONICAL
 - B3 — AI Release Policy: HUMAN APPROVED / CANONICAL
 
-Accepted implementation history to preserve during adoption includes the closed M2–M6 line and later canonical execution/materialization work. T0 is NOT authorized to reopen, refactor, or redesign those accepted areas merely to fit GitHub.
+Accepted implementation history preserved in the physical source includes:
 
-## Execution default
+- M2 — Universe Execution
+- M3 — Weight Hardening
+- M4 — RM / Grid Authority
+- M5 — Canonical Results
+- M5 Canonical Execution Adapter
+- M6 — Web Migration to Canonical Results
+
+`src/canonical_materialization/` was not present in the inspected physical tree and is recorded as NOT FOUND for T0.
+
+## Execution Default
 
 - Production default: `LEGACY`
-- CANONICAL_V1: explicit selection only
-- DUAL_RUN: explicit selection only
-- Default switch during T0: NOT AUTHORIZED
+- `CANONICAL_V1`: explicit selection only
+- `DUAL_RUN`: explicit selection only
+- Default switch during T0: NOT AUTHORIZED / NOT PERFORMED
 
-## T0 authority rule
+## Physical Baseline Evidence
 
-The target Git baseline is accepted only after the following identity is demonstrated:
+Physical project root:
 
-`last accepted physical EXPLORA checkpoint == adopted repository baseline == reproducible test state`
+`C:\Users\conta\Go ideas\Local Go ideas - Documentos\Desarrollo\Explora Analitica\explora_web_reporter`
 
-Until this equality is proven, this branch is a migration staging branch and MUST NOT be merged to `main`.
-
-## Physical checkpoint candidates located in ChatGPT Library
-
-The migration process located these relevant artifacts:
+Checkpoint candidates verified from local bytes:
 
 1. `M5_CANONICAL_EXECUTION_ADAPTER_CORRECTIVE_REVIEW_CHECKPOINT_2026-09-15.zip`
-   - Library path: `/EXPLORA — Core & Evolution/M5_CANONICAL_EXECUTION_ADAPTER_CORRECTIVE_REVIEW_CHECKPOINT_2026-09-15.zip`
-   - duplicate staging copy also located under `/EXPLORA_TMP/`
-   - size: 19,665 bytes
-   - expected SHA-256 from the corrective review package: `B273D859FB29FA01129B8DE622646A197D48472DCB3B0E568E42AFFD15A81159`
-   - reported focused adapter tests: 44 PASS / 0 FAIL / 0 SKIP
-   - reported full regression: 450 PASS / 0 FAIL / 0 SKIP
+   - SHA-256: `B273D859FB29FA01129B8DE622646A197D48472DCB3B0E568E42AFFD15A81159`
+   - Historical expected SHA: MATCH
+   - Reported focused adapter tests: 44 PASS / 0 FAIL / 0 SKIP
+   - Current focused adapter tests: 44 PASS / 0 FAIL / 0 SKIP
 
-2. `M6_WEB_MIGRATION_CANONICAL_RESULTS_2026-09-14.zip`
-   - Library path: `/EXPLORA_TMP/M6_WEB_MIGRATION_CANONICAL_RESULTS_2026-09-14.zip`
-   - size: 311,602 bytes
-   - expected SHA-256 from M6 review: `097D5410BD9EEC6DA376687C8D35D108352BDCCAB250BA3DF0D29F8F7655FBF3`
-   - historical pre-corrective M6 package; NOT automatically authoritative over later corrective states
+2. `M6_WEB_MIGRATION_CANONICAL_RESULTS_REMEDIATED_V3_2026-09-15.zip`
+   - SHA-256: `1BAE7A3D48A3A196E95957BAD27D506D36253C83C692C52A8FB1B066CC2AD3C7`
+   - Sampled files from this checkpoint match the current physical tree for M6/web/core files.
 
-3. `BENCHMARK_A_FUNSMX_297140_CANONICAL_PROJECT_RELEASE_V1.zip`
-   - Library path: `/EXPLORA_TMP/BENCHMARK_A_FUNSMX_297140_CANONICAL_PROJECT_RELEASE_V1.zip`
-   - project release package, not a substitute for the source-code baseline
+No single checkpoint ZIP was found that exactly represents the whole current physical source tree. T0 therefore records source/checkpoint reconciliation as AMBIGUOUS and requires human review before merge.
 
-## Current migration blocker
+## Current Regression State
 
-The ChatGPT Library references above are visible and identified, but their raw ZIP bytes are not currently authorized for materialization into the execution container. Therefore:
+Executed from `explora_web_reporter/` with `PYTHONPATH=.`:
 
-- archive SHA-256 cannot yet be independently recomputed here;
-- archive contents cannot yet be physically expanded here;
-- source cannot yet be committed from those archives without fabricating or inferring files;
-- T0 cannot honestly be declared PASS yet.
+- M2: 31 PASS / 0 FAIL / 0 SKIP
+- M3: 45 PASS / 0 FAIL / 0 SKIP
+- M4: 61 PASS / 0 FAIL / 0 SKIP
+- M5: 75 PASS / 0 FAIL / 0 SKIP
+- M5 Execution Adapter: 44 PASS / 0 FAIL / 0 SKIP
+- M6: 97 PASS / 0 FAIL / 0 SKIP
+- Legacy parity: 2 PASS / 0 FAIL / 0 SKIP
+- Full regression, physical tree: 450 PASS / 0 FAIL / 0 SKIP
+- Full regression, adopted Git payload without excluded client DB: 449 PASS / 1 FAIL / 0 SKIP
+- Materialization tests: NOT FOUND
 
-This is an input-access blocker, not an architectural blocker.
+Blocking adopted-payload failure:
 
-## T0 required exit criteria
+- `tests/test_database_validation.py::test_validate_reporter_database_accepts_builder_database`
+- The test requires `data/db/BD_Analitica_Explora.db`.
+- The file exists only in the local physical workspace, is 17,551,360 bytes, SHA-256 `1B0BD28180844EBC3CA59A1467B78EE6D486DB6CB8CC71E3D16B3388B77174DB`, and is prohibited from GitHub upload by T0 rules for productive/local databases.
+
+## T0 Required Exit Criteria
 
 Before merge to `main`:
 
-- authoritative physical checkpoint selected;
-- actual archive SHA-256 verified;
-- archive expanded and inventoried;
-- canonical contracts verified;
-- protected source verified;
-- repository `.gitignore` reviewed against actual package contents;
-- focused milestone tests PASS;
-- full regression PASS;
-- Legacy parity PASS;
-- no unexplained numerical deltas to Productive Legacy;
-- no unauthorized M2–M6 or Legacy modifications;
-- source tree committed to this migration branch;
-- clean-clone reproducibility demonstrated;
-- T0 assessment = PASS or explicitly human-accepted PASS WITH WARNINGS.
+- Human review accepts AMBIGUOUS source/checkpoint reconciliation, or a single global checkpoint is supplied.
+- A separate authorized remediation replaces the local productive DB dependency with a non-sensitive committed fixture or adjusts the test contract.
+- Clean-clone reproducibility passes.
+- No client/productive data is added to Git.
+- T0 assessment is accepted by human review.
 
-## Merge policy
+## Merge Policy
 
 Do not merge this branch to `main` until T0 is closed.
 

@@ -1,0 +1,10 @@
+streamlit
+pandas
+numpy
+pyreadstat
+openpyxl
+xlsxwriter
+plotly
+scipy
+statsmodels
+python-dotenv
