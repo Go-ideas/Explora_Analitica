@@ -11,6 +11,7 @@ from src.contracts.models import (
     CategoryOptionBinding,
     QAEvent,
     MetricSpec,
+    MentionScopeIdentity,
     ProjectSpec,
     QAEnvelope,
     QuestionSpec,
@@ -32,6 +33,7 @@ from src.contracts.vocabulary import (
     ComputationStatus,
     CompletionPolicy,
     DuplicatePolicy,
+    MentionScopeType,
     QAReleaseStatus,
     ReleaseLifecycle,
     SampleRelationship,
@@ -119,6 +121,8 @@ SUPPORTED_APPLICABILITY_SCOPES_V1 = {
     "loop_instance",
 }
 
+MENTION_SCOPE_IDENTITY_SCHEMA_VERSION = "M4_MENTION_SCOPE_IDENTITY_V1"
+
 
 def validate_structure_spec(
     spec: StructureSpec,
@@ -162,6 +166,7 @@ def validate_structure_spec(
         spec.applicability_refs,
         universe_ids=universe_ids,
     )
+    _validate_mention_denominator_scope_identity(spec)
     _validate_exclusive_options(spec)
     if enforce_m4:
         _validate_structure_type_shape(spec)
@@ -323,6 +328,34 @@ def _validate_structure_type_shape(spec: StructureSpec) -> None:
             binding.loop_instance_id for binding in spec.variable_bindings
         ):
             _fail("loop structures require explicit loop instance identity")
+
+
+def _validate_mention_denominator_scope_identity(spec: StructureSpec) -> None:
+    identity = spec.mention_denominator_scope
+    if identity is None:
+        return
+    if not isinstance(identity, MentionScopeIdentity):
+        _fail(
+            "mention_denominator_scope must be a structured "
+            "MentionScopeIdentity"
+        )
+    if identity.schema_version != MENTION_SCOPE_IDENTITY_SCHEMA_VERSION:
+        _fail("unknown mention scope identity schema_version")
+    try:
+        scope_type = MentionScopeType(
+            str(getattr(identity.scope_type, "value", identity.scope_type))
+        )
+    except ValueError:
+        _fail(f"unsupported mention scope_type: {identity.scope_type}")
+    if scope_type is MentionScopeType.RELEASED_GROUP:
+        _fail("RELEASED_GROUP is RESERVED / UNSUPPORTED V1")
+    if scope_type is MentionScopeType.PARENT_RM:
+        if not identity.scope_ref:
+            _fail("PARENT_RM mention scope requires scope_ref")
+        if identity.scope_ref != spec.structure_id:
+            _fail("PARENT_RM scope_ref must match StructureSpec.structure_id")
+    elif identity.scope_ref is not None:
+        _require_text(identity.scope_ref, "mention scope_ref")
 
 
 def validate_weight_spec(

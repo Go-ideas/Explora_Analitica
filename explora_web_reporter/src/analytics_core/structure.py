@@ -10,6 +10,7 @@ from src.analytics_core.universe import (
     UniverseEvaluationStatus,
 )
 from src.contracts.models import (
+    MentionScopeIdentity,
     QAEnvelope,
     QAIssue,
     ProjectSpec,
@@ -29,6 +30,7 @@ from src.contracts.vocabulary import (
     DenominatorUnit,
     DuplicatePolicy,
     LegacyStructureComparisonStatus,
+    MentionScopeType,
     QAIssueLifecycle,
     QAIssueState,
     ReleaseLifecycle,
@@ -40,6 +42,7 @@ from src.contracts.vocabulary import (
 
 STRUCTURE_RUNTIME_RULES_VERSION = "M4_STRUCTURE_V1"
 STRUCTURE_AUTHORITY_ENV = "EXPLORA_STRUCTURE_AUTHORITY"
+MENTION_SCOPE_IDENTITY_SCHEMA_VERSION = "M4_MENTION_SCOPE_IDENTITY_V1"
 
 
 @dataclass(frozen=True)
@@ -110,6 +113,9 @@ class DenominatorLedger:
     invalid_n: int
     zero_base_status: str
     repeated_dependency: bool = False
+    structure_id: str | None = None
+    requested_scope_identity: MentionScopeIdentity | None = None
+    resolved_scope_identity: MentionScopeIdentity | None = None
     traceability: dict[str, Any] = field(default_factory=dict)
 
 
@@ -199,6 +205,7 @@ def evaluate_structure(
         _require_released(project_spec, "project")
         _require_released(question_spec, "question")
         _require_released(structure_spec, "structure")
+        structure_spec = _normalize_mention_scope_boundary(structure_spec)
         _validate_released_reference_chain(question_spec, structure_spec)
         validate_structure_spec(
             structure_spec,
@@ -796,54 +803,96 @@ def _mention_ledgers(
     *,
     duplicate_policy: DuplicatePolicy,
 ) -> list[DenominatorLedger]:
-    scope = str(structure_spec.mention_denominator_scope or "").strip()
-    if not scope:
+    requested = structure_spec.mention_denominator_scope
+    if requested is None:
         return []
-    memberships = _mention_scope_memberships(scope, structure_spec, records)
+    if not isinstance(requested, MentionScopeIdentity):
+        raise StructureExecutionError(
+            "mention_denominator_scope must be a structured "
+            "MentionScopeIdentity after compatibility normalization"
+        )
+    memberships = _mention_scope_memberships(
+        requested,
+        structure_spec,
+        records,
+    )
     return [
         _mention_ledger(
             scoped_records,
             duplicate_policy=duplicate_policy,
             scope=scope_id,
+            structure_id=structure_spec.structure_id,
+            requested_scope_identity=requested,
+            resolved_scope_identity=resolved_identity,
         )
-        for scope_id, scoped_records in memberships
+        for scope_id, resolved_identity, scoped_records in memberships
     ]
 
 
 def _mention_scope_memberships(
-    scope: str,
+    requested: MentionScopeIdentity,
     structure_spec: StructureSpec,
     records: list[AnalyticalRecord],
-) -> tuple[tuple[str, list[AnalyticalRecord]], ...]:
-    if scope in {"structure", "parent_structure", "all_options"}:
-        return ((scope, records),)
-    if scope == "row":
+) -> tuple[tuple[str, MentionScopeIdentity, list[AnalyticalRecord]], ...]:
+    _validate_executable_mention_scope_identity(requested, structure_spec, records)
+    scope_type = MentionScopeType(
+        str(getattr(requested.scope_type, "value", requested.scope_type))
+    )
+    if scope_type is MentionScopeType.PARENT_RM:
+        return ((
+            f"parent_rm:{requested.scope_ref}",
+            requested,
+            records,
+        ),)
+    if scope_type is MentionScopeType.ROW and requested.scope_ref is None:
         return tuple(
-            (f"row:{row_id}", _records_for_scope(records, "row", row_id))
+            (
+                f"row:{row_id}",
+                MentionScopeIdentity(
+                    MENTION_SCOPE_IDENTITY_SCHEMA_VERSION,
+                    MentionScopeType.ROW,
+                    row_id,
+                ),
+                _records_for_scope(records, "row", row_id),
+            )
             for row_id in _declared_ids(structure_spec, records, "row")
         )
-    if scope.startswith("row:"):
-        row_id = _scope_id(scope, "row")
-        _require_declared_scope_id(structure_spec, records, "row", row_id)
-        return ((scope, _records_for_scope(records, "row", row_id)),)
-    if scope in {"entity", "row/entity"}:
+    if scope_type is MentionScopeType.ROW:
+        row_id = str(requested.scope_ref)
+        return ((
+            f"row:{row_id}",
+            requested,
+            _records_for_scope(records, "row", row_id),
+        ),)
+    if scope_type is MentionScopeType.ENTITY and requested.scope_ref is None:
         return tuple(
-            (f"entity:{entity_id}", _records_for_scope(records, "entity", entity_id))
+            (
+                f"entity:{entity_id}",
+                MentionScopeIdentity(
+                    MENTION_SCOPE_IDENTITY_SCHEMA_VERSION,
+                    MentionScopeType.ENTITY,
+                    entity_id,
+                ),
+                _records_for_scope(records, "entity", entity_id),
+            )
             for entity_id in _declared_ids(structure_spec, records, "entity")
         )
-    if scope.startswith("entity:"):
-        entity_id = _scope_id(scope, "entity")
-        _require_declared_scope_id(
-            structure_spec,
-            records,
-            "entity",
-            entity_id,
-        )
-        return ((scope, _records_for_scope(records, "entity", entity_id)),)
-    if scope == "loop_instance":
+    if scope_type is MentionScopeType.ENTITY:
+        entity_id = str(requested.scope_ref)
+        return ((
+            f"entity:{entity_id}",
+            requested,
+            _records_for_scope(records, "entity", entity_id),
+        ),)
+    if scope_type is MentionScopeType.LOOP_INSTANCE and requested.scope_ref is None:
         return tuple(
             (
                 f"loop_instance:{loop_id}",
+                MentionScopeIdentity(
+                    MENTION_SCOPE_IDENTITY_SCHEMA_VERSION,
+                    MentionScopeType.LOOP_INSTANCE,
+                    loop_id,
+                ),
                 _records_for_scope(records, "loop_instance", loop_id),
             )
             for loop_id in _declared_ids(
@@ -852,23 +901,16 @@ def _mention_scope_memberships(
                 "loop_instance",
             )
         )
-    if scope.startswith("loop_instance:"):
-        loop_id = _scope_id(scope, "loop_instance")
-        _require_declared_scope_id(
-            structure_spec,
-            records,
-            "loop_instance",
-            loop_id,
-        )
-        return (
-            (
-                scope,
-                _records_for_scope(records, "loop_instance", loop_id),
-            ),
-        )
+    if scope_type is MentionScopeType.LOOP_INSTANCE:
+        loop_id = str(requested.scope_ref)
+        return ((
+            f"loop_instance:{loop_id}",
+            requested,
+            _records_for_scope(records, "loop_instance", loop_id),
+        ),)
     raise StructureExecutionError(
-        f"unsupported mention_denominator_scope: {scope}",
-        status=StructureExecutionStatus.REVIEW_REQUIRED,
+        f"unsupported mention_denominator_scope: {scope_type.value}",
+        status=StructureExecutionStatus.FAIL,
     )
 
 
@@ -877,6 +919,9 @@ def _mention_ledger(
     *,
     duplicate_policy: DuplicatePolicy,
     scope: str,
+    structure_id: str,
+    requested_scope_identity: MentionScopeIdentity,
+    resolved_scope_identity: MentionScopeIdentity,
 ) -> DenominatorLedger:
     selected_records = [
         record for record in records if record.applicable and record.selected
@@ -903,9 +948,19 @@ def _mention_ledger(
         if selected_n == 0
         else "NONZERO_BASE",
         repeated_dependency=_has_repeated_dependency(records),
+        structure_id=structure_id,
+        requested_scope_identity=requested_scope_identity,
+        resolved_scope_identity=resolved_scope_identity,
         traceability={
             "duplicate_policy": duplicate_policy.value,
             "mention_denominator_scope": scope,
+            "structure_id": structure_id,
+            "requested_scope_identity": _mention_scope_identity_dict(
+                requested_scope_identity
+            ),
+            "resolved_scope_identity": _mention_scope_identity_dict(
+                resolved_scope_identity
+            ),
             "mention_by_option": _counts_by_option(mention_keys),
             "runtime_rules_version": STRUCTURE_RUNTIME_RULES_VERSION,
         },
@@ -921,26 +976,159 @@ def _scope_id(scope: str, prefix: str) -> str:
     return value
 
 
+def _normalize_mention_scope_boundary(
+    structure_spec: StructureSpec,
+) -> StructureSpec:
+    raw_scope = structure_spec.mention_denominator_scope
+    if raw_scope is None or isinstance(raw_scope, MentionScopeIdentity):
+        return structure_spec
+    if not isinstance(raw_scope, str):
+        raise StructureExecutionError(
+            "mention_denominator_scope must be MentionScopeIdentity or "
+            "a supported legacy compatibility token"
+        )
+    normalized = normalize_mention_scope_identity(
+        raw_scope,
+        structure_id=structure_spec.structure_id,
+    )
+    return replace(structure_spec, mention_denominator_scope=normalized)
+
+
+def normalize_mention_scope_identity(
+    value: MentionScopeIdentity | str | None,
+    *,
+    structure_id: str,
+) -> MentionScopeIdentity | None:
+    if value is None or isinstance(value, MentionScopeIdentity):
+        return value
+    token = value
+    if token in {"structure", "parent_structure", "all_options"}:
+        return MentionScopeIdentity(
+            MENTION_SCOPE_IDENTITY_SCHEMA_VERSION,
+            MentionScopeType.PARENT_RM,
+            structure_id,
+        )
+    if token == "row":
+        return MentionScopeIdentity(
+            MENTION_SCOPE_IDENTITY_SCHEMA_VERSION,
+            MentionScopeType.ROW,
+            None,
+        )
+    if token.startswith("row:"):
+        return MentionScopeIdentity(
+            MENTION_SCOPE_IDENTITY_SCHEMA_VERSION,
+            MentionScopeType.ROW,
+            _scope_id(token, "row"),
+        )
+    if token in {"entity", "row/entity"}:
+        return MentionScopeIdentity(
+            MENTION_SCOPE_IDENTITY_SCHEMA_VERSION,
+            MentionScopeType.ENTITY,
+            None,
+        )
+    if token.startswith("entity:"):
+        return MentionScopeIdentity(
+            MENTION_SCOPE_IDENTITY_SCHEMA_VERSION,
+            MentionScopeType.ENTITY,
+            _scope_id(token, "entity"),
+        )
+    if token == "loop_instance":
+        return MentionScopeIdentity(
+            MENTION_SCOPE_IDENTITY_SCHEMA_VERSION,
+            MentionScopeType.LOOP_INSTANCE,
+            None,
+        )
+    if token.startswith("loop_instance:"):
+        return MentionScopeIdentity(
+            MENTION_SCOPE_IDENTITY_SCHEMA_VERSION,
+            MentionScopeType.LOOP_INSTANCE,
+            _scope_id(token, "loop_instance"),
+        )
+    raise StructureExecutionError(
+        f"unsupported mention_denominator_scope: {token}",
+        status=StructureExecutionStatus.FAIL,
+    )
+
+
+def _validate_executable_mention_scope_identity(
+    identity: MentionScopeIdentity,
+    structure_spec: StructureSpec,
+    records: list[AnalyticalRecord],
+) -> None:
+    if identity.schema_version != MENTION_SCOPE_IDENTITY_SCHEMA_VERSION:
+        raise StructureExecutionError(
+            "unknown mention scope identity schema_version"
+        )
+    try:
+        scope_type = MentionScopeType(
+            str(getattr(identity.scope_type, "value", identity.scope_type))
+        )
+    except ValueError as exc:
+        raise StructureExecutionError(
+            f"unsupported mention scope_type: {identity.scope_type}"
+        ) from exc
+    if scope_type is MentionScopeType.RELEASED_GROUP:
+        raise StructureExecutionError(
+            "RELEASED_GROUP is RESERVED / UNSUPPORTED V1",
+            status=StructureExecutionStatus.UNSUPPORTED,
+        )
+    structure_type = str(structure_spec.structure_type)
+    if scope_type is MentionScopeType.PARENT_RM:
+        if structure_type not in {"RM", "GRID_RM", "LOOP_RM"}:
+            raise StructureExecutionError(
+                "PARENT_RM scope is incompatible with structure_type"
+            )
+        if not identity.scope_ref:
+            raise StructureExecutionError("PARENT_RM mention scope requires scope_ref")
+        if identity.scope_ref != structure_spec.structure_id:
+            raise StructureExecutionError(
+                "PARENT_RM scope_ref must match StructureSpec.structure_id"
+            )
+        return
+    if identity.scope_ref is not None:
+        kind = _scope_kind(scope_type)
+        _require_declared_scope_id(structure_spec, records, kind, identity.scope_ref)
+
+
+def _scope_kind(scope_type: MentionScopeType) -> str:
+    if scope_type is MentionScopeType.ROW:
+        return "row"
+    if scope_type is MentionScopeType.ENTITY:
+        return "entity"
+    if scope_type is MentionScopeType.LOOP_INSTANCE:
+        return "loop_instance"
+    raise StructureExecutionError(
+        f"unsupported mention scope_type: {scope_type.value}"
+    )
+
+
+def _mention_scope_identity_dict(
+    identity: MentionScopeIdentity,
+) -> dict[str, str | None]:
+    return {
+        "schema_version": identity.schema_version,
+        "scope_type": str(getattr(identity.scope_type, "value", identity.scope_type)),
+        "scope_ref": identity.scope_ref,
+    }
+
+
 def _declared_ids(
     structure_spec: StructureSpec,
     records: list[AnalyticalRecord],
     kind: str,
 ) -> tuple[str, ...]:
     axis_role = "row" if kind == "row" else kind
-    axis_ids = tuple(
+    declared = {
         member.member_id
         for axis in structure_spec.axes
         if str(getattr(axis.role, "value", axis.role)) == axis_role
         for member in axis.members
-    )
-    if axis_ids:
-        return axis_ids
-    record_ids = {
-        _record_scope_value(record, kind)
-        for record in records
-        if _record_scope_value(record, kind) is not None
     }
-    return tuple(sorted(record_ids))
+    for binding in structure_spec.variable_bindings:
+        value = getattr(binding, f"{kind}_id", None)
+        if value is not None:
+            declared.add(value)
+    return tuple(sorted(declared))
 
 
 def _require_declared_scope_id(

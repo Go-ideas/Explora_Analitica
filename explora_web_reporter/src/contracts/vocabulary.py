@@ -139,6 +139,14 @@ class DenominatorUnit(CanonicalEnum):
     INSTANCE = "instance"
 
 
+class MentionScopeType(CanonicalEnum):
+    PARENT_RM = "PARENT_RM"
+    ROW = "ROW"
+    ENTITY = "ENTITY"
+    LOOP_INSTANCE = "LOOP_INSTANCE"
+    RELEASED_GROUP = "RELEASED_GROUP"
+
+
 class StructureExecutionStatus(CanonicalEnum):
     PASS = "PASS"
     PASS_WITH_WARNINGS = "PASS_WITH_WARNINGS"
