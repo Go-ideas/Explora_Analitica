@@ -141,7 +141,10 @@ def validate_request_binding(
     )
     if missing_slices:
         reasons.append("requested slice missing: " + ", ".join(missing_slices))
-    reasons.extend(_slice_coverage_reasons(result.slices, request))
+    if canonical_request is not None and canonical_request.compatibility_profile == "CANONICAL_MATERIALIZATION_V1":
+        reasons.extend(_materialized_slice_coverage_reasons(result.slices, request))
+    else:
+        reasons.extend(_slice_coverage_reasons(result.slices, request))
     value_questions = {item.question_id for item in result.values}
     if request.question_ids and not set(request.question_ids).issubset(
         value_questions or set(request.question_ids)
@@ -156,10 +159,50 @@ def validate_request_binding(
     return result
 
 
+def _materialized_slice_coverage_reasons(slices, request):
+    reasons = []
+    filters = []
+    for ref, members in request.filters.items():
+        if not isinstance(ref, str) or not ref or not isinstance(members, (tuple, list)) or not members or any(not isinstance(m, str) or not m or "|" in m or ":" in m for m in members) or len(set(members)) != len(members):
+            return ("malformed materialized filter identity",)
+        filters.append(f"{ref}:{'|'.join(members)}")
+    expected_filters = tuple(sorted(filters))
+    banner = request.banner_config
+    if banner:
+        if set(banner) != {"banner_ref", "member_ids"} or not isinstance(banner["banner_ref"], str) or not banner["banner_ref"]:
+            return ("unsupported materialized banner structure",)
+        members = banner["member_ids"]
+        if not isinstance(members, (tuple, list)) or not members or any(not isinstance(m, str) or not m for m in members) or len(set(members)) != len(members):
+            return ("malformed/duplicate materialized banner member identity",)
+        covered = []
+        dimensions = set()
+        raw_members = []
+        for item in slices:
+            if item.is_total or not item.banner_dimension_id or item.configuration.get("banner_ref") != banner["banner_ref"] or "raw_value" not in item.configuration:
+                reasons.append("materialized banner identity/configuration mismatch")
+            dimensions.add(item.banner_dimension_id)
+            covered.append(item.member_id)
+            raw_members.append(stable_json(item.configuration.get("raw_value")))
+        if len(dimensions) != 1 or covered != list(members):
+            reasons.append("materialized banner member coverage/order mismatch")
+        if len(set(raw_members)) != len(raw_members):
+            reasons.append("materialized banner conflicting raw category identity")
+    else:
+        if len(slices) != 1 or slices[0].is_total != (not filters) or slices[0].banner_dimension_id or slices[0].member_id:
+            reasons.append("materialized filter/total slice shape mismatch")
+        elif filters and tuple(slices[0].configuration.get("filters", ())) != tuple(filters):
+            reasons.append("materialized filter configuration mismatch")
+    for item in slices:
+        if tuple(sorted(item.filter_refs)) != expected_filters:
+            reasons.append("materialized slice filter identity mismatch")
+    return tuple(reasons)
+
+
 def request_observability(
     request: WebCanonicalRequest,
     result: CanonicalResult | None = None,
 ) -> dict[str, Any]:
+    materialized = result is not None and result.request is not None and result.request.compatibility_profile == "CANONICAL_MATERIALIZATION_V1"
     return {
         "request_identity": stable_json(request),
         "request_fingerprint": request.request_fingerprint
@@ -177,11 +220,14 @@ def request_observability(
         ),
         "requested_slice_ids": request.requested_slice_ids,
         "derived_required_slice_ids": tuple(
-            sorted(_derive_required_slice_ids(result.slices, request))
+            sorted(item.slice_id for item in result.slices)
+            if materialized else sorted(_derive_required_slice_ids(result.slices, request))
         )
         if result is not None
         else (),
         "derived_required_slice_descriptors": tuple(
+            f"materialized[{item.slice_id}]" for item in result.slices
+        ) if materialized else tuple(
             item.label for item in _required_slice_descriptors(request)
         ),
     }

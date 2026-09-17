@@ -81,6 +81,7 @@ class ReportResult:
     )
     base_before_filters: int | None = None
     banner_mode: str = "nested"
+    identity_rows: pd.DataFrame = field(default_factory=pd.DataFrame)
 
 
 def available_questions(
@@ -749,7 +750,31 @@ def generate_report(
         recommendation_details=recommendation_details or {},
         base_before_filters=base_before_filters,
         banner_mode=banner_mode,
+        identity_rows=_report_identity_rows(response_data, rm_data, selected_respondents, banners),
     )
+
+
+def _report_identity_rows(response_data, rm_data, respondents, banners):
+    rows = []
+    for data, variable_column in ((response_data, "variable"), (rm_data, "variable_origen")):
+        required = {"banner", "respuesta", "codigo_respuesta", variable_column}
+        if data.empty or not required.issubset(data.columns):
+            continue
+        work = data[list(required | {"id_respondente"})].copy()
+        work = work.rename(columns={variable_column: "source_variable"})
+        work["banner_variable"] = ""
+        work["banner_raw_value"] = ""
+        if len(banners) == 1:
+            variable = banners[0]
+            lookup = respondents[["id_respondente", variable]].rename(columns={variable: "_raw_banner"})
+            work = work.merge(lookup, on="id_respondente", how="left")
+            member = work["banner"].ne("Total")
+            work.loc[member, "banner_variable"] = variable
+            work.loc[member, "banner_raw_value"] = work.loc[member, "_raw_banner"]
+        elif banners:
+            work.loc[work["banner"].ne("Total"), "banner_variable"] = "UNSUPPORTED_MULTIDIMENSION"
+        rows.append(work[["banner", "respuesta", "source_variable", "codigo_respuesta", "banner_variable", "banner_raw_value"]].drop_duplicates())
+    return pd.concat(rows, ignore_index=True).drop_duplicates() if rows else pd.DataFrame()
 
 
 def _prepare_data(
