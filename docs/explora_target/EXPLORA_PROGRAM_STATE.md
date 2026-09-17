@@ -1,99 +1,117 @@
 # EXPLORA PROGRAM STATE
 
-Date: 2026-09-16
+Date: 2026-09-17
 Repository: Go-ideas/Explora_Analitica
-Migration branch: migration/t0-canonical-baseline
+Authoritative main: `0fe9caf1f7d9b942035403b28a89672eb92baf37`
+Documentation working branch: `docs/m7-excel-renderer-contract`
 
-## Repository Adoption Status
+## Current Accepted State
 
-T0 — REPOSITORY ADOPTION: IN PROGRESS / BLOCKED ON REPRODUCIBILITY
+This is the current program-state index, reconciled under Gate 33 authorization.
+It supersedes this index's T0-era operational status, not historical gate evidence.
+Human authorization accepts M2-M6 and Gates 27, 30, 19 and 32. No frozen
+methodological/analytical contract is reopened by this documentation update.
 
-The existing `main` branch is preserved as the pre-migration Streamlit-era repository state. It MUST NOT be overwritten during T0.
+| Milestone / gate | Current state |
+| --- | --- |
+| T0 repository adoption | CLOSED / ACCEPTED, merged through PR #1 |
+| M2 Universe | CLOSED / ACCEPTED |
+| M3 Weight Hardening | CLOSED / ACCEPTED |
+| M4 Structure and Mention Identity | CLOSED / ACCEPTED |
+| M5 Canonical Results | CLOSED / ACCEPTED |
+| M5 Execution Adapter | CLOSED / ACCEPTED |
+| M6 Web Canonical migration | CLOSED / ACCEPTED |
+| Gate 27 M4 post-merge validation | CLOSED |
+| Gate 30 Canonical Materialization | CLOSED / ACCEPTED; implementation FOUND in src/canonical_materialization |
+| Gate 19 Productive DUAL_RUN | CLOSED / ACCEPTED; Benchmark A 94/94 exact parity |
+| Gate 32 Canonical Default Switch | CLOSED / ACCEPTED, PR #5 merged and post-merge validated |
+| Gate 33 M7 entry | PASS / AUTHORIZED; M7A current-state/contract phase only |
+| M7A Current State | PASS / HUMAN REVIEW ACCEPTED |
+| M7A Contract | FROZEN FOR GIT REVIEW, effective upon successful documentation-closure validation and commit |
+| M7B Renderer implementation | NOT AUTHORIZED |
+| M7C Master/VBA | NOT AUTHORIZED |
+| M7D Productive release | NOT AUTHORIZED |
 
-Pre-migration GitHub state:
+## Accepted Merge History
 
-- `main`: `124384890b3fa048ca5c554ffb1e5ead1d68ee2a`
-- PR #1 / migration branch before adoption: `80cd6032c4d8a29d54c4dcd870f484c745ee92ec`
+Verified first-parent main history:
+- PR #1 adoption: `8d7781d` (abbreviated repository SHA).
+- PR #2 mention identity: `c2dc54e74931993dc50493ebba0b77a92e855479`.
+- PR #3 materialization: `e465457d7e6e23d13bea8d43955c1a84790f5d65`.
+- PR #4 Gate 19 correction: `6c0bf08895603b2b80b6a3c5fb5e1fea744b9d30`.
+- PR #5 Gate 32 switch: `0fe9caf1f7d9b942035403b28a89672eb92baf37`.
 
-## Canonical Program State Carried Into Migration
+PR #5 parents are exactly pre-merge main
+`6c0bf08895603b2b80b6a3c5fb5e1fea744b9d30` and accepted feature
+`011a5778a3aeeaa5492be050fbae4972633363d1`, in that order.
 
-Methodological authorities remain authoritative and were imported without semantic reinterpretation:
+## Current Runtime And Evidence
 
-- B1 — Weight Methodology: HUMAN APPROVED / CANONICAL
-- B2 — Significance / Statistical Policy: HUMAN APPROVED / CANONICAL
-- B3 — AI Release Policy: HUMAN APPROVED / CANONICAL
+Authoritative resolver: explora_web_reporter/src/analytics_core/mode.py.
+Absent explicit selector and absent EXPLORA_ANALYTICS_ENGINE -> CANONICAL_V1.
+Explicit CANONICAL/CANONICAL_V1, LEGACY and DUAL_RUN remain supported; explicit
+request selection wins over environment. Invalid selection fails closed.
+Canonical failure never silently executes Legacy. Legacy compatibility/rollback
+is available through explicit selection. Existing saved explicit selections stay
+explicit. Default runtime = CANONICAL_V1; Legacy rollback = AVAILABLE / EXPLICIT.
+Historical package metadata default_execution_mode=LEGACY is not the
+live runtime default and remains unchanged.
 
-Accepted implementation history preserved in the physical source includes:
+Gate 32 post-merge validation on authoritative main: PASS. Default/explicit
+Canonical results, fingerprints and request snapshots EXACT. Benchmark A BA-01
+through BA-05 PASS. BA-03: MENTION / PARENT_RM /
+STR_Q_DELIVERY_APPS_RM_V1. Gate 19 comparison scope: 94 comparable, 94/94 exact.
+Focused switch 26/0/0; Gate 19 38/0/0; materialization 51/0/0; full 602/0/0
+(passed/failed/skipped). No unexpected skips, numerical/structural/unexplained
+deltas or silent fallback; determinism PASS and provenance COMPLETE.
+Post-merge worktree clean; no source/contracts/statistical changes during validation.
 
-- M2 — Universe Execution
-- M3 — Weight Hardening
-- M4 — RM / Grid Authority
-- M5 — Canonical Results
-- M5 Canonical Execution Adapter
-- M6 — Web Migration to Canonical Results
+External Gate 32 post-merge evidence:
+`C:/Users/conta/gate32_temp/post_merge/{focused.xml,full.xml,benchmark_evidence.json}`.
+Accepted physical Benchmark source/package remain outside Git; no client data
+was imported as part of this state reconciliation.
 
-`src/canonical_materialization/` was not present in the inspected physical tree and is recorded as NOT FOUND for T0.
+## M7 Entry And Current Work
 
-## Execution Default
+M7 = Excel Renderer, independent of Web over the same CanonicalResults. Core
+owns all official numbers, bases, weights, structure/mention scope, significance,
+warnings and QA decisions. Excel/VBA are presentation/interaction only.
+M7 STARTED = YES, M7A contract/current-state phase ONLY.
 
-- Production default: `LEGACY`
-- `CANONICAL_V1`: explicit selection only
-- `DUAL_RUN`: explicit selection only
-- Default switch during T0: NOT AUTHORIZED / NOT PERFORMED
+M7A artifacts:
+- [Current state](M7_EXCEL_RENDERER_CURRENT_STATE.md).
+- [Contract draft](M7_EXCEL_RENDERER_CONTRACT_DRAFT.md).
+- [Scope manifest](M7_EXCEL_RENDERER_SCOPE_MANIFEST.md).
 
-## Physical Baseline Evidence
+MASTER XLSM = NOT FOUND in the inspected repository/surrounding workspace.
+VISUAL SPEC RUNTIME CONTRACT = GAP. Macro/control-preserving template backend,
+numeric exactness profile, canonical workbook mapping and optional significance
+letter-token input require review before their implementation phases.
+No Master, renderer code or productive VBA has been built. No M7B/M7C/M7D
+automatic entry, push, PR or merge is authorized by Gate 33.
 
-Physical project root:
+M7A untouched-code baseline rerun: export focused 15/0/0, canonical contract /
+transport focused 41/0/0, Gate 32 focused 26/0/0, full 602/0/0. External JUnit:
+`C:/Users/conta/m7a_temp/{focused.xml,full.xml}`. Only the four authorized current
+documentation files changed; historical milestone/gate documents remain immutable.
+Human M7A current-state review PASS; contract review PASS WITH REQUIRED CLOSURE.
+The closure handoff freezes M7-01 through M7-10 authority/safety requirements and
+authorizes one documentation-only commit. Upon successful commit M7A CONTRACT =
+FROZEN FOR GIT REVIEW; field-level mappings/storage schemas remain DEFINED / DRAFT.
+Master is NOT FOUND, Visual Spec runtime remains GAP and exact backend NOT FROZEN.
+Literal/formula safety, preservation fail-closed, significance unsupported-letter
+boundary, canonical vs display value and Benchmark plus generic fixture policy
+are frozen requirements, not implemented behavior. M7B remains NOT AUTHORIZED
+until separate Visual Spec acceptance and explicit implementation authorization.
+Closure regression evidence: C:/Users/conta/m7a_temp/closure/{focused.xml,full.xml}.
+No push/PR/merge permitted. Next destination: CORE / HUMAN REVIEW, M7A Git Review.
 
-`C:\Users\conta\Go ideas\Local Go ideas - Documentos\Desarrollo\Explora Analitica\explora_web_reporter`
+## Historical Evidence
 
-Checkpoint candidates verified from local bytes:
-
-1. `M5_CANONICAL_EXECUTION_ADAPTER_CORRECTIVE_REVIEW_CHECKPOINT_2026-09-15.zip`
-   - SHA-256: `B273D859FB29FA01129B8DE622646A197D48472DCB3B0E568E42AFFD15A81159`
-   - Historical expected SHA: MATCH
-   - Reported focused adapter tests: 44 PASS / 0 FAIL / 0 SKIP
-   - Current focused adapter tests: 44 PASS / 0 FAIL / 0 SKIP
-
-2. `M6_WEB_MIGRATION_CANONICAL_RESULTS_REMEDIATED_V3_2026-09-15.zip`
-   - SHA-256: `1BAE7A3D48A3A196E95957BAD27D506D36253C83C692C52A8FB1B066CC2AD3C7`
-   - Sampled files from this checkpoint match the current physical tree for M6/web/core files.
-
-No single checkpoint ZIP was found that exactly represents the whole current physical source tree. T0 therefore records source/checkpoint reconciliation as AMBIGUOUS and requires human review before merge.
-
-## Current Regression State
-
-Executed from `explora_web_reporter/` with `PYTHONPATH=.`:
-
-- M2: 31 PASS / 0 FAIL / 0 SKIP
-- M3: 45 PASS / 0 FAIL / 0 SKIP
-- M4: 61 PASS / 0 FAIL / 0 SKIP
-- M5: 75 PASS / 0 FAIL / 0 SKIP
-- M5 Execution Adapter: 44 PASS / 0 FAIL / 0 SKIP
-- M6: 97 PASS / 0 FAIL / 0 SKIP
-- Legacy parity: 2 PASS / 0 FAIL / 0 SKIP
-- Full regression, physical tree: 450 PASS / 0 FAIL / 0 SKIP
-- Full regression, adopted Git payload without excluded client DB: 449 PASS / 1 FAIL / 0 SKIP
-- Materialization tests: NOT FOUND
-
-Blocking adopted-payload failure:
-
-- `tests/test_database_validation.py::test_validate_reporter_database_accepts_builder_database`
-- The test requires `data/db/BD_Analitica_Explora.db`.
-- The file exists only in the local physical workspace, is 17,551,360 bytes, SHA-256 `1B0BD28180844EBC3CA59A1467B78EE6D486DB6CB8CC71E3D16B3388B77174DB`, and is prohibited from GitHub upload by T0 rules for productive/local databases.
-
-## T0 Required Exit Criteria
-
-Before merge to `main`:
-
-- Human review accepts AMBIGUOUS source/checkpoint reconciliation, or a single global checkpoint is supplied.
-- A separate authorized remediation replaces the local productive DB dependency with a non-sensitive committed fixture or adjusts the test contract.
-- Clean-clone reproducibility passes.
-- No client/productive data is added to Git.
-- T0 assessment is accepted by human review.
-
-## Merge Policy
-
-Do not merge this branch to `main` until T0 is closed.
-
-No new product functionality is authorized as part of repository adoption.
+Historical adoption/reproducibility findings remain unchanged in
+[T0 baseline verification](T0_BASELINE_VERIFICATION.md),
+[T0 repository adoption](T0_REPOSITORY_ADOPTION.md) and
+[T0 inventory](T0_AS_IS_INVENTORY.md). These record dated T0 observations,
+not the current runtime, implementation inventory or merge policy.
+The current accepted state is the table above; do not apply historical blocked
+or Legacy-default statements as current instructions.
