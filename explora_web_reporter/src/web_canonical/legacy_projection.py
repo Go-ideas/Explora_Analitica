@@ -5,6 +5,7 @@ from typing import Any
 from src.contracts.models import CanonicalBase, CanonicalResult, CanonicalSlice, CanonicalValue
 from src.contracts.vocabulary import DenominatorUnit, ValueUnit
 from src.web_canonical.comparison import ComparisonRecord, canonical_semantic_key
+from src.web_canonical.identity_bridge import LegacyIdentityBridge
 
 
 def legacy_comparison_records_from_report(
@@ -12,12 +13,20 @@ def legacy_comparison_records_from_report(
     canonical_result: CanonicalResult,
     *,
     request_identity: str = "",
+    identity_bridge: LegacyIdentityBridge | None = None,
 ) -> tuple[dict[tuple[tuple[str, str], ...], ComparisonRecord], tuple[str, ...]]:
     if not all(hasattr(legacy_result, attr) for attr in ("question_id", "summary")):
         return {}, ("Legacy result lacks actual ReportResult comparison source.",)
     summary = getattr(legacy_result, "summary")
     if summary is None or getattr(summary, "empty", True):
         return {}, ("Legacy ReportResult summary is empty.",)
+    if identity_bridge is not None:
+        try:
+            identity_bridge.validate()
+        except (ValueError, AttributeError) as exc:
+            return {}, (str(exc),)
+        if str(legacy_result.question_id) != identity_bridge.question_id:
+            return {}, ("Legacy bridge question identity mismatch",)
 
     bases = {base.base_id: base for base in canonical_result.bases}
     slices = {slice_item.slice_id: slice_item for slice_item in canonical_result.slices}
@@ -36,6 +45,7 @@ def legacy_comparison_records_from_report(
             value,
             base,
             slice_item,
+            identity_bridge,
         )
         if extracted.reason:
             limitations.append(extracted.reason)
@@ -62,6 +72,7 @@ def legacy_comparison_records_from_report(
                 "legacy_base": getattr(legacy_result, "base", None),
                 "summary_row_index": extracted.row_index,
                 "summary_column": extracted.column,
+                "identity_bridge": identity_bridge.identity if identity_bridge else None,
             },
         )
     if not records and not limitations:
@@ -91,10 +102,51 @@ def _extract_legacy_value(
     value: CanonicalValue,
     base: CanonicalBase,
     slice_item: CanonicalSlice,
+    identity_bridge: LegacyIdentityBridge | None = None,
 ) -> _Extraction:
     summary = getattr(legacy_result, "summary")
     work = summary.copy()
-    if "banner" in work.columns:
+    if identity_bridge is not None:
+        if value.question_id != identity_bridge.question_id or value.structure_id != identity_bridge.structure_ref or base.structure_id != identity_bridge.structure_ref:
+            return _Extraction(reason="Canonical bridge question/structure identity mismatch")
+        row_identities = {_stable_text(v) for v in (value.option_id, value.category_id, value.row_id, value.entity_id, value.column_id, value.loop_instance_id) if _stable_text(v)}
+        if len(row_identities) != 1:
+            return _Extraction(reason="Missing/conflicting canonical row identities")
+        if str(getattr(base.denominator_unit, "value", base.denominator_unit)) == DenominatorUnit.MENTION.value:
+            if identity_bridge.structure_type != "RM" or "m4_resolved_scope_type:PARENT_RM" not in base.provenance_refs or f"m4_resolved_scope_ref:{identity_bridge.structure_ref}" not in base.provenance_refs:
+                return _Extraction(reason="Unsupported or conflicting mention scope identity")
+        authority_refs = [r for r in identity_bridge.provenance_refs if r.startswith(("runtime_fp:", "structure_ref:", "package_sha:"))]
+        if any(r not in value.provenance_refs for r in authority_refs):
+            return _Extraction(reason="Canonical bridge configuration provenance mismatch")
+        metadata = getattr(legacy_result, "identity_rows", None)
+        required_metadata = {"source_variable", "codigo_respuesta", "banner", "respuesta", "banner_variable", "banner_raw_value"}
+        if metadata is None or metadata.empty or not required_metadata.issubset(metadata.columns):
+            return _Extraction(reason="Legacy report missing stable identity metadata")
+        row_id = _value_row_identity(value)
+        mappings = [r for r in identity_bridge.rows if r[0] == row_id]
+        if len(mappings) != 1:
+            return _Extraction(reason="Unresolved stable canonical row identity")
+        _, variable, code = mappings[0]
+        matched = metadata[metadata["source_variable"].map(_stable_text).eq(variable)]
+        if code is not None:
+            matched = matched[matched["codigo_respuesta"].map(_stable_text).eq(code)]
+        if slice_item.banner_dimension_id:
+            banners = [r for r in identity_bridge.banner_members if r[:2] == (slice_item.banner_dimension_id, slice_item.member_id)]
+            if len(banners) != 1:
+                return _Extraction(reason="Unresolved stable banner identity")
+            _, _, banner_variable, raw_value = banners[0]
+            matched = matched[matched["banner_variable"].eq(banner_variable) & matched["banner_raw_value"].map(_stable_text).eq(raw_value)]
+        else:
+            matched = matched[matched["banner_variable"].eq("") & matched["banner"].eq("Total")]
+        keys = matched[["banner", "respuesta"]].drop_duplicates()
+        if len(keys) != 1:
+            return _Extraction(reason="Missing/ambiguous Legacy row identity")
+        key = keys.iloc[0]
+        grain = metadata[metadata["banner"].eq(key["banner"]) & metadata["respuesta"].eq(key["respuesta"])]
+        if len(grain[["source_variable", "codigo_respuesta", "banner_variable", "banner_raw_value"]].drop_duplicates()) != 1:
+            return _Extraction(reason="Ambiguous Legacy aggregate contains conflicting stable identities")
+        work = work[work["banner"].eq(key["banner"]) & work["respuesta"].eq(key["respuesta"])]
+    elif "banner" in work.columns:
         banner_key = _legacy_banner_key(slice_item)
         banner_mask = work["banner"].map(_stable_text).eq(banner_key)
         if not banner_mask.any() and not slice_item.is_total:
@@ -106,7 +158,7 @@ def _extract_legacy_value(
                 reason=f"Legacy summary lacks stable banner slice {banner_key}."
             )
     row_identity = _value_row_identity(value)
-    if row_identity:
+    if row_identity and identity_bridge is None:
         matched = _filter_by_row_identity(work, row_identity)
         if matched is None:
             return _Extraction(
@@ -132,6 +184,10 @@ def _extract_legacy_value(
             )
         )
     row = work.iloc[0]
+    if identity_bridge is not None:
+        base_column = "base_menciones" if str(getattr(base.denominator_unit, "value", base.denominator_unit)) == DenominatorUnit.MENTION.value else "base"
+        if base_column not in work.columns or row[base_column] != base.unweighted_n:
+            return _Extraction(reason="Legacy denominator structural identity mismatch")
     return _Extraction(
         row[metric_column],
         source_ref=f"ReportResult.summary[{row.name}].{metric_column}",

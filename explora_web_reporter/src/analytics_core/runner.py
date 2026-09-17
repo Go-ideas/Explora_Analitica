@@ -129,6 +129,7 @@ def _dual_run_comparison(
         legacy_result,
         canonical_result,
         request_identity=request_identity,
+        identity_bridge=options.get("legacy_identity_bridge"),
     )
     if limitations and not legacy_records:
         canonical_records = {}
@@ -163,6 +164,7 @@ def _legacy_options(options: dict[str, Any]) -> dict[str, Any]:
         if key
         not in {
             "canonical_result",
+            "legacy_identity_bridge",
             "canonical_projection",
             "execution_mode",
             "dual_run_classifications",
