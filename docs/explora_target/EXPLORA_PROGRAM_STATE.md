@@ -2,12 +2,14 @@
 
 Date: 2026-09-17
 Repository: Go-ideas/Explora_Analitica
-Authoritative main: `0fe9caf1f7d9b942035403b28a89672eb92baf37`
-Documentation working branch: `docs/m7-excel-renderer-contract`
+Authoritative main: `8c2a61d9b921c9cc26c28b5afd33541aabc5976c`
+Documentation working branch: `docs/m7-prerequisite-contracts-v1`
 
 ## Current Accepted State
 
-This is the current program-state index, reconciled under Gate 33 authorization.
+This is the current program-state index, advanced under Gate 35 authorization.
+The accepted M7A closure snapshot remains historical evidence in Git. Gate 34
+adoption and the human waiver do not retrospectively amend that snapshot.
 It supersedes this index's T0-era operational status, not historical gate evidence.
 Human authorization accepts M2-M6 and Gates 27, 30, 19 and 32. No frozen
 methodological/analytical contract is reopened by this documentation update.
@@ -26,8 +28,9 @@ methodological/analytical contract is reopened by this documentation update.
 | Gate 19 Productive DUAL_RUN | CLOSED / ACCEPTED; Benchmark A 94/94 exact parity |
 | Gate 32 Canonical Default Switch | CLOSED / ACCEPTED, PR #5 merged and post-merge validated |
 | Gate 33 M7 entry | PASS / AUTHORIZED; M7A current-state/contract phase only |
-| M7A Current State | PASS / HUMAN REVIEW ACCEPTED |
-| M7A Contract | FROZEN FOR GIT REVIEW, effective upon successful documentation-closure validation and commit |
+| M7A Current State / Gate 34 | CLOSED / ACCEPTED / ADOPTED through PR #6 |
+| M7A Contract | ADOPTED; historical boundaries retained |
+| Gate 35 prerequisite contracts | PASS; V1 CONTRACTS FROZEN; full regression 602/0/0 |
 | M7B Renderer implementation | NOT AUTHORIZED |
 | M7C Master/VBA | NOT AUTHORIZED |
 | M7D Productive release | NOT AUTHORIZED |
@@ -40,6 +43,12 @@ Verified first-parent main history:
 - PR #3 materialization: `e465457d7e6e23d13bea8d43955c1a84790f5d65`.
 - PR #4 Gate 19 correction: `6c0bf08895603b2b80b6a3c5fb5e1fea744b9d30`.
 - PR #5 Gate 32 switch: `0fe9caf1f7d9b942035403b28a89672eb92baf37`.
+- PR #6 M7A adoption: `8c2a61d9b921c9cc26c28b5afd33541aabc5976c`.
+
+PR #6 parents are the Gate 32 main above and accepted documentation feature
+`d394941d57aeb6c4c24fba010f32d3cee7a02e31`. M7A adoption post-merge
+regression: 602/0/0, with focused 15/0/0, 41/0/0 and 26/0/0.
+External evidence: C:/Users/conta/m7a_temp/adoption_post_merge/{focused.xml,full.xml}.
 
 PR #5 parents are exactly pre-merge main
 `6c0bf08895603b2b80b6a3c5fb5e1fea744b9d30` and accepted feature
@@ -76,35 +85,30 @@ was imported as part of this state reconciliation.
 M7 = Excel Renderer, independent of Web over the same CanonicalResults. Core
 owns all official numbers, bases, weights, structure/mention scope, significance,
 warnings and QA decisions. Excel/VBA are presentation/interaction only.
-M7 STARTED = YES, M7A contract/current-state phase ONLY.
+M7 STARTED = YES, contract-definition phases ONLY. M7A is adopted;
+Gate 35 defines prerequisite V1 interfaces, not productive implementation.
 
 M7A artifacts:
 - [Current state](M7_EXCEL_RENDERER_CURRENT_STATE.md).
 - [Contract draft](M7_EXCEL_RENDERER_CONTRACT_DRAFT.md).
 - [Scope manifest](M7_EXCEL_RENDERER_SCOPE_MANIFEST.md).
 
-MASTER XLSM = NOT FOUND in the inspected repository/surrounding workspace.
-VISUAL SPEC RUNTIME CONTRACT = GAP. Macro/control-preserving template backend,
-numeric exactness profile, canonical workbook mapping and optional significance
-letter-token input require review before their implementation phases.
-No Master, renderer code or productive VBA has been built. No M7B/M7C/M7D
-automatic entry, push, PR or merge is authorized by Gate 33.
+Current Gate 35 contracts:
+- [Visual Spec V1](M7_VISUAL_SPEC_V1.md).
+- [Master interface V1](M7_MASTER_INTERFACE_CONTRACT_V1.md).
+- [Canonical workbook mapping V1](M7_CANONICAL_TO_WORKBOOK_MAPPING_V1.md).
+- [Numeric display profile V1](M7_EXCEL_NUMERIC_DISPLAY_PROFILE_V1.md).
+- [Significance presentation V1](M7_SIGNIFICANCE_PRESENTATION_INTERFACE_V1.md).
+- [Gate assessment and current gap register](M7_PREREQUISITE_CONTRACTS_GATE_ASSESSMENT.md).
 
-M7A untouched-code baseline rerun: export focused 15/0/0, canonical contract /
-transport focused 41/0/0, Gate 32 focused 26/0/0, full 602/0/0. External JUnit:
-`C:/Users/conta/m7a_temp/{focused.xml,full.xml}`. Only the four authorized current
-documentation files changed; historical milestone/gate documents remain immutable.
-Human M7A current-state review PASS; contract review PASS WITH REQUIRED CLOSURE.
-The closure handoff freezes M7-01 through M7-10 authority/safety requirements and
-authorizes one documentation-only commit. Upon successful commit M7A CONTRACT =
-FROZEN FOR GIT REVIEW; field-level mappings/storage schemas remain DEFINED / DRAFT.
-Master is NOT FOUND, Visual Spec runtime remains GAP and exact backend NOT FROZEN.
-Literal/formula safety, preservation fail-closed, significance unsupported-letter
-boundary, canonical vs display value and Benchmark plus generic fixture policy
-are frozen requirements, not implemented behavior. M7B remains NOT AUTHORIZED
-until separate Visual Spec acceptance and explicit implementation authorization.
-Closure regression evidence: C:/Users/conta/m7a_temp/closure/{focused.xml,full.xml}.
-No push/PR/merge permitted. Next destination: CORE / HUMAN REVIEW, M7A Git Review.
+MASTER XLSM = NOT FOUND in the inspected repository/surrounding workspace.
+Visual Spec, mapping, numeric, significance, provenance, determinism and safety
+contracts are frozen V1 documentation, not executable runtime contracts.
+VBA preservation backend remains GAP. Physical Master adoption and backend
+certification remain open. M7B READY = NO; M7B/M7C/M7D NOT AUTHORIZED.
+No Master, renderer code, productive VBA or tests are added. Gate 35 does not
+authorize a commit, push, PR or merge. Historical M7A evidence remains unchanged.
+Gate 35 regression evidence and closure are indexed in the current assessment.
 
 ## Historical Evidence
 
