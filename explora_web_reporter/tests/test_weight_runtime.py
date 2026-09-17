@@ -762,7 +762,7 @@ class WeightQAProvenanceAndRegressionTests(unittest.TestCase):
         )
         self.assertIn("weighted_n_raw", intended.deltas)
 
-    def test_default_execution_mode_still_legacy_and_rollback_needs_no_migration(
+    def test_default_canonical_preserves_unweighted_behavior_without_migration(
         self,
     ) -> None:
         result = evaluate_weighted_base(
@@ -770,7 +770,7 @@ class WeightQAProvenanceAndRegressionTests(unittest.TestCase):
             WeightEvaluationContext(respondent_ids=("r1",)),
         )
 
-        self.assertEqual(resolve_execution_mode(environ={}).value, "LEGACY")
+        self.assertEqual(resolve_execution_mode(environ={}).value, "CANONICAL_V1")
         self.assertEqual(result.resolution_source, RESOLUTION_NONE)
         self.assertIsNone(result.active_weight_id)
         self.assertIsNone(result.weighted_n)

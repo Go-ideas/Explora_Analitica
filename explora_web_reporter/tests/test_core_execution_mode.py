@@ -11,9 +11,9 @@ from src.contracts.vocabulary import ExecutionMode
 
 
 class CoreExecutionModeTests(unittest.TestCase):
-    def test_missing_config_defaults_to_legacy(self) -> None:
+    def test_missing_config_defaults_to_canonical(self) -> None:
         self.assertEqual(
-            resolve_execution_mode(environ={}), ExecutionMode.LEGACY
+            resolve_execution_mode(environ={}), ExecutionMode.CANONICAL_V1
         )
 
     def test_explicit_legacy_and_core_wrapper_are_supported(self) -> None:
@@ -39,7 +39,7 @@ class CoreExecutionModeTests(unittest.TestCase):
 
     def test_invalid_mode_fails_explicitly(self) -> None:
         with self.assertRaises(ExecutionModeError):
-            resolve_execution_mode("CANONICAL")
+            resolve_execution_mode("UNKNOWN_RUNTIME")
         with self.assertRaises(ExecutionModeError):
             resolve_execution_mode(environ={ANALYTICS_ENGINE_ENV_VAR: ""})
 

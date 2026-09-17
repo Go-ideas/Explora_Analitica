@@ -12,6 +12,7 @@ from src.analytics_core.runner import (
     DualRunExecution,
     generate_report,
 )
+from src.analytics_core.mode import resolve_execution_mode
 from src.contracts.models import CanonicalResult
 from src.contracts.vocabulary import ExecutionMode
 from src.export.report_exporter import report_to_excel_bytes
@@ -111,9 +112,7 @@ def render() -> None:
             type="primary",
             key="generate_report",
         )
-    execution_mode = str(
-        settings.get("execution_mode") or ExecutionMode.LEGACY.value
-    )
+    execution_mode = resolve_execution_mode(settings.get("execution_mode")).value
     current_request = web_request_from_settings(
         str(settings["question_id"]),
         settings,
@@ -392,14 +391,11 @@ def _report_controls(
                 on_click=_clear_filter_state,
                 args=(key_prefix,),
             )
+        execution_modes = [mode.value for mode in ExecutionMode]
         execution_mode = st.selectbox(
             "Modo de ejecución",
-            [
-                ExecutionMode.LEGACY.value,
-                ExecutionMode.CANONICAL_V1.value,
-                ExecutionMode.DUAL_RUN.value,
-            ],
-            index=0,
+            execution_modes,
+            index=execution_modes.index(resolve_execution_mode().value),
             key=f"{key_prefix}_execution_mode",
         )
 

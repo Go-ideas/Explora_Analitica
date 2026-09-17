@@ -23,7 +23,7 @@ def _canonical_binding_options() -> dict:
     }
 
 
-def test_legacy_remains_default(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_explicit_legacy_remains_available(monkeypatch: pytest.MonkeyPatch) -> None:
     calls = {}
 
     def fake_generate(self, request):
@@ -34,7 +34,7 @@ def test_legacy_remains_default(monkeypatch: pytest.MonkeyPatch) -> None:
         "src.analytics_core.runner.LegacyAdapter.generate",
         fake_generate,
     )
-    assert generate_report(Path("fake.db"), "Q1") == "legacy"
+    assert generate_report(Path("fake.db"), "Q1", mode="LEGACY") == "legacy"
     assert calls["options"] == {}
 
 
