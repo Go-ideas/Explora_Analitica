@@ -90,6 +90,9 @@ def main():
     evidence["blocker_resolution_status"] = {"B-G19-01": "RESOLVED" if all(first["requests"][key]["status"] == "PASS" for key in REQUEST_IDS) else "NOT RESOLVED", "B-G19-02": "RESOLVED" if first["requests"]["BA-04"]["status"] == "PASS" else "NOT RESOLVED", "B-G19-03": "RESOLVED" if first["requests"]["BA-05"]["status"] == "PASS" else "NOT RESOLVED"}
     evidence["difference_classifications"] = {"NONE": counts.get("PARITY", 0), "EXPECTED REPRESENTATIONAL DIFFERENCE": counts.get("PRESENTATION_ONLY", 0), "EXPECTED CONTRACTUAL DIFFERENCE": sum(counts.get(key, 0) for key in ("INTENDED_CORRECTION", "M2_BASE_DIFFERENCE", "M3_WEIGHT_DIFFERENCE", "M4_STRUCTURE_DIFFERENCE")), "UNEXPECTED NUMERICAL DELTA": counts.get("POTENTIAL_REGRESSION", 0), "UNEXPECTED STRUCTURAL DELTA": sum(bool(r.get("limitations") or r.get("error")) for r in first["requests"].values())}
     evidence["changed_files_from_baseline"] = subprocess.check_output(["git", "diff", "--name-status", BASELINE, "HEAD"], text=True).splitlines()
+    evidence["worktree_status"] = evidence.pop("modified_files")
+    evidence["modified_files"] = [line.split("\t")[-1] for line in evidence["changed_files_from_baseline"] if line.startswith("M\t")]
+    evidence["added_files"] = [line.split("\t")[-1] for line in evidence["changed_files_from_baseline"] if line.startswith("A\t")]
     regression_ok = True
     if args.regression_report:
         modules = {}
