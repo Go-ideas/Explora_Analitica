@@ -5,6 +5,7 @@ from pathlib import Path
 import streamlit as st
 
 from src.analytics_core.runner import generate_report
+from src.analytics_core.mode import resolve_execution_mode
 from src.contracts.vocabulary import ExecutionMode
 from src.ui.page_04_reporter import (
     _cached_available_questions,
@@ -70,9 +71,7 @@ def render() -> None:
             type="primary",
             width="stretch",
         )
-    execution_mode = str(
-        settings.get("execution_mode") or ExecutionMode.LEGACY.value
-    )
+    execution_mode = resolve_execution_mode(settings.get("execution_mode")).value
     current_request = web_request_from_settings(
         str(settings["question_id"]),
         settings,

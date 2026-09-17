@@ -25,12 +25,14 @@ def resolve_execution_mode(
         source = os.environ if environ is None else environ
         raw = source.get(ANALYTICS_ENGINE_ENV_VAR)
     if raw is None:
-        return ExecutionMode.LEGACY
+        return ExecutionMode.CANONICAL_V1
     normalized = str(raw).strip().upper()
+    if normalized == "CANONICAL":
+        normalized = ExecutionMode.CANONICAL_V1.value
     try:
         return ExecutionMode(normalized)
     except ValueError as exc:
-        allowed = ", ".join(mode.value for mode in ExecutionMode)
+        allowed = ", ".join((*[mode.value for mode in ExecutionMode], "CANONICAL"))
         raise ExecutionModeError(
             f"Invalid {ANALYTICS_ENGINE_ENV_VAR}: {raw!r}. "
             f"Allowed values: {allowed}."
