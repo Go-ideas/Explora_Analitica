@@ -1,0 +1,40 @@
+{
+  "fixture_id": "EXTERNAL_XLSM_FIXTURE_A",
+  "source_sha256": "cb3b545d5b379596a93f80af4de009f4a01ac384613777ecaecc92e464a29742",
+  "size": 15773323,
+  "vba_before_sha256": "b7fdbafcc21e66531e0fa63142df4ee9739b13d80ff41f10fec845f3464eaf58",
+  "targeted_vba_after_sha256": "b7fdbafcc21e66531e0fa63142df4ee9739b13d80ff41f10fec845f3464eaf58",
+  "native_vba_after_sha256": "5ea720448210955f9f377bc1cbf534e68843640723432f9de6177b2a5e384fa4",
+  "native_result": "FAIL_EXACT_VBA_HASH",
+  "targeted_result": {
+    "vba_exact": true,
+    "sheets": true,
+    "names": true,
+    "formulas": true,
+    "vba_relationships": true,
+    "missing_parts": [],
+    "added_parts": [],
+    "changed_semantic_parts": []
+  },
+  "untouched_parts_exact": true,
+  "temporary_derivatives_cleaned": true,
+  "source_unchanged": true,
+  "sheet_count": 8,
+  "visible_sheets": 5,
+  "hidden_sheets": 3,
+  "defined_name_count": 10,
+  "formula_count": 250883,
+  "part_count": 205,
+  "part_group_counts": {
+    "charts": 135,
+    "connections": 1,
+    "pivots": 13,
+    "slicers": 10,
+    "tables": 0
+  },
+  "untouched_parts_manifest_sha256": "58275b62c4082254ebdd79306c771c1e6a7019e8d963a89a6fd2e245a870e703",
+  "python": "3.13.3",
+  "zlib_runtime": "1.3.1",
+  "lxml": "6.0.0",
+  "operation_profile": "DECLARED_CELL_CERTIFICATION_ONLY"
+}
