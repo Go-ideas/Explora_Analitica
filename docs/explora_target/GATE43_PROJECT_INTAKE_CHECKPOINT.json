@@ -1,0 +1,37 @@
+{
+  "schema_version": "GATE43_PROJECT_INTAKE_CHECKPOINT_V1",
+  "starting_main_sha": "a5dd9e13dbb26e9d24ba601c700e24da97e8771d",
+  "project_spec_contract": "EXPLORA_PROJECT_SPEC_V1",
+  "artifacts": {
+    "schema_sha256": "75bc581584abb1de0f636c7c7f86778086c186b9675cc832d56d3fdf880a3544",
+    "minimal_normalized_fingerprint": "1bd0bc6747dac85a47417ac2d0a22286c934d7eede4008d258d13c395ecc3ead",
+    "representative_normalized_fingerprint": "a81a78bf2a085d3a30efc7c3633e140ea14f11bb24e13198b3737cdec787bb2d",
+    "invalid_fixture_sha256": "4711a683050c5cb373ee2a5a3579596a68bed35112b3e742e365a75627570662"
+  },
+  "readiness": {
+    "minimal": "READY_FOR_EXECUTION",
+    "representative": "READY_FOR_EXECUTION",
+    "invalid_ambiguous_cases": 12,
+    "fail_closed": true,
+    "human_decision_state": "NEEDS_HUMAN_DECISION"
+  },
+  "authority": {
+    "b1_preserved": true,
+    "b2_preserved": true,
+    "b3_preserved": true,
+    "canonical_results_authority_preserved": true,
+    "excel_vba_analytical_authority": false,
+    "web_analytical_authority": false,
+    "ai_official_statistical_authority": false,
+    "m2_m7_semantics_modified": false
+  },
+  "tests": {
+    "gate43_focused": {"passed": 21, "failed": 0, "skipped": 0},
+    "relevant_regression": {"passed": 510, "failed": 0, "skipped": 0},
+    "full_regression": {"passed": 896, "failed": 0, "skipped": 0}
+  },
+  "unexpected_skips": [],
+  "unexpected_numerical_deltas": [],
+  "real_project_execution_started": false,
+  "gate44_started": false
+}

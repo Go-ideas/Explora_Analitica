@@ -132,6 +132,16 @@ acceptance or authorization for a later milestone. See
 [Gate 42 qualification](GATE42_PRODUCTION_DYNAMIC_REGION_QUALIFICATION.md) and
 [checkpoint](GATE42_PRODUCTION_DYNAMIC_REGION_CHECKPOINT.json).
 
+Gate 43 adds the pre-execution `EXPLORA_PROJECT_SPEC_V1` intake boundary. It
+normalizes and fingerprints accepted structured configuration, validates stable
+identities and cross-references, and returns explicit readiness or fail-closed
+human-decision states. It does not execute a real project, alter M2-M7 semantics,
+or grant analytical authority to AI, Web, or Excel. See the
+[current-state inventory](GATE43_PROJECT_INTAKE_CURRENT_STATE.md),
+[contract](GATE43_PROJECT_SPEC_CONTRACT_V1.md), and
+[review](GATE43_PROJECT_INTAKE_PROJECT_SPEC_REVIEW.md). Human review remains
+required; Gate 44 is not authorized.
+
 PR #14 initial source-level Human Review = FAIL / CORRECTIVE REMEDIATION REQUIRED.
 The corrective implementation resolves B-G41-01 through B-G41-06: canonical
 significance transport and contraction cleanup, independent axis qualification,

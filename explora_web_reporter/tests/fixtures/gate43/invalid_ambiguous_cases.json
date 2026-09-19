@@ -1,0 +1,14 @@
+[
+  {"case_id": "missing_dataset_variable", "mutation": "unknown_question_variable", "expected_code": "UNKNOWN_DATASET_VARIABLE", "expected_status": "VALIDATION_FAILED"},
+  {"case_id": "unknown_weight_variable", "mutation": "unknown_weight_variable", "expected_code": "UNKNOWN_WEIGHT_VARIABLE", "expected_status": "VALIDATION_FAILED"},
+  {"case_id": "negative_weight", "mutation": "negative_weight", "expected_code": "NEGATIVE_WEIGHT", "expected_status": "VALIDATION_FAILED"},
+  {"case_id": "unmatched_rm_member", "mutation": "unmatched_rm_member", "expected_code": "UNMATCHED_RM_MEMBER", "expected_status": "VALIDATION_FAILED"},
+  {"case_id": "contradictory_category", "mutation": "contradictory_category", "expected_code": "CONTRADICTORY_CATEGORY", "expected_status": "VALIDATION_FAILED"},
+  {"case_id": "ambiguous_universe", "mutation": "ambiguous_universe", "expected_code": "AMBIGUOUS_UNIVERSE", "expected_status": "NEEDS_HUMAN_DECISION"},
+  {"case_id": "unsupported_question_type", "mutation": "unsupported_question_type", "expected_code": "UNSUPPORTED_QUESTION_TYPE", "expected_status": "VALIDATION_FAILED"},
+  {"case_id": "duplicate_stable_id", "mutation": "duplicate_question", "expected_code": "DUPLICATE_STABLE_ID", "expected_status": "VALIDATION_FAILED"},
+  {"case_id": "invalid_significance_confidence", "mutation": "invalid_confidence", "expected_code": "INVALID_CONFIDENCE", "expected_status": "VALIDATION_FAILED"},
+  {"case_id": "missing_project_identity", "mutation": "missing_project_id", "expected_code": "REQUIRED_FIELD", "expected_status": "VALIDATION_FAILED"},
+  {"case_id": "invalid_banner_filter_reference", "mutation": "invalid_output_reference", "expected_code": "UNKNOWN_BANNER", "expected_status": "VALIDATION_FAILED"},
+  {"case_id": "ai_requires_human", "mutation": "ai_requires_human", "expected_code": "AI_HUMAN_APPROVAL_REQUIRED", "expected_status": "NEEDS_HUMAN_DECISION"}
+]

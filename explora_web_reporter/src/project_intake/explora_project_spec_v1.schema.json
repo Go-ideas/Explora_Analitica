@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://explora.local/contracts/explora-project-spec-v1.schema.json",
+  "title": "EXPLORA_PROJECT_SPEC_V1",
+  "type": "object",
+  "required": ["schema_version", "project", "dataset", "questions", "universes", "weights", "banners", "filters", "significance_requests", "output_requests", "ambiguities", "ai_interpretations", "provenance"],
+  "properties": {
+    "schema_version": {"const": "EXPLORA_PROJECT_SPEC_V1"},
+    "project": {
+      "type": "object",
+      "required": ["project_id", "display_name", "project_version", "spec_version"],
+      "properties": {
+        "project_id": {"type": "string", "minLength": 1},
+        "display_name": {"type": "string", "minLength": 1},
+        "project_version": {"type": "string", "minLength": 1},
+        "spec_version": {"type": "string", "minLength": 1}
+      }
+    },
+    "dataset": {
+      "type": "object",
+      "required": ["source_id", "input_type", "fingerprint", "respondent_id_variable", "duplicate_row_policy", "variables"],
+      "properties": {
+        "input_type": {"enum": ["SAV", "XLSX", "CSV", "CANONICAL_RUNTIME"]},
+        "duplicate_row_policy": {"enum": ["FAIL", "ALLOW_EXPLICIT"]},
+        "variables": {"type": "array", "items": {"$ref": "#/$defs/variable"}}
+      }
+    },
+    "questions": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/question"}},
+    "universes": {"type": "array", "minItems": 1},
+    "weights": {"type": "array"},
+    "banners": {"type": "array"},
+    "filters": {"type": "array"},
+    "significance_requests": {"type": "array"},
+    "output_requests": {"type": "array", "minItems": 1},
+    "ambiguities": {"type": "array"},
+    "ai_interpretations": {"type": "array"},
+    "derived_variables": {"type": "array"},
+    "provenance": {"type": "object"}
+  },
+  "$defs": {
+    "variable": {
+      "type": "object",
+      "required": ["variable_id", "source_name", "data_type", "missing_values"],
+      "properties": {"data_type": {"enum": ["INTEGER", "NUMBER", "STRING", "BOOLEAN", "DATE"]}}
+    },
+    "question": {
+      "type": "object",
+      "required": ["question_id", "question_type", "source_variables", "display_label", "universe_ref", "categories"],
+      "properties": {
+        "question_type": {"enum": ["RU", "RM", "MENTION", "PARENT_RM", "NUMERIC", "SCALE", "GRID_ESCALA", "GRID_RM", "LOOP_RM", "LOOP_RU", "LOOP_NUMERICO"]},
+        "source_variables": {"type": "array", "items": {"type": "string"}},
+        "categories": {"type": "array"}
+      }
+    }
+  }
+}
