@@ -1,0 +1,8 @@
+{
+  "builder": "scripts/build_gate41_fixture.py",
+  "customer_data_used": false,
+  "customer_workbook_used": false,
+  "fixture_sha256": "f48294c738729594840d55a2dee611d19b9a87079e8e61a37be6b581d6084544",
+  "schema_version": "GATE41_SYNTHETIC_FIXTURE_PROVENANCE_V1",
+  "source_fixture": "generic_macro_renderer_fixture.xlsm"
+}

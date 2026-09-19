@@ -110,6 +110,18 @@ Current Gate 35 contracts:
 Gate 40A additive contract:
 - [Dynamic Region Contract V1](M7_DYNAMIC_REGION_CONTRACT_V1.md).
 
+Gate 41 implements the additive Dynamic Region runtime foundation on a
+deterministic synthetic, non-customer XLSM fixture. TABLE and RANGE regions,
+bounded ROWS/COLUMNS/ROWS_AND_COLUMNS growth, collision validation, style and
+presentation-formula policies, contraction, lineage, explicit dynamic plan
+operations, deterministic normalized plans/logical output, and exact VBA
+preservation are covered. The existing fixed-slot path and Production Master are
+unchanged. See [implementation review](GATE41_DYNAMIC_REGION_RUNTIME_IMPLEMENTATION_REVIEW.md)
+and [checkpoint](GATE41_DYNAMIC_REGION_RUNTIME_CHECKPOINT.json).
+
+Production Master Dynamic Region qualification = NOT PERFORMED. Productive
+Dynamic Region release = NOT AUTHORIZED. Binary output determinism = NOT CLAIMED.
+
 The Dynamic Region contract is additive and does not rewrite frozen Gate 35
 semantics. It defines future region identity, bounded envelopes, ownership,
 style/formula policy, collisions, contraction, explicit RenderPlan operations and
