@@ -1,0 +1,34 @@
+{
+  "schema_version": "GATE38_REVIEW_CHECKPOINT_V1",
+  "authoritative_starting_main_sha": "87c632eb3c1338fa92a6221b865694964b864f6b",
+  "branch": "feature/m7-production-master-first-integration",
+  "production_master_id": "EXPLORA_PRODUCTION_MASTER_V1",
+  "production_master_version": "1.0.0",
+  "render_plan_sha256": "df818e86564de51077170e608432b26e0dba7ad3e0f41758b57736b95f2e50c2",
+  "rendered_output_sha256": "09272b0c2cb04b8f95febe2977825aa7945a52e51f72b4582d1f4a26c72bd012",
+  "tests": {
+    "focused_gate38": {"passed": 20, "failed": 0, "skipped": 0},
+    "gate35_36_37": {"passed": 363, "failed": 0, "skipped": 0},
+    "full": {"passed": 771, "failed": 0, "skipped": 0}
+  },
+  "unexpected_skips": [],
+  "unexpected_numerical_deltas": [],
+  "unexpected_structural_deltas": [],
+  "files": {
+    "explora_web_reporter/production_masters/EXPLORA_PRODUCTION_MASTER_V1.xlsm": "250a51ae55a877ea0a151be3bdf0a6ab9b4bc97fabbb9ccdd2f5e26abb45535b",
+    "explora_web_reporter/production_masters/EXPLORA_PRODUCTION_MASTER_V1.qualification.json": "08db7ece677297d0b78e9d17d290f1c18a9786917894b7ca3462fcedc9453076",
+    "explora_web_reporter/src/excel_renderer/qualification.py": "6a71ebd50e8ed6d14c79d2f498e589abf257904c0f881b4f5fab45313355bab9",
+    "explora_web_reporter/src/excel_renderer/production.py": "d84e7150af1cc2ebd982044dd3e87d281bf6713bcac44174cb94c96733c76052",
+    "explora_web_reporter/scripts/build_gate38_production_master.py": "c265ec9438f7bbea2a03551f06de1a48b5d7400440c195f191331b9feaf664f6",
+    "explora_web_reporter/scripts/gate38_review_evidence.py": "f136d140eb37ba3c2970b6b5adf25c17748156b3cfc56a0de25dad05f5942f5f",
+    "explora_web_reporter/tests/test_gate38_production_master.py": "84775a0b1e74e131d4153b39b17f3d06be94432be363da5046c317d9cd494718",
+    "docs/explora_target/M7_GATE38_FIRST_INTEGRATION_EVIDENCE.json": "6bebb93d8b1f57b42e7cc4fed25d351c7fc125ab99dd45403e64a8f81d6ae8a3",
+    "docs/explora_target/M7_PRODUCTION_MASTER_QUALIFICATION_AND_FIRST_INTEGRATION_REVIEW.md": "f516c67996446a7209d2c78b7a7bb160f25ec1b9400cf1209285935809bc3049"
+  },
+  "excluded": [
+    "Benchmark A source data",
+    "Benchmark A release package",
+    "rendered XLSM outputs",
+    "customer workbooks and VBA"
+  ]
+}

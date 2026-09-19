@@ -1,0 +1,57 @@
+{
+  "schema_version": "M7_PRODUCTION_MASTER_QUALIFICATION_V1",
+  "master_id": "EXPLORA_PRODUCTION_MASTER_V1",
+  "master_version": "1.0.0",
+  "filename": "EXPLORA_PRODUCTION_MASTER_V1.xlsm",
+  "master_sha256": "250a51ae55a877ea0a151be3bdf0a6ab9b4bc97fabbb9ccdd2f5e26abb45535b",
+  "vba_present": true,
+  "vba_project_sha256": "0f879b60ed12315085bc722c3f59163f86ce24609e3ba6ad379069c44779b758",
+  "contracts": {
+    "visual_spec": "M7_VISUAL_SPEC_V1",
+    "master_interface": "M7_MASTER_INTERFACE_CONTRACT_V1",
+    "mapping": "M7_CANONICAL_TO_WORKBOOK_MAPPING_V1",
+    "numeric_display": "M7_EXCEL_NUMERIC_DISPLAY_PROFILE_V1",
+    "significance_presentation": "M7_SIGNIFICANCE_PRESENTATION_INTERFACE_V1",
+    "vba_preservation": "M7_VBA_PRESERVATION_V1",
+    "provenance_determinism": "M7_PROVENANCE_DETERMINISM_V1"
+  },
+  "renderer_build": "M7B_RENDERER_V1",
+  "qualification_status": "QUALIFIED",
+  "supported_capabilities": [
+    "canonical numeric result delivery",
+    "canonical unweighted base delivery",
+    "literal project identity delivery",
+    "frozen numeric display profiles",
+    "complete canonical payload audit",
+    "structured provenance and CellMap",
+    "bounded declared-cell OOXML mutation",
+    "exact opaque VBA preservation"
+  ],
+  "unsupported_capabilities": [
+    "table growth beyond fixed capacity 256",
+    "chart, pivot, slicer or connection mutation",
+    "signed package mutation",
+    "new formula authoring",
+    "runtime VBA behavioral certification",
+    "production-wide project and metric coverage"
+  ],
+  "roles": [
+    {"role_id": "presentation", "sheet": "presentation", "table": "CertificationResults", "capacity": 1},
+    {"role_id": "provenance", "sheet": "provenance", "table": "Production_provenance", "capacity": 256},
+    {"role_id": "results", "sheet": "results", "table": "Production_results", "capacity": 256},
+    {"role_id": "bases", "sheet": "bases", "table": "Production_bases", "capacity": 256},
+    {"role_id": "slices", "sheet": "slices", "table": "Production_slices", "capacity": 256},
+    {"role_id": "significance", "sheet": "significance", "table": "Production_significance", "capacity": 256},
+    {"role_id": "qa", "sheet": "qa", "table": "Production_qa", "capacity": 256},
+    {"role_id": "cell_map", "sheet": "cell_map", "table": "Production_cell_map", "capacity": 256},
+    {"role_id": "canonical_payload", "sheet": "canonical_payload", "table": "Production_canonical_payload", "capacity": 256},
+    {"role_id": "configuration", "sheet": "configuration", "table": "MasterRoleRegistry", "capacity": 11},
+    {"role_id": "navigation", "sheet": "navigation", "table": "Certification_navigation", "capacity": 1}
+  ],
+  "writable_slots": [
+    {"slot_id": "benchmark_result", "role_id": "presentation", "kind": "numeric", "storage_mode": "exact_numeric", "name": "ProductionResultSlot", "table": null, "row": null, "column": null, "status_name": "ProductionResultStatus", "significance_token_id": null, "significance_value_id": null, "label_name": "ProductionResultLabel"},
+    {"slot_id": "benchmark_base", "role_id": "presentation", "kind": "numeric", "storage_mode": "exact_numeric", "name": "ProductionBaseSlot", "table": null, "row": null, "column": null, "status_name": "ProductionBaseStatus", "significance_token_id": null, "significance_value_id": null, "label_name": "ProductionBaseLabel"},
+    {"slot_id": "project_identity", "role_id": "presentation", "kind": "literal", "storage_mode": "exact_text", "name": "ProductionProjectLabel", "table": null, "row": null, "column": null, "status_name": "ProductionProjectLabelStatus", "significance_token_id": null, "significance_value_id": null, "label_name": null}
+  ],
+  "presentation_formulas": [["presentation", "E1", "=1+1"]]
+}
