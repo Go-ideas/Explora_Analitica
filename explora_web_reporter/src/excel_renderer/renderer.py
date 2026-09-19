@@ -302,7 +302,7 @@ def open_master(path, request):
     require(manifest.interface_version == MASTER and VISUAL in manifest.compatible_visual_spec_versions,
             "Incompatible Master version")
     require(sha(path) == manifest.artifact_sha256, "Master hash mismatch")
-    require(bool(manifest.writable_slots) and request.slots == manifest.writable_slots,
+    require(bool(request.slots) and all(slot in manifest.writable_slots for slot in request.slots),
             "Undeclared target / incomplete Master slot coverage")
     inventory = inspect_package(Path(path))
     require(inventory["whole_sha256"] == manifest.artifact_sha256, "Master changed during inspection")
@@ -565,7 +565,7 @@ def plan_render(request: RenderRequest, master_path: Path) -> RenderPlan:
                     run = runs.get(binding["result_run_id"])
                     require(run is not None, "Missing canonical result")
                     slot = slots.get(binding["slot_id"])
-                    require(slot is not None, "Missing/unknown mapping")
+                    require(slot is not None, "Missing/unknown mapping / incomplete slot coverage")
                     require(slot.role_id == section["sheet_role"], "Mapping role mismatch")
                     cell = resolve_slot(w, roles, slot)
                     used_slots.add(slot.slot_id)

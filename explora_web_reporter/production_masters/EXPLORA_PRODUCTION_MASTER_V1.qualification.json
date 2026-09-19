@@ -1,9 +1,9 @@
 {
   "schema_version": "M7_PRODUCTION_MASTER_QUALIFICATION_V1",
   "master_id": "EXPLORA_PRODUCTION_MASTER_V1",
-  "master_version": "1.0.0",
+  "master_version": "1.1.0",
   "filename": "EXPLORA_PRODUCTION_MASTER_V1.xlsm",
-  "master_sha256": "250a51ae55a877ea0a151be3bdf0a6ab9b4bc97fabbb9ccdd2f5e26abb45535b",
+  "master_sha256": "a8313adf706016b30b8837a7bc42cb80c7ccc281f2663616a7f22b8daa8d10dd",
   "vba_present": true,
   "vba_project_sha256": "0f879b60ed12315085bc722c3f59163f86ce24609e3ba6ad379069c44779b758",
   "contracts": {
@@ -25,7 +25,8 @@
     "complete canonical payload audit",
     "structured provenance and CellMap",
     "bounded declared-cell OOXML mutation",
-    "exact opaque VBA preservation"
+    "exact opaque VBA preservation",
+    "canonical significance token presentation"
   ],
   "unsupported_capabilities": [
     "table growth beyond fixed capacity 256",
@@ -51,7 +52,8 @@
   "writable_slots": [
     {"slot_id": "benchmark_result", "role_id": "presentation", "kind": "numeric", "storage_mode": "exact_numeric", "name": "ProductionResultSlot", "table": null, "row": null, "column": null, "status_name": "ProductionResultStatus", "significance_token_id": null, "significance_value_id": null, "label_name": "ProductionResultLabel"},
     {"slot_id": "benchmark_base", "role_id": "presentation", "kind": "numeric", "storage_mode": "exact_numeric", "name": "ProductionBaseSlot", "table": null, "row": null, "column": null, "status_name": "ProductionBaseStatus", "significance_token_id": null, "significance_value_id": null, "label_name": "ProductionBaseLabel"},
-    {"slot_id": "project_identity", "role_id": "presentation", "kind": "literal", "storage_mode": "exact_text", "name": "ProductionProjectLabel", "table": null, "row": null, "column": null, "status_name": "ProductionProjectLabelStatus", "significance_token_id": null, "significance_value_id": null, "label_name": null}
+    {"slot_id": "project_identity", "role_id": "presentation", "kind": "literal", "storage_mode": "exact_text", "name": "ProductionProjectLabel", "table": null, "row": null, "column": null, "status_name": "ProductionProjectLabelStatus", "significance_token_id": null, "significance_value_id": null, "label_name": null},
+    {"slot_id": "significance_marker", "role_id": "presentation", "kind": "literal", "storage_mode": "exact_text", "name": "ProductionSignificanceSlot", "table": null, "row": null, "column": null, "status_name": "ProductionSignificanceStatus", "significance_token_id": "canonical_marker", "significance_value_id": null, "label_name": null}
   ],
   "presentation_formulas": [["presentation", "E1", "=1+1"]]
 }
