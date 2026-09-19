@@ -119,8 +119,18 @@ preservation are covered. The existing fixed-slot path and Production Master are
 unchanged. See [implementation review](GATE41_DYNAMIC_REGION_RUNTIME_IMPLEMENTATION_REVIEW.md)
 and [checkpoint](GATE41_DYNAMIC_REGION_RUNTIME_CHECKPOINT.json).
 
-Production Master Dynamic Region qualification = NOT PERFORMED. Productive
-Dynamic Region release = NOT AUTHORIZED. Binary output determinism = NOT CLAIMED.
+At Gate 41 closure, Production Master Dynamic Region qualification had not yet
+been performed. Productive Dynamic Region release remains NOT AUTHORIZED and
+rendered-output binary determinism remains NOT CLAIMED.
+
+Gate 42 derives the deterministic Production Master candidate 1.2.0 from the
+preserved 1.1.0 rollback artifact and qualifies bounded Dynamic Result and
+provenance regions on the real Master. Core/Canonical authority, fixed slots,
+Gate 38/39 behavior, VBA and protected surfaces remain unchanged. This is
+implementation/qualification evidence pending Human Review; it is not human
+acceptance or authorization for a later milestone. See
+[Gate 42 qualification](GATE42_PRODUCTION_DYNAMIC_REGION_QUALIFICATION.md) and
+[checkpoint](GATE42_PRODUCTION_DYNAMIC_REGION_CHECKPOINT.json).
 
 PR #14 initial source-level Human Review = FAIL / CORRECTIVE REMEDIATION REQUIRED.
 The corrective implementation resolves B-G41-01 through B-G41-06: canonical

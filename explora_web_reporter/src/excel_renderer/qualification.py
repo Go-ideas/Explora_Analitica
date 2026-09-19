@@ -49,7 +49,7 @@ def load_qualified_master(manifest_path: Path, master_path: Path) -> QualifiedMa
     require(isinstance(data, dict) and set(data) == required, "Invalid qualification manifest fields")
     require(data["schema_version"] == QUALIFICATION_SCHEMA, "Unsupported qualification schema")
     require(data["master_id"] == "EXPLORA_PRODUCTION_MASTER_V1", "Wrong Master ID")
-    require(data["master_version"] in ("1.0.0", "1.1.0"), "Unsupported Master version")
+    require(data["master_version"] in ("1.0.0", "1.1.0", "1.2.0"), "Unsupported Master version")
     require(data["filename"] == master_path.name, "Master filename mismatch")
     require(data["qualification_status"] == "QUALIFIED", "Master is not qualified")
     require(data["renderer_build"] == BUILD, "Unsupported renderer build")

@@ -1,0 +1,193 @@
+{
+  "schema_version": "M7_PRODUCTION_DYNAMIC_REGION_QUALIFICATION_V1",
+  "master_id": "EXPLORA_PRODUCTION_MASTER_V1",
+  "master_version": "1.2.0",
+  "filename": "EXPLORA_PRODUCTION_MASTER_V1_2.xlsm",
+  "master_sha256": "f3a11f291b6c661f0c937e9c95d7f227c351d7261b2e01aa44dfd4167d5c869c",
+  "baseline_version": "1.1.0",
+  "baseline_filename": "EXPLORA_PRODUCTION_MASTER_V1.xlsm",
+  "baseline_sha256": "a8313adf706016b30b8837a7bc42cb80c7ccc281f2663616a7f22b8daa8d10dd",
+  "vba_project_sha256": "0f879b60ed12315085bc722c3f59163f86ce24609e3ba6ad379069c44779b758",
+  "region_contract_version": "M7_DYNAMIC_REGION_CONTRACT_V1",
+  "renderer_build": "M7_DYNAMIC_REGION_RUNTIME_V1",
+  "qualification_status": "CANDIDATE",
+  "declarations": [
+    {
+      "region_id": "PRODUCTION_DYNAMIC_RESULTS_V1",
+      "role_id": "presentation",
+      "worksheet_role": "presentation",
+      "sheet": "presentation",
+      "region_kind": "RANGE",
+      "table_id": null,
+      "anchor_name": "ProductionDynamicResultAnchor",
+      "growth_dimensions": "ROWS_AND_COLUMNS",
+      "min_rows": 1,
+      "min_columns": 1,
+      "max_rows": 8,
+      "max_columns": 3,
+      "owned_envelope": {
+        "left": 10,
+        "top": 2,
+        "right": 12,
+        "bottom": 9
+      },
+      "field_columns": [
+        {
+          "field_id": "estimate",
+          "source_field": "estimate",
+          "column_offset": 0,
+          "display_profile_ref": "PROPORTION",
+          "storage_mode": "exact_numeric"
+        },
+        {
+          "field_id": "status",
+          "source_field": "value_status",
+          "column_offset": 1,
+          "display_profile_ref": "LITERAL",
+          "storage_mode": "exact_text"
+        },
+        {
+          "field_id": "significance",
+          "source_field": "__SIGNIFICANCE_TOKEN__",
+          "column_offset": 2,
+          "display_profile_ref": "SIGNIFICANCE_TOKEN",
+          "storage_mode": "exact_text"
+        }
+      ],
+      "style_policy_ref": "PRODUCTION_DYNAMIC_RESULTS_STYLE_V1",
+      "formula_policy_ref": "NONE"
+    },
+    {
+      "region_id": "PRODUCTION_DYNAMIC_PROVENANCE_V1",
+      "role_id": "provenance",
+      "worksheet_role": "presentation",
+      "sheet": "presentation",
+      "region_kind": "RANGE",
+      "table_id": null,
+      "anchor_name": "ProductionDynamicProvenanceAnchor",
+      "growth_dimensions": "ROWS",
+      "min_rows": 1,
+      "min_columns": 1,
+      "max_rows": 1,
+      "max_columns": 1,
+      "owned_envelope": {
+        "left": 14,
+        "top": 2,
+        "right": 14,
+        "bottom": 2
+      },
+      "field_columns": [
+        {
+          "field_id": "result_run_id",
+          "source_field": "result_run_id",
+          "column_offset": 0,
+          "display_profile_ref": "LITERAL",
+          "storage_mode": "exact_text"
+        }
+      ],
+      "style_policy_ref": "PRODUCTION_DYNAMIC_PROVENANCE_STYLE_V1",
+      "formula_policy_ref": "NONE"
+    }
+  ],
+  "style_policies": [
+    {
+      "style_policy_id": "PRODUCTION_DYNAMIC_RESULTS_STYLE_V1",
+      "region_id": "PRODUCTION_DYNAMIC_RESULTS_V1",
+      "template_cell": "presentation!J2",
+      "propagation_axis": "ROWS_AND_COLUMNS",
+      "owned_attributes": [
+        "font",
+        "fill",
+        "border",
+        "alignment",
+        "protection"
+      ],
+      "unsupported_attributes": [
+        "row_height",
+        "column_width",
+        "conditional_formatting"
+      ],
+      "table_style_policy": "NOT_APPLICABLE"
+    },
+    {
+      "style_policy_id": "PRODUCTION_DYNAMIC_PROVENANCE_STYLE_V1",
+      "region_id": "PRODUCTION_DYNAMIC_PROVENANCE_V1",
+      "template_cell": "presentation!N2",
+      "propagation_axis": "ROWS",
+      "owned_attributes": [
+        "font",
+        "fill",
+        "protection"
+      ],
+      "unsupported_attributes": [
+        "row_height",
+        "column_width",
+        "conditional_formatting"
+      ],
+      "table_style_policy": "NOT_APPLICABLE"
+    }
+  ],
+  "formula_policies": [],
+  "fixed_slots": [
+    {
+      "slot_id": "benchmark_result",
+      "role_id": "presentation",
+      "kind": "numeric",
+      "storage_mode": "exact_numeric",
+      "name": "ProductionResultSlot",
+      "table": null,
+      "row": null,
+      "column": null,
+      "status_name": "ProductionResultStatus",
+      "significance_token_id": null,
+      "significance_value_id": null,
+      "label_name": "ProductionResultLabel"
+    },
+    {
+      "slot_id": "benchmark_base",
+      "role_id": "presentation",
+      "kind": "numeric",
+      "storage_mode": "exact_numeric",
+      "name": "ProductionBaseSlot",
+      "table": null,
+      "row": null,
+      "column": null,
+      "status_name": "ProductionBaseStatus",
+      "significance_token_id": null,
+      "significance_value_id": null,
+      "label_name": "ProductionBaseLabel"
+    },
+    {
+      "slot_id": "project_identity",
+      "role_id": "presentation",
+      "kind": "literal",
+      "storage_mode": "exact_text",
+      "name": "ProductionProjectLabel",
+      "table": null,
+      "row": null,
+      "column": null,
+      "status_name": "ProductionProjectLabelStatus",
+      "significance_token_id": null,
+      "significance_value_id": null,
+      "label_name": null
+    },
+    {
+      "slot_id": "significance_marker",
+      "role_id": "presentation",
+      "kind": "literal",
+      "storage_mode": "exact_text",
+      "name": "ProductionSignificanceSlot",
+      "table": null,
+      "row": null,
+      "column": null,
+      "status_name": "ProductionSignificanceStatus",
+      "significance_token_id": "canonical_marker",
+      "significance_value_id": null,
+      "label_name": null
+    }
+  ],
+  "lineage": {
+    "derivation": "DETERMINISTIC_FROM_ACCEPTED_BASELINE",
+    "builder": "scripts/build_gate42_production_master.py"
+  }
+}
