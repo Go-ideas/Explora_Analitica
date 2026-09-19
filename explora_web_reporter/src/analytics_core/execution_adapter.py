@@ -11,6 +11,7 @@ from src.analytics_core.results import (
     value_from_formula,
 )
 from src.analytics_core.result_identity import new_result_run_id
+from src.analytics_core.significance import ProportionFamilyRequest, execute_proportion_family
 from src.analytics_core.structure import (
     AnalyticalRecord,
     DenominatorLedger,
@@ -88,6 +89,7 @@ class CanonicalExecutionContext:
     slices: tuple[SliceExecutionAuthority, ...] = field(default_factory=tuple)
     weight_result: WeightEvaluationResult | None = None
     comparisons: tuple[SignificanceRelation, ...] = field(default_factory=tuple)
+    significance_families: tuple[ProportionFamilyRequest, ...] = field(default_factory=tuple)
     qa_events: tuple[QAEvent, ...] = field(default_factory=tuple)
     core_version: str = EXECUTION_ADAPTER_VERSION
     result_run_id: str | None = None
@@ -125,6 +127,15 @@ def execute_canonical_request(
             bases.extend(metric_bases)
             values.extend(metric_values)
     qa_events.extend(_upstream_qa_events(ctx))
+    if ctx.comparisons and ctx.significance_families:
+        raise ExecutionAdapterError("Significance must be Core-executed or supplied, not both")
+    comparisons = ctx.comparisons
+    if ctx.significance_families:
+        comparisons = tuple(relation for family in ctx.significance_families for relation in
+            execute_proportion_family(spec=family.spec, result_run_id=run_id,
+                question_id=family.question_id, metric_id=family.metric_id,
+                analytical_scope=family.analytical_scope, family_id=family.family_id,
+                comparisons=family.comparisons))
     return assemble_canonical_result(
         project_id=ctx.project_id,
         dataset_fingerprint=ctx.dataset_fingerprint,
@@ -134,7 +145,7 @@ def execute_canonical_request(
         slices=tuple(authority.slice for authority in slices),
         bases=tuple(bases),
         values=tuple(values),
-        comparisons=ctx.comparisons,
+        comparisons=comparisons,
         qa_events=tuple(_unique_qa_events(qa_events)),
         result_run_id=run_id,
         b3_release_evidence=ctx.b3_release_evidence,

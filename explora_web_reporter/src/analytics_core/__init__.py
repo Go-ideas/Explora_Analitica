@@ -8,6 +8,13 @@ from src.analytics_core.mode import (
     resolve_execution_mode,
 )
 from src.analytics_core.runner import generate_report
+from src.analytics_core.significance import (
+    ENGINE_VERSION as SIGNIFICANCE_ENGINE_VERSION,
+    ProportionComparisonInput,
+    ProportionFamilyRequest,
+    SignificanceExecutionError,
+    execute_proportion_family,
+)
 from src.analytics_core.results import (
     CANONICAL_RESULT_SCHEMA_VERSION,
     CANONICAL_RESULTS_RULES_VERSION,
@@ -101,10 +108,13 @@ __all__ = [
     "base_from_ledger",
     "compare_legacy_canonical_weight_result",
     "compare_legacy_canonical_result",
+    "execute_proportion_family",
     "evaluate_weighted_base",
     "from_canonical_data",
     "from_canonical_json",
     "generate_report",
+    "ProportionComparisonInput",
+    "ProportionFamilyRequest",
     "make_request_snapshot",
     "make_slice",
     "qa_event",
@@ -112,6 +122,8 @@ __all__ = [
     "resolve_active_weight",
     "resolve_execution_mode",
     "significance_state_for_request",
+    "SignificanceExecutionError",
+    "SIGNIFICANCE_ENGINE_VERSION",
     "to_canonical_data",
     "to_canonical_json",
     "transport_significance",

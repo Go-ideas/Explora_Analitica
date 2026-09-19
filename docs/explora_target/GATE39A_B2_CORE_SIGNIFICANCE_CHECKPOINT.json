@@ -1,0 +1,28 @@
+{
+  "schema_version": "GATE39A_CHECKPOINT_V1",
+  "authoritative_starting_main_sha": "c20c42776e32915141f778906f158972c5c23e9c",
+  "branch": "feature/b2-core-significance-execution",
+  "engine_version": "B2_CORE_SIGNIFICANCE_V1",
+  "qualification_fixture_id": "B2_SYNTHETIC_PROPORTION_QUALIFICATION_V1",
+  "qualification_fixture_sha256": "c1ba658901612eea212245973f84cd2b361f95013916e1f1136033dca0ce47e1",
+  "tests": {
+    "focused_gate39a": {"passed": 25, "failed": 0, "skipped": 0},
+    "analytics_core": {"passed": 184, "failed": 0, "skipped": 0},
+    "canonical": {"passed": 214, "failed": 0, "skipped": 0},
+    "gate38": {"passed": 20, "failed": 0, "skipped": 0},
+    "full": {"passed": 796, "failed": 0, "skipped": 0}
+  },
+  "unexpected_skips": [],
+  "unexpected_numerical_deltas": [],
+  "unexpected_canonical_deltas": [],
+  "files": {
+    "explora_web_reporter/src/analytics_core/significance.py": "74bf1b6fc660121d7cfeeeacb105eeabe5349cb911d424d7b5128c31f32a4e86",
+    "explora_web_reporter/src/analytics_core/execution_adapter.py": "96fa499e16441303dc17ddcc010118798f8f179b88200c6b1e8360fcfdc62d0e",
+    "explora_web_reporter/src/analytics_core/__init__.py": "f852653762228be1730613ab131727123907b0ae94d8d3f476be35fe84935008",
+    "explora_web_reporter/tests/test_b2_core_significance_execution.py": "133178b41d1ef94c726d01026934c9d37b65857604ac41bb9d17cf04752d197a",
+    "explora_web_reporter/scripts/gate39a_review_evidence.py": "454c08ac843d0b75559e9b7ecfee45273d5c2d162588dbe7bc882440de6f93e3",
+    "docs/explora_target/B2_CORE_SIGNIFICANCE_EXECUTION_EVIDENCE.json": "c32386dae30cb53b2f6fc01eb14dc0b1dfd6acbfba76121a58dfacf9edbf0473",
+    "docs/explora_target/B2_CORE_SIGNIFICANCE_EXECUTION_IMPLEMENTATION_REVIEW.md": "07fea1ceb3c7d8ef25cf8b9ace7a0c13a1f1e889a6068fa02faf83a30004c2fe"
+  },
+  "excluded": ["customer data", "customer workbooks", "Excel/M7 changes"]
+}

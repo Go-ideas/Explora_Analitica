@@ -1,0 +1,265 @@
+{
+  "cases": [
+    {
+      "case_id": "significant_90",
+      "input": {
+        "left_member_id": "A",
+        "left_numerator": 70,
+        "left_slice_id": "slice_a",
+        "left_unweighted_n": 100,
+        "respondent_binary": true,
+        "right_member_id": "B",
+        "right_numerator": 30,
+        "right_slice_id": "slice_b",
+        "right_unweighted_n": 100,
+        "sample_relationship": "INDEPENDENT",
+        "weighted_inference": false
+      },
+      "output": {
+        "adjusted_p_value": 1.541725790028008e-08,
+        "analytical_scope": "banner",
+        "comparison_id": "comparison_0266119aeea841fdf2155527",
+        "confidence": 0.9,
+        "direction": "LEFT_GREATER",
+        "family_id": "family_significant_90",
+        "left_member_id": "A",
+        "left_slice_id": "slice_a",
+        "metric_id": "PROPORTION",
+        "provenance_refs": [
+          "engine:B2_CORE_SIGNIFICANCE_V1",
+          "policy:B2_V1",
+          "reason:ELIGIBLE",
+          "adjustment:HOLM:B2_V1",
+          "diagnostics:{'left_n': 100, 'right_n': 100, 'left_x': 70, 'right_x': 30, 'pooled': 0.5, 'expected_counts': (50.0, 50.0, 50.0, 50.0), 'standard_error': 0.07071067811865475, 'z': 5.65685424949238, 'sidedness': 'two_sided'}"
+        ],
+        "qa_refs": [],
+        "question_id": "Q_QUALIFICATION",
+        "raw_p_value": 1.541725790028008e-08,
+        "right_member_id": "B",
+        "right_slice_id": "slice_b",
+        "status": "SIGNIFICANT",
+        "test_id": "pooled_z",
+        "test_version": "B2_V1"
+      }
+    },
+    {
+      "case_id": "significant_95",
+      "input": {
+        "left_member_id": "A",
+        "left_numerator": 70,
+        "left_slice_id": "slice_a",
+        "left_unweighted_n": 100,
+        "respondent_binary": true,
+        "right_member_id": "B",
+        "right_numerator": 30,
+        "right_slice_id": "slice_b",
+        "right_unweighted_n": 100,
+        "sample_relationship": "INDEPENDENT",
+        "weighted_inference": false
+      },
+      "output": {
+        "adjusted_p_value": 1.541725790028008e-08,
+        "analytical_scope": "banner",
+        "comparison_id": "comparison_3b32992a72e2c6c530eaae0a",
+        "confidence": 0.95,
+        "direction": "LEFT_GREATER",
+        "family_id": "family_significant_95",
+        "left_member_id": "A",
+        "left_slice_id": "slice_a",
+        "metric_id": "PROPORTION",
+        "provenance_refs": [
+          "engine:B2_CORE_SIGNIFICANCE_V1",
+          "policy:B2_V1",
+          "reason:ELIGIBLE",
+          "adjustment:HOLM:B2_V1",
+          "diagnostics:{'left_n': 100, 'right_n': 100, 'left_x': 70, 'right_x': 30, 'pooled': 0.5, 'expected_counts': (50.0, 50.0, 50.0, 50.0), 'standard_error': 0.07071067811865475, 'z': 5.65685424949238, 'sidedness': 'two_sided'}"
+        ],
+        "qa_refs": [],
+        "question_id": "Q_QUALIFICATION",
+        "raw_p_value": 1.541725790028008e-08,
+        "right_member_id": "B",
+        "right_slice_id": "slice_b",
+        "status": "SIGNIFICANT",
+        "test_id": "pooled_z",
+        "test_version": "B2_V1"
+      }
+    },
+    {
+      "case_id": "significant_99",
+      "input": {
+        "left_member_id": "A",
+        "left_numerator": 70,
+        "left_slice_id": "slice_a",
+        "left_unweighted_n": 100,
+        "respondent_binary": true,
+        "right_member_id": "B",
+        "right_numerator": 30,
+        "right_slice_id": "slice_b",
+        "right_unweighted_n": 100,
+        "sample_relationship": "INDEPENDENT",
+        "weighted_inference": false
+      },
+      "output": {
+        "adjusted_p_value": 1.541725790028008e-08,
+        "analytical_scope": "banner",
+        "comparison_id": "comparison_c7af9749b69664b73072d08e",
+        "confidence": 0.99,
+        "direction": "LEFT_GREATER",
+        "family_id": "family_significant_99",
+        "left_member_id": "A",
+        "left_slice_id": "slice_a",
+        "metric_id": "PROPORTION",
+        "provenance_refs": [
+          "engine:B2_CORE_SIGNIFICANCE_V1",
+          "policy:B2_V1",
+          "reason:ELIGIBLE",
+          "adjustment:HOLM:B2_V1",
+          "diagnostics:{'left_n': 100, 'right_n': 100, 'left_x': 70, 'right_x': 30, 'pooled': 0.5, 'expected_counts': (50.0, 50.0, 50.0, 50.0), 'standard_error': 0.07071067811865475, 'z': 5.65685424949238, 'sidedness': 'two_sided'}"
+        ],
+        "qa_refs": [],
+        "question_id": "Q_QUALIFICATION",
+        "raw_p_value": 1.541725790028008e-08,
+        "right_member_id": "B",
+        "right_slice_id": "slice_b",
+        "status": "SIGNIFICANT",
+        "test_id": "pooled_z",
+        "test_version": "B2_V1"
+      }
+    },
+    {
+      "case_id": "non_significant",
+      "input": {
+        "left_member_id": "A",
+        "left_numerator": 52,
+        "left_slice_id": "slice_a",
+        "left_unweighted_n": 100,
+        "respondent_binary": true,
+        "right_member_id": "B",
+        "right_numerator": 48,
+        "right_slice_id": "slice_b",
+        "right_unweighted_n": 100,
+        "sample_relationship": "INDEPENDENT",
+        "weighted_inference": false
+      },
+      "output": {
+        "adjusted_p_value": 0.5716076449533313,
+        "analytical_scope": "banner",
+        "comparison_id": "comparison_22d8027d93d4d87ba9dffd96",
+        "confidence": 0.95,
+        "direction": "LEFT_GREATER",
+        "family_id": "family_non_significant",
+        "left_member_id": "A",
+        "left_slice_id": "slice_a",
+        "metric_id": "PROPORTION",
+        "provenance_refs": [
+          "engine:B2_CORE_SIGNIFICANCE_V1",
+          "policy:B2_V1",
+          "reason:ELIGIBLE",
+          "adjustment:HOLM:B2_V1",
+          "diagnostics:{'left_n': 100, 'right_n': 100, 'left_x': 52, 'right_x': 48, 'pooled': 0.5, 'expected_counts': (50.0, 50.0, 50.0, 50.0), 'standard_error': 0.07071067811865475, 'z': 0.5656854249492386, 'sidedness': 'two_sided'}"
+        ],
+        "qa_refs": [],
+        "question_id": "Q_QUALIFICATION",
+        "raw_p_value": 0.5716076449533313,
+        "right_member_id": "B",
+        "right_slice_id": "slice_b",
+        "status": "NOT_SIGNIFICANT",
+        "test_id": "pooled_z",
+        "test_version": "B2_V1"
+      }
+    },
+    {
+      "case_id": "ineligible_n",
+      "input": {
+        "left_member_id": "A",
+        "left_numerator": 20,
+        "left_slice_id": "slice_a",
+        "left_unweighted_n": 29,
+        "respondent_binary": true,
+        "right_member_id": "B",
+        "right_numerator": 15,
+        "right_slice_id": "slice_b",
+        "right_unweighted_n": 30,
+        "sample_relationship": "INDEPENDENT",
+        "weighted_inference": false
+      },
+      "output": {
+        "adjusted_p_value": null,
+        "analytical_scope": "banner",
+        "comparison_id": "comparison_397ceb6a9ff0750d49b2708d",
+        "confidence": 0.95,
+        "direction": null,
+        "family_id": "family_ineligible_n",
+        "left_member_id": "A",
+        "left_slice_id": "slice_a",
+        "metric_id": "PROPORTION",
+        "provenance_refs": [
+          "engine:B2_CORE_SIGNIFICANCE_V1",
+          "policy:B2_V1",
+          "reason:INELIGIBLE_MINIMUM_BASE",
+          "adjustment:HOLM:B2_V1",
+          "diagnostics:{'left_n': 29, 'right_n': 30, 'left_x': 20, 'right_x': 15}"
+        ],
+        "qa_refs": [],
+        "question_id": "Q_QUALIFICATION",
+        "raw_p_value": null,
+        "right_member_id": "B",
+        "right_slice_id": "slice_b",
+        "status": "INELIGIBLE",
+        "test_id": "pooled_z",
+        "test_version": "B2_V1"
+      }
+    },
+    {
+      "case_id": "ineligible_expected_count",
+      "input": {
+        "left_member_id": "A",
+        "left_numerator": 1,
+        "left_slice_id": "slice_a",
+        "left_unweighted_n": 100,
+        "respondent_binary": true,
+        "right_member_id": "B",
+        "right_numerator": 0,
+        "right_slice_id": "slice_b",
+        "right_unweighted_n": 100,
+        "sample_relationship": "INDEPENDENT",
+        "weighted_inference": false
+      },
+      "output": {
+        "adjusted_p_value": null,
+        "analytical_scope": "banner",
+        "comparison_id": "comparison_3f15d687da27d4a3266b40d1",
+        "confidence": 0.95,
+        "direction": null,
+        "family_id": "family_ineligible_expected_count",
+        "left_member_id": "A",
+        "left_slice_id": "slice_a",
+        "metric_id": "PROPORTION",
+        "provenance_refs": [
+          "engine:B2_CORE_SIGNIFICANCE_V1",
+          "policy:B2_V1",
+          "reason:INELIGIBLE_EXPECTED_COUNT",
+          "adjustment:HOLM:B2_V1",
+          "diagnostics:{'left_n': 100, 'right_n': 100, 'left_x': 1, 'right_x': 0, 'pooled': 0.005, 'expected_counts': (0.5, 99.5, 0.5, 99.5)}"
+        ],
+        "qa_refs": [],
+        "question_id": "Q_QUALIFICATION",
+        "raw_p_value": null,
+        "right_member_id": "B",
+        "right_slice_id": "slice_b",
+        "status": "INELIGIBLE",
+        "test_id": "pooled_z",
+        "test_version": "B2_V1"
+      }
+    }
+  ],
+  "deterministic": true,
+  "engine_version": "B2_CORE_SIGNIFICANCE_V1",
+  "excel_m7_changes": "NONE",
+  "fixture_classification": "deterministic synthetic non-customer qualification data",
+  "fixture_id": "B2_SYNTHETIC_PROPORTION_QUALIFICATION_V1",
+  "fixture_sha256": "c1ba658901612eea212245973f84cd2b361f95013916e1f1136033dca0ce47e1",
+  "policy_authority": "SIGNIFICANCE_POLICY_CANONICAL.md / B2_V1",
+  "reporter_dependency": "NONE",
+  "schema_version": "GATE39A_B2_CORE_EVIDENCE_V1"
+}
