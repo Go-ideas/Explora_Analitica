@@ -17,7 +17,7 @@ from src.excel_renderer.renderer import configuration_fingerprint
 
 MASTER = Path(__file__).parents[1] / "production_masters" / "EXPLORA_PRODUCTION_MASTER_V1.xlsm"
 QUALIFICATION = MASTER.with_suffix(".qualification.json")
-MASTER_SHA = "250a51ae55a877ea0a151be3bdf0a6ab9b4bc97fabbb9ccdd2f5e26abb45535b"
+MASTER_SHA = "a8313adf706016b30b8837a7bc42cb80c7ccc281f2663616a7f22b8daa8d10dd"
 VBA_SHA = "0f879b60ed12315085bc722c3f59163f86ce24609e3ba6ad379069c44779b758"
 
 
@@ -52,7 +52,7 @@ def resign(request):
 
 def test_master_identity_and_vba_are_qualified(qualified):
     assert qualified.manifest.master_id == "EXPLORA_PRODUCTION_MASTER_V1"
-    assert qualified.manifest.version == "1.0.0"
+    assert qualified.manifest.version == "1.1.0"
     assert hashlib.sha256(MASTER.read_bytes()).hexdigest() == MASTER_SHA
     assert vba_sha256(MASTER) == VBA_SHA
 

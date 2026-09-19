@@ -1,0 +1,174 @@
+{
+  "binary_output_identity": true,
+  "canonical": {
+    "comparison_id": "comparison_650f6773ac7b283c225bc960",
+    "result_fingerprint": "c315c77f271630359031b1522677cc7cb028d5bea455c1bc25758fbfce22640f",
+    "result_run_id": "gate39-core-run",
+    "serialized_sha256": "44154e935fd65e710953e8fc1e42ef21454547efc9d2ffad095b718524750f21"
+  },
+  "core": {
+    "confidence_outputs": {
+      "0.9": {
+        "adjusted_p_value": 1.541725790028008e-08,
+        "analytical_scope": "banner",
+        "comparison_id": "comparison_a60cab5d1d3b288e581992f1",
+        "confidence": 0.9,
+        "direction": "LEFT_GREATER",
+        "family_id": "family_gate39",
+        "left_member_id": "A",
+        "left_slice_id": "slice_b3cd50aaa12905c989634db1",
+        "metric_id": "M_PROP",
+        "provenance_refs": [
+          "engine:B2_CORE_SIGNIFICANCE_V1",
+          "policy:B2_V1",
+          "reason:ELIGIBLE",
+          "adjustment:HOLM:B2_V1",
+          "diagnostics:{'left_n': 100, 'right_n': 100, 'left_x': 70, 'right_x': 30, 'pooled': 0.5, 'expected_counts': (50.0, 50.0, 50.0, 50.0), 'standard_error': 0.07071067811865475, 'z': 5.65685424949238, 'sidedness': 'two_sided'}"
+        ],
+        "qa_refs": [],
+        "question_id": "Q_RU",
+        "raw_p_value": 1.541725790028008e-08,
+        "right_member_id": "B",
+        "right_slice_id": "slice_7e11e8a7723da75371f46792",
+        "status": "SIGNIFICANT",
+        "test_id": "pooled_z",
+        "test_version": "B2_V1"
+      },
+      "0.95": {
+        "adjusted_p_value": 1.541725790028008e-08,
+        "analytical_scope": "banner",
+        "comparison_id": "comparison_650f6773ac7b283c225bc960",
+        "confidence": 0.95,
+        "direction": "LEFT_GREATER",
+        "family_id": "family_gate39",
+        "left_member_id": "A",
+        "left_slice_id": "slice_b3cd50aaa12905c989634db1",
+        "metric_id": "M_PROP",
+        "provenance_refs": [
+          "engine:B2_CORE_SIGNIFICANCE_V1",
+          "policy:B2_V1",
+          "reason:ELIGIBLE",
+          "adjustment:HOLM:B2_V1",
+          "diagnostics:{'left_n': 100, 'right_n': 100, 'left_x': 70, 'right_x': 30, 'pooled': 0.5, 'expected_counts': (50.0, 50.0, 50.0, 50.0), 'standard_error': 0.07071067811865475, 'z': 5.65685424949238, 'sidedness': 'two_sided'}"
+        ],
+        "qa_refs": [],
+        "question_id": "Q_RU",
+        "raw_p_value": 1.541725790028008e-08,
+        "right_member_id": "B",
+        "right_slice_id": "slice_7e11e8a7723da75371f46792",
+        "status": "SIGNIFICANT",
+        "test_id": "pooled_z",
+        "test_version": "B2_V1"
+      },
+      "0.99": {
+        "adjusted_p_value": 1.541725790028008e-08,
+        "analytical_scope": "banner",
+        "comparison_id": "comparison_142fc2a02407c946d4e6b0f3",
+        "confidence": 0.99,
+        "direction": "LEFT_GREATER",
+        "family_id": "family_gate39",
+        "left_member_id": "A",
+        "left_slice_id": "slice_b3cd50aaa12905c989634db1",
+        "metric_id": "M_PROP",
+        "provenance_refs": [
+          "engine:B2_CORE_SIGNIFICANCE_V1",
+          "policy:B2_V1",
+          "reason:ELIGIBLE",
+          "adjustment:HOLM:B2_V1",
+          "diagnostics:{'left_n': 100, 'right_n': 100, 'left_x': 70, 'right_x': 30, 'pooled': 0.5, 'expected_counts': (50.0, 50.0, 50.0, 50.0), 'standard_error': 0.07071067811865475, 'z': 5.65685424949238, 'sidedness': 'two_sided'}"
+        ],
+        "qa_refs": [],
+        "question_id": "Q_RU",
+        "raw_p_value": 1.541725790028008e-08,
+        "right_member_id": "B",
+        "right_slice_id": "slice_7e11e8a7723da75371f46792",
+        "status": "SIGNIFICANT",
+        "test_id": "pooled_z",
+        "test_version": "B2_V1"
+      }
+    },
+    "engine": "B2_CORE_SIGNIFICANCE_V1",
+    "policy": "B2_V1"
+  },
+  "deterministic_render_evidence_equal": true,
+  "direction_reference": "PASS: token target must match canonical slice/member and direction",
+  "excel_m7_statistical_recomputation": "NONE",
+  "fixture": {
+    "classification": "deterministic synthetic non-customer qualification data",
+    "fixture_id": "B2_SYNTHETIC_PROPORTION_QUALIFICATION_V1",
+    "fixture_sha256": "c1ba658901612eea212245973f84cd2b361f95013916e1f1136033dca0ce47e1"
+  },
+  "ineligible_behavior": "PASS: Core INELIGIBLE relations cannot assert presentation tokens",
+  "master": {
+    "master_id": "EXPLORA_PRODUCTION_MASTER_V1",
+    "sha256": "a8313adf706016b30b8837a7bc42cb80c7ccc281f2663616a7f22b8daa8d10dd",
+    "vba_sha256": "0f879b60ed12315085bc722c3f59163f86ce24609e3ba6ad379069c44779b758",
+    "version": "1.1.0"
+  },
+  "materialization": "CANONICAL_JSON_ROUND_TRIP_EXACT",
+  "no_recomputation": "PASS: absent canonical relation is rejected before planning",
+  "protected_surfaces": {
+    "undeclared_cells_preserved": true,
+    "untouched_parts_exact": true
+  },
+  "render_plan": {
+    "deterministic": true,
+    "marker_write": {
+      "cell": "E2",
+      "display_profile": "SIGNIFICANCE_TOKEN",
+      "field_name": "status",
+      "kind": "literal",
+      "number_format": "General",
+      "record_id": "comparison_650f6773ac7b283c225bc960",
+      "record_role": "comparison",
+      "result_fingerprint": "c315c77f271630359031b1522677cc7cb028d5bea455c1bc25758fbfce22640f",
+      "result_run_id": "gate39-core-run",
+      "sheet": "presentation",
+      "slot_id": "significance_marker",
+      "status": "SIGNIFICANT",
+      "storage_mode": "exact_text",
+      "token_id": "canonical_marker",
+      "unit": "TEXT",
+      "value": "*",
+      "visual_id": "canonical_significance_marker"
+    },
+    "sha256": "5a18f0ab7ad4a8b2bc927f6cbab22ed7e36c2083547da68abc9b064c0b3f3ed1"
+  },
+  "rendered_output_sha256": "52d8239eeefcb1842d4dcd91ed8bed7d5eaf49ad275368ee7de802b98627911f",
+  "renderer_statistical_computation": "NONE",
+  "reporter_dependency": "NONE",
+  "schema_version": "GATE39_SIGNIFICANCE_PRESENTATION_EVIDENCE_V1",
+  "traceability": {
+    "canonical_comparison_id": "comparison_650f6773ac7b283c225bc960",
+    "core_provenance_refs": [
+      "engine:B2_CORE_SIGNIFICANCE_V1",
+      "policy:B2_V1",
+      "reason:ELIGIBLE",
+      "adjustment:HOLM:B2_V1",
+      "diagnostics:{'left_n': 100, 'right_n': 100, 'left_x': 70, 'right_x': 30, 'pooled': 0.5, 'expected_counts': (50.0, 50.0, 50.0, 50.0), 'standard_error': 0.07071067811865475, 'z': 5.65685424949238, 'sidedness': 'two_sided'}"
+    ],
+    "qualification_fixture_id": "B2_SYNTHETIC_PROPORTION_QUALIFICATION_V1",
+    "render_plan_record_id": "comparison_650f6773ac7b283c225bc960",
+    "visible_marker": "presentation!E2"
+  },
+  "validation": {
+    "analytics_core_regression": "184 passed / 0 failed / 0 skipped",
+    "canonical_materialization_regression": "51 passed / 0 failed / 0 skipped",
+    "canonical_regression": "214 passed / 0 failed / 0 skipped",
+    "focused_gate39": "18 passed / 0 failed / 0 skipped",
+    "full_regression": "814 passed / 0 failed / 0 skipped",
+    "gate38_regression": "20 passed / 0 failed / 0 skipped",
+    "gate39a_regression": "25 passed / 0 failed / 0 skipped",
+    "m7b_regression": "103 passed / 0 failed / 0 skipped"
+  },
+  "vba_after_sha256": "0f879b60ed12315085bc722c3f59163f86ce24609e3ba6ad379069c44779b758",
+  "vba_before_sha256": "0f879b60ed12315085bc722c3f59163f86ce24609e3ba6ad379069c44779b758",
+  "vba_exact": true,
+  "visible_output": {
+    "cell": "E2",
+    "display_text": "*",
+    "sheet": "presentation",
+    "status": "SIGNIFICANT",
+    "status_cell": "H2"
+  }
+}

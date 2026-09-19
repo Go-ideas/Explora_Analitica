@@ -1,0 +1,42 @@
+{
+  "schema_version": "GATE39_SIGNIFICANCE_PRESENTATION_CHECKPOINT_V1",
+  "authoritative_main_sha": "08e8f1b8370d8a4a68629ef0f6b4501aa81779d5",
+  "branch": "feature/m7-significance-presentation-qualification-resume",
+  "fixture_id": "B2_SYNTHETIC_PROPORTION_QUALIFICATION_V1",
+  "fixture_sha256": "c1ba658901612eea212245973f84cd2b361f95013916e1f1136033dca0ce47e1",
+  "render_plan_sha256": "5a18f0ab7ad4a8b2bc927f6cbab22ed7e36c2083547da68abc9b064c0b3f3ed1",
+  "rendered_output_sha256": "52d8239eeefcb1842d4dcd91ed8bed7d5eaf49ad275368ee7de802b98627911f",
+  "production_master": {
+    "master_id": "EXPLORA_PRODUCTION_MASTER_V1",
+    "version": "1.1.0",
+    "sha256": "a8313adf706016b30b8837a7bc42cb80c7ccc281f2663616a7f22b8daa8d10dd",
+    "vba_sha256": "0f879b60ed12315085bc722c3f59163f86ce24609e3ba6ad379069c44779b758"
+  },
+  "file_sha256": {
+    "docs/explora_target/M7_SIGNIFICANCE_PRESENTATION_QUALIFICATION_EVIDENCE.json": "7f610678cfe6e9a1e174071f73c47cfaceba9166aec4023e597e30d07caa12f6",
+    "docs/explora_target/M7_SIGNIFICANCE_PRESENTATION_QUALIFICATION_REVIEW.md": "b133a79e14a31f0c5792d7526b37c58f88da09d6b762cf0dcacb66dd73dc8ee4",
+    "explora_web_reporter/production_masters/EXPLORA_PRODUCTION_MASTER_V1.qualification.json": "4afa59c47bc735430e747777fc1fb4dd0ccd1d05ac24520a2b91d3b87945d097",
+    "explora_web_reporter/production_masters/EXPLORA_PRODUCTION_MASTER_V1.xlsm": "a8313adf706016b30b8837a7bc42cb80c7ccc281f2663616a7f22b8daa8d10dd",
+    "explora_web_reporter/scripts/build_gate39_production_master.py": "9a5dc8bb2cb5966f76422e6b0b08164078dd288835c45f31f3715e5d20dd25e4",
+    "explora_web_reporter/scripts/gate39_review_evidence.py": "f1d4a5d25388b7f0df7bc32083601b45fc8db47768b15f744905ca667050811b",
+    "explora_web_reporter/src/excel_renderer/production.py": "e4e39b8dabbbda0c6bd3e580a0591b1ba11dccd64d818202ff01f22737fcc09d",
+    "explora_web_reporter/src/excel_renderer/qualification.py": "267995c39e257b3febdbdc02ebe491222b8cc76385cfef60c61c964ebe322576",
+    "explora_web_reporter/src/excel_renderer/renderer.py": "0de52b9c8376fb8e2d73ae066d971e860a34c2d1d2914c807e65af877d5cb45a",
+    "explora_web_reporter/tests/test_gate38_production_master.py": "1c162a2684fb0b4820a65cdae5bb6fa003587e85eeeb784b1e14aac33c121332",
+    "explora_web_reporter/tests/test_gate39_significance_presentation.py": "34468e88c2822b76dbd30052c225c74b12f69cf102dc23c876185811fb76972c"
+  },
+  "validation": {
+    "focused_gate39": "18 passed / 0 failed / 0 skipped",
+    "gate39a": "25 passed / 0 failed / 0 skipped",
+    "analytics_core": "184 passed / 0 failed / 0 skipped",
+    "canonical": "214 passed / 0 failed / 0 skipped",
+    "canonical_materialization": "51 passed / 0 failed / 0 skipped",
+    "m7b": "103 passed / 0 failed / 0 skipped",
+    "gate38": "20 passed / 0 failed / 0 skipped",
+    "full": "814 passed / 0 failed / 0 skipped"
+  },
+  "customer_data": false,
+  "customer_workbooks": false,
+  "reporter_dependency": false,
+  "welch_mean_significance": "NOT_IMPLEMENTED_OUT_OF_SCOPE"
+}
