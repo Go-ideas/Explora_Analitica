@@ -1,7 +1,11 @@
 # Gate 41 Dynamic Region Runtime Implementation Review
 
-Status: IMPLEMENTED / READY FOR HUMAN REVIEW. Starting main:
+Status: CORRECTIVE REMEDIATION IMPLEMENTED / READY FOR RE-REVIEW. Starting main:
 `dc512bb7b6d3dd06ac23da17f8e062a9a584e62f`.
+
+The initial source-level Human Review of PR #14 failed and required corrective
+remediation. This document records the corrected state; it does not claim that
+the initial review passed.
 
 ## Scope
 
@@ -16,6 +20,22 @@ growth dimensions, projected collision checks, replacement/contraction, lineage,
 and a versioned plan with ordered dynamic operations. It consumes explicit
 canonical record IDs and fields; it performs no analytical calculation.
 
+## Corrective Remediation
+
+- B-G41-01 resolved: checksum-pinned Gate 39 significance envelopes are consumed,
+  canonically validated, visibly bound and cleared on contraction.
+- B-G41-02 resolved: TABLE and RANGE independently exercise ROWS, COLUMNS and
+  ROWS_AND_COLUMNS with plan and workbook read-back.
+- B-G41-03 resolved: formula source, classification, axis, offsets, declared
+  presentation fields and exact post-save inventory are validated.
+- B-G41-04 resolved: named and bounded table-body fixed slots share deterministic
+  physical resolution and block envelope collisions.
+- B-G41-05 resolved: staged output is checked against the accepted plan for table
+  structure, writes, styles, formulas, stale cells and unplanned mutations before
+  publication. The evidence includes an output-validation fingerprint.
+- B-G41-06 resolved: the provenance role supports an explicit allowlist of released
+  Canonical Result identity fields and rejects unknown fields.
+
 ## Qualification Surface
 
 The reproducible non-customer fixture is built by
@@ -27,7 +47,8 @@ The fixture and provenance are under `tests/fixtures/gate41/`.
 Positive validation covers TABLE/RANGE growth, ROWS/COLUMNS/ROWS_AND_COLUMNS,
 explicit canonical ordering, exact numeric/text storage, literal safety, style,
 allowlisted formula propagation, contraction and stale value/status cleanup,
-plan determinism, logical output determinism, and exact VBA preservation.
+canonical significance marker cleanup, plan determinism, logical output
+determinism, exact VBA preservation and protected-surface preservation.
 Negative validation covers wrong identities/hashes, overflow, unauthorized
 dimensions, missing records/bindings, wildcard fields, cardinality, duplicate or
 overlapping regions, missing anchor/table, malformed policies, analytical and

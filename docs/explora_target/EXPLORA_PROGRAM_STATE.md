@@ -122,6 +122,14 @@ and [checkpoint](GATE41_DYNAMIC_REGION_RUNTIME_CHECKPOINT.json).
 Production Master Dynamic Region qualification = NOT PERFORMED. Productive
 Dynamic Region release = NOT AUTHORIZED. Binary output determinism = NOT CLAIMED.
 
+PR #14 initial source-level Human Review = FAIL / CORRECTIVE REMEDIATION REQUIRED.
+The corrective implementation resolves B-G41-01 through B-G41-06: canonical
+significance transport and contraction cleanup, independent axis qualification,
+strict formula inventory, complete fixed-slot collision resolution, plan-derived
+post-save read-back, and the Canonical Result provenance role. Corrective focused
+tests: 51/0/0; full regression: 865/0/0. The corrected PR remains pending Human
+Re-review and merge is not authorized.
+
 The Dynamic Region contract is additive and does not rewrite frozen Gate 35
 semantics. It defines future region identity, bounded envelopes, ownership,
 style/formula policy, collisions, contraction, explicit RenderPlan operations and

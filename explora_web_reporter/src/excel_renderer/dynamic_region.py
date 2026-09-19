@@ -19,7 +19,9 @@ from src.analytics_core.result_identity import canonical_payload, fingerprint
 from src.analytics_core.serialization import to_canonical_data
 from src.contracts.models import CanonicalResult
 
-from .renderer import RenderError, Slot, literal, present, require, sha, validate_sources
+from .renderer import (
+    RenderError, Slot, literal, present, require, sha, sha_bytes, tokens, validate_sources,
+)
 
 DYNAMIC_CONTRACT = "M7_DYNAMIC_REGION_CONTRACT_V1"
 DYNAMIC_BINDING_SCHEMA = "M7_DYNAMIC_REGION_BINDING_V1"
@@ -150,6 +152,7 @@ class DynamicRenderRequest:
     qualification: DynamicMasterQualification
     binding_schema_version: str
     bindings: tuple[DynamicRegionBinding, ...]
+    significance_json: tuple[str, ...] = ()
     lineage: DynamicLineage | None = None
     renderer_build: str = DYNAMIC_BUILD
 
@@ -181,6 +184,8 @@ class DynamicWrite:
     number_format: str
     record_id: str
     field_id: str
+    token_id: str | None = None
+    comparison_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -303,7 +308,9 @@ def _validate_declaration(d, style, formula):
             "Malformed style policy")
     allowed_attrs = {"font", "fill", "border", "alignment", "number_format", "protection",
                      "row_height", "column_width", "conditional_formatting"}
-    require(bool(style.owned_attributes) and set(style.owned_attributes) <= allowed_attrs,
+    require(bool(style.owned_attributes) and set(style.owned_attributes) <= allowed_attrs
+            and set(style.unsupported_attributes) <= allowed_attrs
+            and not set(style.owned_attributes) & set(style.unsupported_attributes),
             "Malformed style policy")
     require("conditional_formatting" not in style.owned_attributes,
             "Unsupported conditional formatting propagation")
@@ -319,12 +326,52 @@ def _validate_declaration(d, style, formula):
                 and formula.normalized_formula_rule == "OPENPYXL_TRANSLATOR_RELATIVE_V1"
                 and formula.expected_inventory_rule == "EXACT_DECLARED_TARGETS_V1",
                 "Analytical or malformed formula policy")
+        require(len(formula.source_formula_cells) == 1
+                and formula.propagation_axis == d.growth_dimensions
+                and formula.target_field_offsets
+                and all(type(offset) is int and offset >= 0 for offset in formula.target_field_offsets)
+                and len(set(formula.target_field_offsets)) == len(formula.target_field_offsets),
+                "Malformed formula source/target policy")
+
+
+def _fixed_slot_cell(w, slot):
+    require(bool(slot.name) != bool(slot.table), "Ambiguous/unresolvable fixed slot")
+    if slot.name:
+        require(slot.name in w.defined_names and slot.row is None and slot.column is None,
+                "Ambiguous/unresolvable fixed slot")
+        destinations = list(w.defined_names[slot.name].destinations)
+        require(len(destinations) == 1, "Ambiguous/unresolvable fixed slot")
+        sheet, address = destinations[0]
+        left, top, right, bottom = range_boundaries(address.replace("$", ""))
+        require(left == right and top == bottom, "Ambiguous/unresolvable fixed slot")
+        return sheet, top, left
+    require(type(slot.row) is int and slot.row >= 0 and isinstance(slot.column, str),
+            "Ambiguous/unresolvable fixed slot")
+    matches = [(sheet, sheet.tables[slot.table]) for sheet in w.worksheets if slot.table in sheet.tables]
+    require(len(matches) == 1, "Ambiguous/unresolvable fixed slot")
+    sheet, table = matches[0]
+    columns = [column.name for column in table.tableColumns]
+    require(columns.count(slot.column) == 1, "Ambiguous/unresolvable fixed slot")
+    left, top, _, bottom = range_boundaries(table.ref)
+    require(top + 1 + slot.row <= bottom, "Ambiguous/unresolvable fixed slot")
+    return sheet.title, top + 1 + slot.row, left + columns.index(slot.column)
+
+
+def _dynamic_tokens(request, runs):
+    refs = {ref for binding in request.bindings for ref in binding.significance_presentation_refs}
+    fake_spec = {"sections": [{"visuals": [{"significance_presentation_refs": list(refs)}]}]}
+    class TokenRequest:
+        significance_json = request.significance_json
+    token_map = tokens(TokenRequest(), runs, fake_spec)
+    require(bool(request.significance_json) == bool(refs), "Unused or unresolved significance envelope")
+    return token_map
 
 
 def plan_dynamic_render(request: DynamicRenderRequest, input_path: Path) -> DynamicRenderPlan:
     input_path = Path(input_path)
     runs = _validate_contract(request, input_path)
     q = request.qualification
+    token_map = _dynamic_tokens(request, runs)
     styles = {p.style_policy_id: p for p in q.style_policies}
     formulas = {p.formula_policy_id: p for p in q.formula_policies}
     require(len(styles) == len(q.style_policies) and len(formulas) == len(q.formula_policies),
@@ -334,6 +381,7 @@ def plan_dynamic_render(request: DynamicRenderRequest, input_path: Path) -> Dyna
             "Unverifiable previous active footprint")
     w = load_workbook(input_path, keep_vba=True, keep_links=True)
     operations, writes, projected = [], [], {}
+    consumed_significance_refs = set()
     try:
         declarations = {d.region_id: d for d in q.declarations}
         bindings = {b.region_id: b for b in request.bindings}
@@ -341,12 +389,16 @@ def plan_dynamic_render(request: DynamicRenderRequest, input_path: Path) -> Dyna
             style, formula = styles.get(d.style_policy_ref), formulas.get(d.formula_policy_ref)
             _validate_declaration(d, style, formula)
             sheet, table, physical_before = _resolve_anchor(w, d)
+            template_sheet, template_address = style.template_cell.split("!", 1) if style else ("", "")
+            require(template_sheet == d.sheet, "Unknown style source")
             before = prior.get(d.region_id, physical_before)
             require(before.left == d.owned_envelope.left and before.top == d.owned_envelope.top
                     and before.right <= d.owned_envelope.right and before.bottom <= d.owned_envelope.bottom,
                     "Unverifiable previous active footprint")
             b = bindings.get(d.region_id)
             require(b is not None, "Missing Dynamic Region binding")
+            require(len(b.significance_presentation_refs) == len(set(b.significance_presentation_refs)),
+                    "Duplicate significance envelope reference")
             require(type(b.requested_rows) is int and type(b.requested_columns) is int
                     and b.requested_rows > 0 and b.requested_columns > 0, "Invalid requested extent")
             require(d.min_rows <= b.requested_rows <= d.max_rows
@@ -368,9 +420,17 @@ def plan_dynamic_render(request: DynamicRenderRequest, input_path: Path) -> Dyna
             role_collections = {"value": ("values", "value_id"), "base": ("bases", "base_id"),
                                 "slice": ("slices", "slice_id"), "comparison": ("comparisons", "comparison_id"),
                                 "qa": ("qa_events", "qa_id")}
-            require(b.record_role in role_collections, "Wildcard/implicit source selection prohibited")
-            collection, id_field = role_collections[b.record_role]
-            records = {r[id_field]: r for r in to_canonical_data(run)[collection]}
+            if b.record_role == "provenance":
+                allowed = {"project_id", "dataset_fingerprint", "project_spec_ref", "core_version",
+                           "result_run_id", "result_fingerprint", "result_schema_version",
+                           "supersedes_result_run_id"}
+                record = {key: value for key, value in to_canonical_data(run).items() if key in allowed}
+                records = {run.result_run_id: record}
+                id_field = "result_run_id"
+            else:
+                require(b.record_role in role_collections, "Wildcard/implicit source selection prohibited")
+                collection, id_field = role_collections[b.record_role]
+                records = {r[id_field]: r for r in to_canonical_data(run)[collection]}
             require(len(b.ordered_record_ids) == len(set(b.ordered_record_ids)), "Duplicate canonical record")
             require(set(b.ordered_record_ids) <= set(records), "Missing canonical record")
             after = Bounds(d.owned_envelope.left, d.owned_envelope.top,
@@ -384,11 +444,10 @@ def plan_dynamic_render(request: DynamicRenderRequest, input_path: Path) -> Dyna
                         "Dynamic Region overlap")
             # Fixed targets, unrelated tables, merged cells and defined names are protected.
             for slot in q.fixed_slots:
-                if slot.name and slot.name in w.defined_names:
-                    for sn, addr in w.defined_names[slot.name].destinations:
-                        l, t, r, bot = range_boundaries(addr.replace("$", ""))
-                        require(sn != d.sheet or not after.intersects(Bounds(l, t, r, bot)),
-                                "Dynamic Region vs fixed-slot collision")
+                fixed_sheet, fixed_row, fixed_col = _fixed_slot_cell(w, slot)
+                require(fixed_sheet != d.sheet or not d.owned_envelope.intersects(
+                    Bounds(fixed_col, fixed_row, fixed_col, fixed_row)),
+                    "Dynamic Region vs fixed-slot collision")
             for ws in w.worksheets:
                 for candidate in ws.tables.values():
                     if ws.title == d.sheet and candidate.name == d.table_id:
@@ -418,6 +477,20 @@ def plan_dynamic_render(request: DynamicRenderRequest, input_path: Path) -> Dyna
                     require(False, "Protected/non-owned populated-cell collision")
             require(style.template_cell in {f"{sheet.title}!{sheet.cell(r, c).coordinate}" for r, c in d.owned_envelope.cells()},
                     "Unknown style source")
+            if formula:
+                source_sheet, source_address = formula.source_formula_cells[0].split("!", 1)
+                source_left, source_top, source_right, source_bottom = range_boundaries(source_address)
+                require(source_sheet == d.sheet and source_left == source_right and source_top == source_bottom
+                        and d.owned_envelope.intersects(Bounds(source_left, source_top, source_right, source_bottom)),
+                        "Invalid formula source identity")
+                source_cell = sheet[source_address]
+                require(source_cell.data_type == "f" and isinstance(source_cell.value, str)
+                        and source_cell.value.startswith("="), "Formula source is not an Excel formula")
+                formula_fields = {f.column_offset for f in d.field_columns
+                                  if f.source_field == "__PRESENTATION_FORMULA__"}
+                require(set(formula.target_field_offsets) == formula_fields
+                        and all(offset < d.max_columns for offset in formula.target_field_offsets),
+                        "Formula targets do not map to declared presentation fields")
             policy_refs = (DYNAMIC_CONTRACT, d.style_policy_ref, d.formula_policy_ref, COLLISION_POLICY)
             collision_hash = fingerprint({"region": d.region_id, "before": before, "after": after,
                                           "envelope": d.owned_envelope, "policies": policy_refs})
@@ -449,6 +522,24 @@ def plan_dynamic_render(request: DynamicRenderRequest, input_path: Path) -> Dyna
                         require(formula is not None and field.column_offset in formula.target_field_offsets,
                                 "Unclassified presentation formula field")
                         continue
+                    if field.source_field == "__SIGNIFICANCE_TOKEN__":
+                        require(b.record_role == "value" and b.significance_presentation_refs,
+                                "Significance marker requires explicit value binding")
+                        candidates = [token for key, token in token_map.items()
+                            if key[0] == run.result_run_id and token["value_id"] == record_id
+                            and token["envelope_checksum"] in b.significance_presentation_refs]
+                        require(len(candidates) == 1, "Unknown/ambiguous Dynamic significance marker")
+                        token = candidates[0]
+                        consumed_significance_refs.add(token["envelope_checksum"])
+                        cell = sheet.cell(after.top + row_offset, after.left + field.column_offset)
+                        writes.append(DynamicWrite(d.region_id, d.sheet, cell.coordinate, "literal",
+                            token["display_text"], "General", record_id, field_id,
+                            token["token_id"], token["comparison_id"]))
+                        continue
+                    if b.record_role == "provenance":
+                        require(field.source_field in {"project_id", "dataset_fingerprint", "project_spec_ref",
+                            "core_version", "result_run_id", "result_fingerprint", "result_schema_version",
+                            "supersedes_result_run_id"}, "Unknown provenance field")
                     require(field.source_field in record, "Unknown canonical field")
                     kind, value, number_format, _, _ = present(record[field.source_field], record,
                         field.source_field, field.display_profile_ref, field.storage_mode)
@@ -458,6 +549,8 @@ def plan_dynamic_render(request: DynamicRenderRequest, input_path: Path) -> Dyna
                                                number_format, record_id, field_id))
             region_writes = tuple(f"{x.sheet}!{x.cell}" for x in writes if x.region_id == d.region_id)
             operations.append(op("WRITE_CELL", region_writes))
+        require(consumed_significance_refs == {sha_bytes(raw) for raw in request.significance_json},
+                "Unused Dynamic significance envelope")
         order = {k: i for i, k in enumerate(("VALIDATE_REGION", "RESIZE_TABLE", "CLEAR_OWNED_STALE",
             "PROPAGATE_STYLE", "PROPAGATE_PRESENTATION_FORMULA", "WRITE_CELL"))}
         operations.sort(key=lambda x: (order[x.operation_type], x.region_id, x.operation_id))
@@ -499,6 +592,121 @@ def _logical_state(path, declarations):
         w.close()
         if w.vba_archive:
             w.vba_archive.close()
+
+
+def _style_value(cell, attribute):
+    value = getattr(cell, attribute)
+    return str(value) if attribute in ("font", "fill", "border", "alignment", "protection") else value
+
+
+def _validate_dynamic_output(source_path, output_path, request, plan):
+    declarations = {d.region_id: d for d in request.qualification.declarations}
+    styles = {p.style_policy_id: p for p in request.qualification.style_policies}
+    formulas = {p.formula_policy_id: p for p in request.qualification.formula_policies}
+    source = load_workbook(source_path, keep_vba=True, data_only=False)
+    output = load_workbook(output_path, keep_vba=True, data_only=False)
+    evidence = {"tables": [], "writes": [], "styles": [], "formulas": [], "stale": [], "unchanged": []}
+    try:
+        writes = {(write.sheet, write.cell): write for write in plan.writes}
+        affected = set(writes)
+        expected_formulas = {}
+        for operation in plan.dynamic_operations:
+            d = declarations[operation.region_id]
+            sheet = output[d.sheet]
+            if operation.operation_type == "RESIZE_TABLE":
+                table = sheet.tables[d.table_id]
+                expected_ref = (f"{get_column_letter(operation.after_bounds.left)}{operation.after_bounds.top - 1}:"
+                                f"{get_column_letter(operation.after_bounds.right)}{operation.after_bounds.bottom}")
+                require(table.name == d.table_id and table.ref == expected_ref,
+                        "Dynamic TABLE structure readback failed")
+                require([column.name for column in table.tableColumns]
+                        == [field.field_id for field in d.field_columns[:operation.requested_columns]],
+                        "Dynamic TABLE column identity readback failed")
+                source_table = source[d.sheet].tables[d.table_id]
+                require(str(table.tableStyleInfo) == str(source_table.tableStyleInfo),
+                        "Dynamic TABLE style identity readback failed")
+                evidence["tables"].append((d.region_id, table.ref, tuple(c.name for c in table.tableColumns)))
+            elif operation.operation_type == "CLEAR_OWNED_STALE":
+                for item in operation.affected_cells:
+                    sheet_name, address = item.split("!", 1)
+                    cell = output[sheet_name][address]
+                    require(cell.value is None and cell.data_type != "f", "Stale area readback failed")
+                    affected.add((sheet_name, address))
+                    evidence["stale"].append(item)
+            elif operation.operation_type == "PROPAGATE_STYLE":
+                policy = styles[d.style_policy_ref]
+                template = source[d.sheet][policy.template_cell.split("!", 1)[1]]
+                for item in operation.affected_cells:
+                    sheet_name, address = item.split("!", 1)
+                    target = output[sheet_name][address]
+                    for attribute in policy.owned_attributes:
+                        if attribute == "row_height":
+                            require(sheet.row_dimensions[target.row].height
+                                    == source[d.sheet].row_dimensions[template.row].height,
+                                    "Dynamic row-height readback failed")
+                            continue
+                        if attribute == "column_width":
+                            require(sheet.column_dimensions[get_column_letter(target.column)].width
+                                    == source[d.sheet].column_dimensions[get_column_letter(template.column)].width,
+                                    "Dynamic column-width readback failed")
+                            continue
+                        if attribute == "number_format" and (sheet_name, address) in writes:
+                            continue
+                        require(_style_value(target, attribute) == _style_value(template, attribute),
+                                "Dynamic style readback failed")
+                    affected.add((sheet_name, address))
+                    evidence["styles"].append(item)
+            elif operation.operation_type == "PROPAGATE_PRESENTATION_FORMULA":
+                policy = formulas[d.formula_policy_ref]
+                origin = policy.source_formula_cells[0].split("!", 1)[1]
+                formula = source[d.sheet][origin].value
+                for item in operation.affected_cells:
+                    sheet_name, address = item.split("!", 1)
+                    expected_formulas[(sheet_name, address)] = Translator(formula, origin=origin).translate_formula(address)
+                    affected.add((sheet_name, address))
+        for key, write in writes.items():
+            cell = output[write.sheet][write.cell]
+            require(type(cell.value) is type(write.value) and cell.value == write.value,
+                    "Dynamic canonical write value readback failed")
+            require(cell.number_format == write.number_format, "Dynamic canonical write format readback failed")
+            require((write.kind != "literal" or cell.data_type == "s")
+                    and (write.kind != "numeric" or cell.data_type == "n")
+                    and (write.kind != "blank" or cell.value is None), "Dynamic canonical write type readback failed")
+            evidence["writes"].append((write.sheet, write.cell, write.record_id, write.field_id,
+                                       write.token_id, write.comparison_id))
+        actual_formulas = {}
+        for d in declarations.values():
+            for row, col in d.owned_envelope.cells():
+                cell = output[d.sheet].cell(row, col)
+                if cell.data_type == "f":
+                    actual_formulas[(d.sheet, cell.coordinate)] = cell.value
+        # Controlled formulas outside the active target set must remain exactly as supplied by the input.
+        for d in declarations.values():
+            for row, col in d.owned_envelope.cells():
+                cell = source[d.sheet].cell(row, col)
+                key = (d.sheet, cell.coordinate)
+                if cell.data_type == "f" and key not in affected:
+                    expected_formulas[key] = cell.value
+        require(actual_formulas == expected_formulas, "Dynamic formula inventory readback failed")
+        evidence["formulas"] = sorted((sheet, cell, formula) for (sheet, cell), formula in actual_formulas.items())
+        for d in declarations.values():
+            for row, col in d.owned_envelope.cells():
+                address = output[d.sheet].cell(row, col).coordinate
+                key = (d.sheet, address)
+                if key in affected:
+                    continue
+                before, after = source[d.sheet][address], output[d.sheet][address]
+                require((before.value, before.data_type, before.number_format, before.style_id)
+                        == (after.value, after.data_type, after.number_format, after.style_id),
+                        "Unplanned Dynamic Region mutation")
+                evidence["unchanged"].append((d.sheet, address))
+        evidence_hash = fingerprint(evidence)
+        return evidence_hash, evidence
+    finally:
+        for workbook in (source, output):
+            workbook.close()
+            if workbook.vba_archive:
+                workbook.vba_archive.close()
 
 
 def render_dynamic(request: DynamicRenderRequest, input_path: Path, output_path: Path, *, plan=None):
@@ -564,11 +772,13 @@ def render_dynamic(request: DynamicRenderRequest, input_path: Path, output_path:
         require(actual == expected, "Dynamic plan changed during render")
         out_state = _logical_state(staged, q.declarations)
         require(all(out_state[d.region_id] for d in q.declarations), "Incomplete logical output")
+        validation_sha, validation = _validate_dynamic_output(input_path, staged, request, expected)
         shutil.copyfile(staged, output_path)
     return {"qa": "PASS", "plan_sha256": expected.plan_sha256,
             "output_sha256": sha(output_path), "logical_output_sha256": fingerprint(_logical_state(output_path, q.declarations)),
             "vba_before": expected.vba_sha256, "vba_after": _vba(output_path),
             "protected_parts_before": expected.protected_parts_sha256,
+            "output_validation_sha256": validation_sha, "output_validation": validation,
             "region_bounds": tuple((d.region_id, next(o.after_bounds for o in expected.dynamic_operations
                                     if o.region_id == d.region_id)) for d in q.declarations)}
 

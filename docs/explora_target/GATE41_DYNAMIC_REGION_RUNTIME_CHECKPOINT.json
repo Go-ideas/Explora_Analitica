@@ -8,18 +8,28 @@
   "vba_after_sha256": "0f879b60ed12315085bc722c3f59163f86ce24609e3ba6ad379069c44779b758",
   "declaration_policy_sha256": "872481be4fe51f53685b811088c781c44d976de3dd662c7503f78ca832d4abfa",
   "binding_sha256": "a65f156ff72db43fe5eeaf63e74e155b3ce19858507beec445f7c5941c5f2402",
-  "normalized_plan_sha256": "0c7ac0ed3f82543dd2324125ad4ddcb734661c81d3452dc117b3a0231347ba21",
+  "normalized_plan_sha256": "d992cb00f9ad23fcb73263ba60a15e759f3d9f00a15cacfbaf56ed108a7b918d",
   "logical_output_sha256": "14bcbccb4e4892e6961dbd9cba9ea713777cb3aceb2b705e49dee97dc6660e70",
-  "sample_output_sha256": "25389c521fc6a8da72e5ea9f427fd78d748bd262b590c4b1c3ee3b5ea4781cfd",
+  "sample_output_sha256": "cea930c2bd982897ee826662df356bf24c8a5af235b527681bf2107a7c2f2eeb",
+  "output_validation_sha256": "f9ee8495428e23516c0e9404af217f43646ddc080ae82f2be8d8bfb4d4a31e3c",
+  "initial_human_review": "FAIL_CORRECTIVE_REMEDIATION_REQUIRED",
+  "corrective_remediation": {
+    "B-G41-01": "RESOLVED",
+    "B-G41-02": "RESOLVED",
+    "B-G41-03": "RESOLVED",
+    "B-G41-04": "RESOLVED",
+    "B-G41-05": "RESOLVED",
+    "B-G41-06": "RESOLVED"
+  },
   "positive_validation": "PASS",
   "negative_validation": "PASS",
   "tests": {
-    "focused_dynamic_region": {"passed": 25, "failed": 0, "skipped": 0},
+    "focused_dynamic_region": {"passed": 51, "failed": 0, "skipped": 0},
     "m7b_renderer": {"passed": 103, "failed": 0, "skipped": 0},
     "gate38": {"passed": 20, "failed": 0, "skipped": 0},
     "gate39": {"passed": 18, "failed": 0, "skipped": 0},
     "canonical_transport_identity_serialization": {"passed": 26, "failed": 0, "skipped": 0},
-    "full_regression": {"passed": 839, "failed": 0, "skipped": 0}
+    "full_regression": {"passed": 865, "failed": 0, "skipped": 0}
   },
   "plan_deterministic": true,
   "logical_output_deterministic": true,

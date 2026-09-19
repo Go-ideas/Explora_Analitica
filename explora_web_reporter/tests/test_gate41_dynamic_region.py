@@ -12,11 +12,13 @@ from src.excel_renderer import (
 )
 from src.excel_renderer.dynamic_region import (
     DYNAMIC_BINDING_SCHEMA, DYNAMIC_CONTRACT, DYNAMIC_PLAN, DYNAMIC_QUALIFICATION_SCHEMA,
-    _protected, _vba,
+    _protected, _validate_dynamic_output, _vba,
 )
-from src.analytics_core.result_identity import result_fingerprint
-from src.excel_renderer.renderer import sha
+from src.analytics_core.result_identity import result_fingerprint, stable_json
+from src.contracts.vocabulary import StatisticalState
+from src.excel_renderer.renderer import SIGNIFICANCE, sha, sha_bytes
 from m7b_fixtures import source_result
+from test_gate39_significance_presentation import core_result
 
 FIXTURE = Path(__file__).parent / "fixtures/gate41/dynamic_region_runtime_fixture.xlsm"
 
@@ -175,8 +177,9 @@ def test_unauthorized_dimensions(master):
     req = request(master, rows=2, columns=2)
     d = replace(req.qualification.declarations[0], growth_dimensions="ROWS")
     s = replace(req.qualification.style_policies[0], propagation_axis="ROWS")
+    f = replace(req.qualification.formula_policies[0], propagation_axis="ROWS")
     q = replace(req.qualification, declarations=(d, req.qualification.declarations[1]),
-                style_policies=(s, req.qualification.style_policies[1]))
+                style_policies=(s, req.qualification.style_policies[1]), formula_policies=(f,))
     with pytest.raises(RenderError, match="unauthorized column"):
         plan_dynamic_render(replace(req, qualification=q), master)
 
@@ -273,3 +276,224 @@ def test_unverifiable_lineage_and_no_partial_publication(master, tmp_path):
     with pytest.raises(RenderError, match="previous active footprint"):
         render_dynamic(bad, master, output)
     assert not output.exists()
+
+
+@pytest.mark.parametrize("region_id,axis,rows,columns", [
+    ("table_region", "ROWS", 2, 1), ("table_region", "COLUMNS", 1, 2),
+    ("table_region", "ROWS_AND_COLUMNS", 2, 2), ("range_region", "ROWS", 2, 1),
+    ("range_region", "COLUMNS", 1, 2), ("range_region", "ROWS_AND_COLUMNS", 2, 2),
+])
+def test_each_region_kind_and_growth_axis_positive(master, tmp_path, region_id, axis, rows, columns):
+    req = request(master, rows=max(rows, 1), columns=max(columns, 1))
+    declarations, policies = list(req.qualification.declarations), list(req.qualification.style_policies)
+    index = 0 if region_id == "table_region" else 1
+    declarations[index] = replace(declarations[index], growth_dimensions=axis)
+    policies[index] = replace(policies[index], propagation_axis=axis)
+    formula_policies = req.qualification.formula_policies
+    if index == 0:
+        formula_policies = (replace(formula_policies[0], propagation_axis=axis),)
+    bindings = list(req.bindings)
+    bindings[index] = replace(bindings[index], requested_rows=rows, requested_columns=columns,
+        ordered_record_ids=tuple(v.value_id for v in req.results[0].values[:rows]),
+        field_bindings=bindings[index].field_bindings[:columns],
+        display_profile_refs=bindings[index].display_profile_refs[:columns])
+    other = 1 - index
+    bindings[other] = replace(bindings[other], requested_rows=1, requested_columns=1,
+        ordered_record_ids=(req.results[0].values[0].value_id,), field_bindings=bindings[other].field_bindings[:1],
+        display_profile_refs=bindings[other].display_profile_refs[:1])
+    q = replace(req.qualification, declarations=tuple(declarations), style_policies=tuple(policies),
+                formula_policies=formula_policies)
+    req = replace(req, qualification=q, bindings=tuple(bindings))
+    plan = plan_dynamic_render(req, master)
+    validation = next(o for o in plan.dynamic_operations
+                      if o.region_id == region_id and o.operation_type == "VALIDATE_REGION")
+    assert (validation.after_bounds.rows, validation.after_bounds.columns) == (rows, columns)
+    output = tmp_path / f"{region_id}-{axis}.xlsm"
+    evidence = render_dynamic(req, master, output, plan=plan)
+    assert evidence["output_validation_sha256"]
+    workbook = load_workbook(output, keep_vba=True)
+    try:
+        if region_id == "table_region":
+            assert workbook["dynamic_table"].tables["Gate41DynamicTable"].ref == f"A1:{chr(64 + columns)}{rows + 1}"
+        else:
+            assert workbook["dynamic_range"].cell(rows, columns).value is not None
+            if axis == "ROWS": assert workbook["dynamic_range"]["B1"].value is None
+            if axis == "COLUMNS": assert workbook["dynamic_range"]["A2"].value is None
+    finally:
+        workbook.close(); workbook.vba_archive.close()
+
+
+def significance_envelope(run):
+    comparison = run.comparisons[0]
+    bindings = []
+    for value in run.values:
+        if value.slice_id not in (comparison.left_slice_id, comparison.right_slice_id):
+            continue
+        bindings.append({"comparison_id": comparison.comparison_id, "family_id": comparison.family_id,
+            "test_id": comparison.test_id, "test_version": comparison.test_version, "value_id": value.value_id,
+            "slice_id": value.slice_id, "member_id": comparison.left_member_id if value.slice_id == comparison.left_slice_id
+            else comparison.right_member_id, "direction": comparison.direction,
+            "token_id": f"marker_{len(bindings)}", "display_text": "*"})
+    return stable_json({"schema_version": SIGNIFICANCE, "token_set_id": "GATE41_DYNAMIC_MARKERS_V1",
+        "revision": 1, "authority_ref": "GATE41_CORE_SIGNIFICANCE", "result_run_id": run.result_run_id,
+        "result_fingerprint": run.result_fingerprint, "comparison_bindings": bindings,
+        "legend": [{"token_id": item["token_id"], "meaning": "Canonical Core significance marker",
+                    "comparison_refs": [comparison.comparison_id]} for item in bindings]})
+
+
+def significance_request(path, run=None):
+    run = run or core_result()
+    raw = significance_envelope(run)
+    ref = sha_bytes(raw)
+    q = qualification(path)
+    marker = DynamicField("marker", "__SIGNIFICANCE_TOKEN__", 2, "SIGNIFICANCE_TOKEN", "exact_text")
+    q = replace(q, declarations=(q.declarations[0], replace(q.declarations[1],
+                field_columns=(*q.declarations[1].field_columns, marker))))
+    values = tuple(v for v in run.values if v.slice_id in (run.comparisons[0].left_slice_id,
+                                                            run.comparisons[0].right_slice_id))
+    ids = tuple(v.value_id for v in values)
+    bindings = (DynamicRegionBinding("table_region", run.result_run_id, "value", ids, ("estimate",),
+                    len(ids), 1, ("PROPORTION",)),
+                DynamicRegionBinding("range_region", run.result_run_id, "value", ids,
+                    ("estimate", "status", "marker"), len(ids), 3,
+                    ("PROPORTION", "LITERAL", "SIGNIFICANCE_TOKEN"), (ref,)))
+    return DynamicRenderRequest((run,), q, DYNAMIC_BINDING_SCHEMA, bindings, (raw,))
+
+
+def test_dynamic_significance_visible_traceable_and_contracts(master, tmp_path):
+    req = significance_request(master)
+    plan = plan_dynamic_render(req, master)
+    markers = [write for write in plan.writes if write.token_id]
+    assert len(markers) == 2
+    assert all(write.comparison_id == req.results[0].comparisons[0].comparison_id for write in markers)
+    output = tmp_path / "significance.xlsm"
+    render_dynamic(req, master, output, plan=plan)
+    workbook = load_workbook(output, keep_vba=True)
+    try:
+        assert [workbook["dynamic_range"][cell].value for cell in ("C1", "C2")] == ["*", "*"]
+    finally:
+        workbook.close(); workbook.vba_archive.close()
+    grown_evidence = render_dynamic(req, master, tmp_path / "grown.xlsm", plan=plan)
+    small_bindings = tuple(replace(binding, ordered_record_ids=binding.ordered_record_ids[:1], requested_rows=1)
+                           for binding in req.bindings)
+    small = replace(req, bindings=small_bindings, lineage=lineage_from(plan, grown_evidence))
+    render_dynamic(small, tmp_path / "grown.xlsm", tmp_path / "small.xlsm")
+    workbook = load_workbook(tmp_path / "small.xlsm", keep_vba=True)
+    try:
+        assert workbook["dynamic_range"]["C1"].value == "*"
+        assert workbook["dynamic_range"]["C2"].value is None
+    finally:
+        workbook.close(); workbook.vba_archive.close()
+
+
+@pytest.mark.parametrize("defect,error", [
+    ("missing_ref", "Unknown/unpinned"), ("checksum", "Unknown/unpinned"),
+    ("comparison", "Invalid significance assertion"), ("value", "Invalid significance assertion"),
+    ("slice", "Token target mismatch"), ("member", "Token target mismatch"),
+    ("direction", "Contradictory token identity"), ("unused", "Unknown/unpinned"),
+])
+def test_dynamic_significance_fail_closed(master, defect, error):
+    req = significance_request(master)
+    if defect == "missing_ref":
+        req = replace(req, bindings=(req.bindings[0], replace(req.bindings[1],
+                      significance_presentation_refs=("0" * 64,))))
+    elif defect == "unused":
+        req = replace(req, bindings=tuple(replace(b, significance_presentation_refs=()) for b in req.bindings))
+    else:
+        envelope = json.loads(req.significance_json[0])
+        if defect == "checksum":
+            envelope["authority_ref"] = "CHANGED"
+            req = replace(req, significance_json=(stable_json(envelope),))
+        else:
+            key = {"comparison": "comparison_id", "value": "value_id", "slice": "slice_id",
+                   "member": "member_id", "direction": "direction"}[defect]
+            envelope["comparison_bindings"][0][key] = "WRONG"
+            raw = stable_json(envelope)
+            req = replace(req, significance_json=(raw,), bindings=(req.bindings[0],
+                replace(req.bindings[1], significance_presentation_refs=(sha_bytes(raw),))))
+    with pytest.raises(RenderError, match=error):
+        plan_dynamic_render(req, master)
+
+
+@pytest.mark.parametrize("status", [StatisticalState.NOT_SIGNIFICANT, StatisticalState.INELIGIBLE])
+def test_dynamic_significance_requires_significant_relation(master, status):
+    run = core_result()
+    unsigned = replace(run, comparisons=(replace(run.comparisons[0], status=status),))
+    fp = result_fingerprint(unsigned)
+    run = replace(unsigned, result_fingerprint=fp, manifest=replace(unsigned.manifest, result_fingerprint=fp))
+    with pytest.raises(RenderError, match="Invalid significance assertion"):
+        plan_dynamic_render(significance_request(master, run), master)
+
+
+def test_fixed_slot_named_and_table_backed_resolution(master):
+    req = request(master)
+    safe = (Slot("named_safe", "presentation", "numeric", "exact_numeric", name="Gate41ProtectedName"),
+            Slot("table_safe", "presentation", "literal", "exact_text",
+                 table="CertificationResults", row=0, column="value"))
+    plan_dynamic_render(replace(req, qualification=replace(req.qualification, fixed_slots=safe)), master)
+    collision = Slot("table_collision", "presentation", "numeric", "exact_numeric",
+                     table="Gate41DynamicTable", row=0, column="estimate")
+    with pytest.raises(RenderError, match="fixed-slot"):
+        plan_dynamic_render(replace(req, qualification=replace(req.qualification, fixed_slots=(collision,))), master)
+    with pytest.raises(RenderError, match="Ambiguous/unresolvable"):
+        plan_dynamic_render(replace(req, qualification=replace(req.qualification,
+            fixed_slots=(replace(collision, table="MISSING"),))), master)
+
+
+@pytest.mark.parametrize("defect", ["empty_source", "multiple_source", "negative_offset",
+                                     "duplicate_offset", "wrong_axis", "not_formula"])
+def test_formula_policy_hardening(master, defect):
+    req = request(master, rows=2, columns=3)
+    policy = req.qualification.formula_policies[0]
+    if defect == "empty_source": policy = replace(policy, source_formula_cells=())
+    elif defect == "multiple_source": policy = replace(policy, source_formula_cells=("dynamic_table!C2", "dynamic_table!C3"))
+    elif defect == "negative_offset": policy = replace(policy, target_field_offsets=(-1,))
+    elif defect == "duplicate_offset": policy = replace(policy, target_field_offsets=(2, 2))
+    elif defect == "wrong_axis": policy = replace(policy, propagation_axis="ROWS")
+    else: policy = replace(policy, source_formula_cells=("dynamic_table!A2",))
+    with pytest.raises(RenderError, match="formula|Formula"):
+        plan_dynamic_render(replace(req, qualification=replace(req.qualification, formula_policies=(policy,))), master)
+
+
+def test_formula_inventory_and_unplanned_mutation_readback(master, tmp_path):
+    req = request(master, rows=2, columns=3)
+    plan = plan_dynamic_render(req, master)
+    output = tmp_path / "valid.xlsm"
+    render_dynamic(req, master, output, plan=plan)
+    workbook = load_workbook(output, keep_vba=True)
+    try:
+        workbook["dynamic_table"]["C3"] = "=1+9"
+        workbook.save(tmp_path / "bad-formula.xlsm")
+    finally:
+        workbook.close(); workbook.vba_archive.close()
+    with pytest.raises(RenderError, match="formula inventory"):
+        _validate_dynamic_output(master, tmp_path / "bad-formula.xlsm", req, plan)
+    workbook = load_workbook(output, keep_vba=True)
+    try:
+        workbook["dynamic_range"]["D6"] = "UNPLANNED"
+        workbook.save(tmp_path / "bad-unplanned.xlsm")
+    finally:
+        workbook.close(); workbook.vba_archive.close()
+    with pytest.raises(RenderError, match="Unplanned"):
+        _validate_dynamic_output(master, tmp_path / "bad-unplanned.xlsm", req, plan)
+
+
+def test_provenance_role_positive_and_invalid_field(master, tmp_path):
+    req = request(master)
+    field = DynamicField("project", "project_id", 0, "LITERAL", "exact_text")
+    declaration = replace(req.qualification.declarations[1], field_columns=(field,))
+    q = replace(req.qualification, declarations=(req.qualification.declarations[0], declaration))
+    binding = DynamicRegionBinding("range_region", req.results[0].result_run_id, "provenance",
+        (req.results[0].result_run_id,), ("project",), 1, 1, ("LITERAL",))
+    provenance_req = replace(req, qualification=q, bindings=(req.bindings[0], binding))
+    output = tmp_path / "provenance.xlsm"
+    render_dynamic(provenance_req, master, output)
+    workbook = load_workbook(output, keep_vba=True)
+    try:
+        assert workbook["dynamic_range"]["A1"].value == req.results[0].project_id
+    finally:
+        workbook.close(); workbook.vba_archive.close()
+    bad_field = replace(field, source_field="invented_metadata")
+    bad_q = replace(q, declarations=(q.declarations[0], replace(declaration, field_columns=(bad_field,))))
+    with pytest.raises(RenderError, match="Unknown provenance field"):
+        plan_dynamic_render(replace(provenance_req, qualification=bad_q), master)
