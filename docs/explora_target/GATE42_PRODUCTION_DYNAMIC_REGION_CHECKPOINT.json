@@ -1,0 +1,53 @@
+{
+  "schema_version": "GATE42_PRODUCTION_DYNAMIC_REGION_CHECKPOINT_V1",
+  "starting_main_sha": "d3f35100547038e49e409246ef0368799c1799bb",
+  "baseline": {
+    "filename": "EXPLORA_PRODUCTION_MASTER_V1.xlsm",
+    "version": "1.1.0",
+    "sha256": "a8313adf706016b30b8837a7bc42cb80c7ccc281f2663616a7f22b8daa8d10dd",
+    "vba_sha256": "0f879b60ed12315085bc722c3f59163f86ce24609e3ba6ad379069c44779b758",
+    "rollback_preserved": true
+  },
+  "candidate": {
+    "filename": "EXPLORA_PRODUCTION_MASTER_V1_2.xlsm",
+    "version": "1.2.0",
+    "sha256": "f3a11f291b6c661f0c937e9c95d7f227c351d7261b2e01aa44dfd4167d5c869c",
+    "vba_sha256": "0f879b60ed12315085bc722c3f59163f86ce24609e3ba6ad379069c44779b758"
+  },
+  "regions": [
+    {"region_id": "PRODUCTION_DYNAMIC_RESULTS_V1", "sheet": "presentation",
+     "anchor": "ProductionDynamicResultAnchor", "minimum": [1, 1], "maximum": [8, 3],
+     "owned_envelope": "J2:L9", "formula_policy": "NONE"},
+    {"region_id": "PRODUCTION_DYNAMIC_PROVENANCE_V1", "sheet": "presentation",
+     "anchor": "ProductionDynamicProvenanceAnchor", "minimum": [1, 1], "maximum": [1, 1],
+     "owned_envelope": "N2:N2", "formula_policy": "NONE"}
+  ],
+  "fingerprints": {
+    "declaration_policy_sha256": "89af950dd90758c9ee4d0bf85f46f610dcef5ee16649101a2fdbde8664ff7252",
+    "maximum_binding_sha256": "b824a7c445b7b0a8ceaccd05971493b1d8369453f3945a9b685bb5aadacb6d82",
+    "maximum_plan_sha256": "ac018de6d3988a74eecf8def17a5d21ed31c42c01e66baf864545c2c828e1a66",
+    "maximum_logical_output_sha256": "c4d54b8582511886a842b7410cb37ab77d5ad2778ac3ada6dad6004f7c0e21bb",
+    "maximum_output_validation_sha256": "a4a46d47a8dda232902cbce488f790ef64dd3fb9df597eac373192fd2286f649",
+    "sample_output_sha256": "6f3b5d20b7c714f1b0847f7bda1685714d440ac1391b638675722dfed708ba1c",
+    "protected_parts_sha256": "038301af93a6184ca4658d448a6b7cf578148b496b92e63fcaa4d08ce9d8236f"
+  },
+  "scenarios": {
+    "T42-01": "PASS", "T42-02": "PASS", "T42-03": "PASS", "T42-04": "PASS",
+    "T42-05": "PASS", "T42-06": "PASS", "T42-07": "PASS", "T42-08": "PASS",
+    "T42-09": "PASS", "T42-10": "PASS", "T42-11": "PASS", "T42-12": "PASS",
+    "T42-13": "PASS", "T42-14": "PASS", "T42-15": "PASS", "T42-16": "PASS",
+    "T42-17": "PASS", "T42-18": "PASS", "T42-19": "PASS", "T42-20": "PASS"
+  },
+  "tests": {
+    "gate42_focused": {"passed": 10, "failed": 0, "skipped": 0},
+    "gate41_dynamic": {"passed": 51, "failed": 0, "skipped": 0},
+    "m7_production": {"passed": 141, "failed": 0, "skipped": 0},
+    "full_regression": {"passed": 875, "failed": 0, "skipped": 0}
+  },
+  "binary_candidate_deterministic": true,
+  "binary_rendered_output_deterministic_claimed": false,
+  "canonical_authority_preserved": true,
+  "excel_vba_statistical_recomputation": false,
+  "customer_data_used": false,
+  "customer_workbook_used": false
+}

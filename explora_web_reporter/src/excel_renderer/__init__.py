@@ -5,6 +5,7 @@ from .renderer import (
 )
 from .qualification import QualifiedMaster, load_qualified_master, vba_sha256
 from .production import benchmark_a_request
+from .dynamic_qualification import load_dynamic_qualified_master
 from .dynamic_region import (
     Bounds, DynamicField, DynamicLineage, DynamicMasterQualification,
     DynamicRegionBinding, DynamicRegionDeclaration, DynamicRegionFormulaPolicy,
@@ -19,3 +20,4 @@ __all__ += ["Bounds", "DynamicField", "DynamicLineage", "DynamicMasterQualificat
             "DynamicRegionBinding", "DynamicRegionDeclaration", "DynamicRegionFormulaPolicy",
             "DynamicRegionOperation", "DynamicRegionStylePolicy", "DynamicRenderPlan",
             "DynamicRenderRequest", "lineage_from", "plan_dynamic_render", "render_dynamic"]
+__all__ += ["load_dynamic_qualified_master"]
