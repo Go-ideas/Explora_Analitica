@@ -1,0 +1,25 @@
+{
+  "schema_version": "EXPLORA_PROJECT_SPEC_V1",
+  "project": {"project_id": "SYNTH_MIN", "display_name": "Synthetic Minimal", "project_version": "1.0.0", "spec_version": "1.0.0"},
+  "dataset": {
+    "source_id": "DATASET_SYNTH_MIN", "input_type": "CSV", "fingerprint": "sha256:minimal-dataset", "respondent_id_variable": "respondent_id", "duplicate_row_policy": "FAIL",
+    "variables": [
+      {"variable_id": "respondent_id", "source_name": "respondent_id", "data_type": "STRING", "missing_values": []},
+      {"variable_id": "q1", "source_name": "q1", "data_type": "INTEGER", "missing_values": [99]}
+    ]
+  },
+  "source_metadata_fingerprints": ["sha256:minimal-datamap"],
+  "questions": [{
+    "question_id": "Q1", "question_type": "RU", "source_variables": ["q1"], "display_label": "Synthetic choice", "universe_ref": "U_ALL",
+    "categories": [
+      {"category_id": "Q1_YES", "raw_value": 1, "canonical_value": "YES", "label": "Yes", "order": 1, "included": true, "special": false},
+      {"category_id": "Q1_NO", "raw_value": 2, "canonical_value": "NO", "label": "No", "order": 2, "included": true, "special": false}
+    ]
+  }],
+  "universes": [{"universe_id": "U_ALL", "parent_universe_ref": null, "source_variables": [], "expression": {"operator": "true", "args": []}, "rule_state": "DETERMINISTIC", "execution_scope": "PROJECT"}],
+  "weights": [], "default_weight_ref": null, "banners": [], "filters": [], "significance_requests": [],
+  "derived_variables": [],
+  "output_requests": [{"output_request_id": "OUT_MIN", "question_refs": ["Q1"], "banner_refs": [], "filter_refs": [], "web_included": true, "excel_included": true, "display_decimals": 1}],
+  "ambiguities": [], "ai_interpretations": [],
+  "provenance": {"created_at": "2026-09-19T00:00:00Z", "created_by": "gate43-fixture", "source_refs": ["DATASET_SYNTH_MIN"], "b1_policy_ref": "B1_V1", "b2_policy_ref": "B2_V1", "b3_policy_ref": "B3_V1"}
+}

@@ -1,0 +1,38 @@
+{
+  "schema_version": "EXPLORA_PROJECT_SPEC_V1",
+  "project": {"project_id": "SYNTH_REP", "display_name": "Synthetic Representative", "project_version": "1.0.0", "spec_version": "1.0.0"},
+  "dataset": {
+    "source_id": "DATASET_SYNTH_REP", "input_type": "SAV", "fingerprint": "sha256:representative-dataset", "respondent_id_variable": "rid", "duplicate_row_policy": "FAIL",
+    "variables": [
+      {"variable_id": "rid", "source_name": "rid", "data_type": "STRING", "missing_values": []},
+      {"variable_id": "q_ru", "source_name": "q_ru", "data_type": "INTEGER", "missing_values": [99]},
+      {"variable_id": "q_rm_1", "source_name": "q_rm_1", "data_type": "INTEGER", "missing_values": []},
+      {"variable_id": "q_rm_2", "source_name": "q_rm_2", "data_type": "INTEGER", "missing_values": []},
+      {"variable_id": "q_scale", "source_name": "q_scale", "data_type": "NUMBER", "missing_values": [99]},
+      {"variable_id": "segment", "source_name": "segment", "data_type": "INTEGER", "missing_values": []},
+      {"variable_id": "eligible", "source_name": "eligible", "data_type": "BOOLEAN", "missing_values": []},
+      {"variable_id": "weight", "source_name": "weight", "data_type": "NUMBER", "missing_values": []}
+    ]
+  },
+  "source_metadata_fingerprints": ["sha256:questionnaire", "sha256:datamap"],
+  "questions": [
+    {"question_id": "Q_RU", "question_type": "RU", "source_variables": ["q_ru"], "display_label": "Single choice", "universe_ref": "U_ELIGIBLE", "categories": [{"category_id": "RU_1", "raw_value": 1, "label": "One", "order": 1, "included": true}]},
+    {"question_id": "Q_RM", "question_type": "PARENT_RM", "source_variables": ["q_rm_1", "q_rm_2"], "display_label": "Multiple choice", "universe_ref": "U_ELIGIBLE", "categories": []},
+    {"question_id": "Q_RM_M1", "question_type": "MENTION", "parent_question_ref": "Q_RM", "source_variables": ["q_rm_1"], "display_label": "Mention one", "universe_ref": "U_ELIGIBLE", "categories": [{"category_id": "RM_1", "raw_value": 1, "label": "Selected", "order": 1, "included": true}]},
+    {"question_id": "Q_SCALE", "question_type": "SCALE", "source_variables": ["q_scale"], "display_label": "Scale", "universe_ref": "U_ELIGIBLE", "categories": []}
+  ],
+  "universes": [
+    {"universe_id": "U_ALL", "expression": {"operator": "true", "args": []}, "rule_state": "DETERMINISTIC", "source_variables": [], "execution_scope": "PROJECT"},
+    {"universe_id": "U_ELIGIBLE", "parent_universe_ref": "U_ALL", "expression": {"operator": "eq", "args": ["eligible", true]}, "rule_state": "DETERMINISTIC", "source_variables": ["eligible"], "execution_scope": "QUESTION"}
+  ],
+  "weights": [{"weight_id": "W_DEFAULT", "variable_ref": "weight", "validation_state": "VALID", "negative_values_observed": false, "normalization": "NONE", "trimming": "NONE", "policy_ref": "B1_V1"}],
+  "default_weight_ref": "W_DEFAULT",
+  "banners": [{"banner_id": "B_SEGMENT", "variable_ref": "segment", "rule": {"operator": "categories", "values": [1, 2]}, "category_order": [1, 2], "universe_ref": "U_ELIGIBLE", "display_eligible": true}],
+  "filters": [{"filter_id": "F_ELIGIBLE", "variable_ref": "eligible", "rule": {"operator": "eq", "value": true}, "combination": "AND", "universe_ref": "U_ALL"}],
+  "significance_requests": [{"significance_request_id": "SIG_SEGMENT", "enabled": true, "confidence": 0.95, "comparison_scope": "BANNER_MEMBERS", "policy_ref": "B2_V1"}],
+  "derived_variables": [{"derived_variable_id": "DV_NONE_EXECUTED", "state": "SOURCE_ALREADY_CALCULATED", "source_variables": ["segment"], "runtime_expression": null}],
+  "output_requests": [{"output_request_id": "OUT_REP", "question_refs": ["Q_RU", "Q_RM", "Q_SCALE"], "banner_refs": ["B_SEGMENT"], "filter_refs": ["F_ELIGIBLE"], "web_included": true, "excel_included": true, "display_decimals": 1}],
+  "ambiguities": [],
+  "ai_interpretations": [{"decision_id": "AI_LABEL_1", "source_evidence": "questionnaire:p1", "proposed_interpretation": "Display label only", "confidence": 0.99, "human_approval_required": false, "release_state": "AUTO_RELEASED_NON_ANALYTICAL", "final_accepted_value": "Single choice", "provenance": "B3_V1"}],
+  "provenance": {"created_at": "2026-09-19T00:00:00Z", "created_by": "gate43-fixture", "source_refs": ["DATASET_SYNTH_REP", "questionnaire", "datamap"], "b1_policy_ref": "B1_V1", "b2_policy_ref": "B2_V1", "b3_policy_ref": "B3_V1"}
+}
