@@ -1,9 +1,9 @@
 # EXPLORA PROGRAM STATE
 
-Date: 2026-09-18
+Date: 2026-09-19
 Repository: Go-ideas/Explora_Analitica
-Authoritative main: `35d4df739998d768dcefaef27fbe373df2ee1143`
-Gate 36 working branch: `feature/m7-master-vba-readiness`
+Authoritative main at Gate 40A entry: `833bd04de4e3ccc98a4a39e68f421ae137dceeb8`
+Gate 40A working branch: `docs/gate40a-dynamic-region-contract`
 
 ## Current Accepted State
 
@@ -32,6 +32,9 @@ methodological/analytical contract is reopened by this documentation update.
 | M7A Contract | ADOPTED; historical boundaries retained |
 | Gate 35 prerequisite contracts | CLOSED / ACCEPTED / ADOPTED through PR #7; full regression 602/0/0 |
 | Gate 36 corrective readiness | technical PASS on feature branch; bounded declared-cell backend certified; full regression 648/0/0 |
+| Gate 39 significance presentation | CLOSED / ACCEPTED / ADOPTED through PR #12; full regression 814/0/0 |
+| Gate 40 dynamic growth | BLOCKED at review because frozen contracts lacked normative region semantics |
+| Gate 40A contract clarification | Dynamic Region V1 contract DEFINED FOR HUMAN REVIEW; runtime NOT AUTHORIZED |
 | M7B foundation readiness | YES within certified operation profile; implementation NOT AUTHORIZED |
 | M7B Renderer implementation | NOT AUTHORIZED |
 | M7C Master/VBA | NOT AUTHORIZED |
@@ -103,6 +106,15 @@ Current Gate 35 contracts:
 - [Numeric display profile V1](M7_EXCEL_NUMERIC_DISPLAY_PROFILE_V1.md).
 - [Significance presentation V1](M7_SIGNIFICANCE_PRESENTATION_INTERFACE_V1.md).
 - [Gate assessment and current gap register](M7_PREREQUISITE_CONTRACTS_GATE_ASSESSMENT.md).
+
+Gate 40A additive contract:
+- [Dynamic Region Contract V1](M7_DYNAMIC_REGION_CONTRACT_V1.md).
+
+The Dynamic Region contract is additive and does not rewrite frozen Gate 35
+semantics. It defines future region identity, bounded envelopes, ownership,
+style/formula policy, collisions, contraction, explicit RenderPlan operations and
+determinism. No Dynamic Region runtime, workbook resizing, analytical change,
+Legacy fallback or later M7 capability is authorized by Gate 40A.
 
 MASTER XLSM = NOT FOUND in the inspected repository/surrounding workspace.
 Visual Spec, mapping, numeric, significance, provenance, determinism and safety
