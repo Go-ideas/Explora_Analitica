@@ -3,6 +3,7 @@ pandas
 numpy
 pyreadstat
 openpyxl
+lxml==6.0.0
 xlsxwriter
 plotly
 scipy

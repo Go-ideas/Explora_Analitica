@@ -1,0 +1,83 @@
+{
+  "gate": 37,
+  "status": "PASS_READY_FOR_INDEPENDENT_REVIEW",
+  "starting_main": "d74ba842bc05be1ef327047cbfa72ebbbc2e6f8c",
+  "branch": "feature/m7b-renderer-implementation",
+  "implementation_identity": "Commit containing this evidence; resolve with git",
+  "fixture": {
+    "path": "explora_web_reporter/tests/fixtures/m7b/generic_macro_renderer_fixture.xlsm",
+    "sha256": "846fc71ae54e02a99a8278f662dcc15584c1e4575030398ddb4825363471bc06",
+    "vba_sha256": "0f879b60ed12315085bc722c3f59163f86ce24609e3ba6ad379069c44779b758",
+    "certification": "Independent SHA, CRC, OLE, content-type, relationship and Gate 36 interface checks PASS",
+    "production_master": false,
+    "customer_source": false,
+    "macros_executed": false,
+    "provenance_note": "Companion JSON absent; reconstruction disclosed; precise upstream revision unavailable"
+  },
+  "generic_render": {
+    "generator": "explora_web_reporter/scripts/gate37_review_evidence.py",
+    "external_evidence_filename": "render_review_final.json",
+    "external_evidence_sha256": "e0465842ede37e521faf1d1cfc383f8f6ceccaf92992194891a660f05a16f465",
+    "master_source": "Generic preallocated test Master built from unchanged authorized fixture; not customer derived",
+    "master_sha256": "7ca9f798e9f5fb4eeffa45b98cc7e33d35b27e659b84d5b85d078e90dc353b0e",
+    "output_sha256": "fde05ba41953f7bfaf6936ae57232d2f6495a7f29a0edc3380367b840cf6e0c0",
+    "plan_sha256": "d77f09536859a7869d36069476613fabc53b90296c40e5682604ad03aac87bbc",
+    "declared_write_count": 755,
+    "qa": "PASS",
+    "vba_before_sha256": "0f879b60ed12315085bc722c3f59163f86ce24609e3ba6ad379069c44779b758",
+    "vba_after_sha256": "0f879b60ed12315085bc722c3f59163f86ce24609e3ba6ad379069c44779b758",
+    "untouched_parts_exact": true,
+    "undeclared_cells_preserved": true,
+    "runtime_workbooks_retained": false,
+    "normalized_oracle": "Identical source/config/token and controlled Master bytes; new test Master generation timestamps may differ",
+    "representative_trace": {
+      "result_run_id": "run_m6_fixture",
+      "result_fingerprint": "6131bcdfb0d0a58a9919e9ef353e0ce20b98f215b9052555e65363ccc15c49aa",
+      "record_role": "value",
+      "record_id": "value_total",
+      "field_name": "estimate",
+      "slot_id": "official_value",
+      "defined_name": "RendererSlot",
+      "sheet": "presentation",
+      "cell": "B2",
+      "kind": "numeric",
+      "storage_mode": "exact_numeric",
+      "value": 0.5,
+      "display_profile": "PROPORTION",
+      "number_format": "0.0%",
+      "unit": "PROPORTION",
+      "status": "OK",
+      "visual_id": "visual_0",
+      "status_sidecar": "presentation!G1, literal OK, source value_status",
+      "label_target": "presentation!A2, literal value_total, TECHNICAL_ID_LABEL diagnostic"
+    }
+  },
+  "validation": {
+    "focused_m7b": {
+      "passed": 103,
+      "failed": 0,
+      "skipped": 0,
+      "evidence": "100-case focused suite plus 3 provenance-reference cases; all 103 included in final full regression"
+    },
+    "gate36_and_canonical_runtime": {"passed": 260, "failed": 0, "skipped": 0},
+    "gate35_contract_tests": "Frozen contract acceptance/rejection exercised by focused M7B suite",
+    "full_regression": {"passed": 751, "failed": 0, "skipped": 0},
+    "unexpected_numerical_deltas": "NONE DETECTED"
+  },
+  "boundaries": {
+    "statistical_recalculation": false,
+    "core_semantics_modified": false,
+    "frozen_contracts_modified": false,
+    "absolute_local_runtime_dependency": false,
+    "customer_artifacts_adopted": false,
+    "push_performed": false,
+    "merge_performed": false,
+    "next_milestone_started": false
+  },
+  "limitations": [
+    "Generic bounded foundation only; Production Master and broad project/metric coverage are not certified",
+    "No signed packages, table growth, charts, suppression/style overrides or optional missing-source rendering",
+    "Invariant display-text helper is tested; a dedicated display-text slot adapter is not implemented",
+    "VBA source inspection is not compiled p-code security certification; current upstream binary differs"
+  ]
+}

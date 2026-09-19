@@ -1,0 +1,22 @@
+{
+  "fixture_id": "GENERIC_MACRO_RENDERER_FIXTURE_V1",
+  "purpose": "Test-only VBA-preserving canonical renderer certification; not a Production Master",
+  "fixture_sha256": "846fc71ae54e02a99a8278f662dcc15584c1e4575030398ddb4825363471bc06",
+  "vba_sha256": "0f879b60ed12315085bc722c3f59163f86ce24609e3ba6ad379069c44779b758",
+  "structural_seed": "Gate 36 create_generic / generic.xlsx",
+  "structural_seed_sha256": "3517fc1a052296bbba935344d94d84f10178174e78e33dd91c57ef23430df6e4",
+  "construction": "Human-supplied package with authorized public generic sample VBA; all seed parts unchanged except content types and workbook VBA relationship",
+  "vba_origin_authority": "Human Gate 37 resume directive identifies official XlsxWriter examples; exact upstream revision UNAVAILABLE",
+  "upstream_reference": "https://github.com/jmcnamara/XlsxWriter/blob/main/examples/vbaProject.bin",
+  "upstream_current_hash_matches": false,
+  "static_inspector": "oletools 0.60.2 / olefile 0.47, installed outside repository",
+  "executable_source": "Module1: Sub say_hello(): MsgBox (\"Hello from Python!\"): End Sub",
+  "other_modules": ["ThisWorkbook", "Sheet1", "ThisWorkbook1", "Sheet2"],
+  "other_module_source": "VBA attributes only; no executable event source",
+  "autoexec_event_source": "NONE DETECTED",
+  "customer_derived_content": "NONE",
+  "customer_vba_used": false,
+  "customer_xlsm_source": false,
+  "macros_executed": false,
+  "limitations": "Static source inspection is not a compiled p-code security certification. Exact supplied binary is pinned and never executed. Provenance JSON was reconstructed from human authorization and independent checks because no companion JSON was present."
+}
