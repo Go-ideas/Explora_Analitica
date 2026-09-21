@@ -1,0 +1,40 @@
+{
+  "project_id": "FUNSMX_297140",
+  "runner_version": "GATE44_PRODUCTIVE_E2E_V1",
+  "binding_fingerprint": "2403dba05c33df46564646c02bb07015d92a4f1115e4b74198033561635c2088",
+  "runtime_fingerprint": "eece0a4dec84266136033907b99b64b04d49428ff8c2d73846e4e36e910f5360",
+  "canonical_result_fingerprints": [
+    [
+      "BA-01",
+      "52dc453119705126a01423ece22b12e8b9d1a3f335272b64f7f79be31bdfdb36"
+    ],
+    [
+      "BA-02",
+      "47010ff8010f12f386feb2d489811fdbe42aa15dc06517ef99cee58b7b08a565"
+    ],
+    [
+      "BA-03",
+      "13ee2ec6e90fe3aabe4ee8f27f049b5604271a842d1b983269e379b79c322856"
+    ],
+    [
+      "BA-04",
+      "865c64f59b3c853e6cd5b6d5fff1a7b32667619ba44bc7b1c5a97007da34bfef"
+    ],
+    [
+      "BA-05",
+      "0dba6e1a9cd826197c89f65c06871d0f115447c34aa84ebbda3ed0697cb84463"
+    ]
+  ],
+  "web_logical_fingerprint": "d70cf8a8e93700b43cf70ce61e8ef56336c04fc8b9ec38319a29a58f589fbf9d",
+  "fixed_plan_fingerprint": "48290c8478a4add8fbc0a72f6cb548340f73280152648876d12be18fe1508fc5",
+  "dynamic_plan_fingerprint": "NOT_EXERCISED",
+  "fixed_readback_fingerprint": "e1e82893065af0fa177f0f4111bc72b3b052d188cb9cc6d75bd511e3d0b6a37b",
+  "dynamic_readback_fingerprint": "NOT_EXERCISED",
+  "production_master_sha256": "f3a11f291b6c661f0c937e9c95d7f227c351d7261b2e01aa44dfd4167d5c869c",
+  "vba_sha256": "0f879b60ed12315085bc722c3f59163f86ce24609e3ba6ad379069c44779b758",
+  "canonical_web_exact": true,
+  "canonical_excel_exact": true,
+  "web_excel_exact": true,
+  "fixed_output_sha256": "2137ca144902e5af587dd90ce4f7b41c6aa93b33bda229a46c83463b8d13de6a",
+  "dynamic_output_sha256": "NOT_EXERCISED"
+}

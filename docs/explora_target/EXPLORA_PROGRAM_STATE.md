@@ -139,8 +139,18 @@ human-decision states. It does not execute a real project, alter M2-M7 semantics
 or grant analytical authority to AI, Web, or Excel. See the
 [current-state inventory](GATE43_PROJECT_INTAKE_CURRENT_STATE.md),
 [contract](GATE43_PROJECT_SPEC_CONTRACT_V1.md), and
-[review](GATE43_PROJECT_INTAKE_PROJECT_SPEC_REVIEW.md). Human review remains
-required; Gate 44 is not authorized.
+[review](GATE43_PROJECT_INTAKE_PROJECT_SPEC_REVIEW.md).
+
+Gate 44 implements the first controlled productive end-to-end project for
+Benchmark A / FUNSMX 297140. A narrow fail-closed compiler translates a ready
+Project Spec into released CANONICAL_V1 identities; Core executes once per run,
+and the same Canonical Results feed Web and Excel. Exact cross-surface parity,
+deterministic rerun, Production Master 1.2.0 identity and VBA preservation are
+recorded in the [implementation review](GATE44_FIRST_PRODUCTIVE_E2E_IMPLEMENTATION_REVIEW.md)
+and [checkpoint](GATE44_FIRST_PRODUCTIVE_E2E_CHECKPOINT.json). Dynamic Region
+and significance presentation are truthfully NOT EXERCISED. Customer raw inputs
+remain external. Gate 44 is implemented pending Human Review; no later milestone
+is authorized.
 
 PR #14 initial source-level Human Review = FAIL / CORRECTIVE REMEDIATION REQUIRED.
 The corrective implementation resolves B-G41-01 through B-G41-06: canonical

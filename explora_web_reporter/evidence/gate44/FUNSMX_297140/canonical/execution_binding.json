@@ -1,0 +1,57 @@
+{
+  "schema_version": "EXPLORA_PROJECT_EXECUTION_BINDING_V1",
+  "project_id": "FUNSMX_297140",
+  "project_spec_version": "1.0.0",
+  "project_spec_fingerprint": "4ebe8cf190c565b7708ef9b46c93f685e3c4af38cd047307c0399acc90bf312b",
+  "source_sha256": "71B8CC2843C1C65A92D7F18FE631EA3AAD4CBD47BC936EC28C205BAC8D0DBB2F",
+  "package_sha256": "78AFA38484DC4B27FDD0AB5C3F8F2B80B2B49CABC67A57361B94BEB591685A41",
+  "package_id": "BENCHMARK_A_FUNSMX_297140_CANONICAL_PROJECT_RELEASE_V1_0_1",
+  "package_version": "1.0.1",
+  "package_spec_hash": "71E3807F04F48F8C4753230425B3A152368F901B14D48B0C3332F1D5EB4C378E",
+  "execution_mode": "CANONICAL_V1",
+  "request_ids": [
+    "BA-01",
+    "BA-02",
+    "BA-03",
+    "BA-04",
+    "BA-05"
+  ],
+  "question_ids": [
+    "Q_DELIVERY_APPS",
+    "Q_TOP_LEVER",
+    "Q_UE_CONSIDERATION_POST"
+  ],
+  "structure_ids": [
+    "STR_Q_DELIVERY_APPS_RM_V1",
+    "STR_Q_TOP_LEVER_RU_V1",
+    "STR_Q_UE_CONSIDERATION_POST_RU_V1"
+  ],
+  "universe_ids": [
+    "U_BENCHMARK_ELIGIBLE_V1"
+  ],
+  "weight_ids": [],
+  "banner_ids": [
+    "BANNER_SEGMENTO_V1"
+  ],
+  "filter_ids": [
+    "FILTER_MEMBERSHIP_V1"
+  ],
+  "significance_ids": [
+    "SIG_Q_UE_CON_POST_VERY_PROB_BY_SEGMENT_V1"
+  ],
+  "output_targets": [
+    "EXCEL",
+    "WEB"
+  ],
+  "policy_refs": [
+    "B1_V1",
+    "B2_V1",
+    "B3_V1"
+  ],
+  "provenance_refs": [
+    "BENCHMARK_A_FUNSMX_297140_CANONICAL_PROJECT_RELEASE_V1_0_1",
+    "FUNSMX_297140_20260914.sav",
+    "HDC-BENCHMARK-A-20260915-01"
+  ],
+  "binding_fingerprint": "2403dba05c33df46564646c02bb07015d92a4f1115e4b74198033561635c2088"
+}

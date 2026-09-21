@@ -1,0 +1,20 @@
+{
+  "gate": 44,
+  "release_status": "EMPTY_SCAFFOLD",
+  "project_candidate": "Benchmark A / FUNSMX 297140",
+  "authoritative_main_sha": "c6b40f7f4023325bc6dbc4ad9939ef91744a8c3f",
+  "feature_branch": "feature/gate44-first-productive-e2e",
+  "project_spec_contract": "EXPLORA_PROJECT_SPEC_V1",
+  "runtime": "CANONICAL_V1",
+  "expected_directories": [
+    "input",
+    "config",
+    "canonical",
+    "web",
+    "excel",
+    "qa",
+    "provenance"
+  ],
+  "customer_raw_data_committed": false,
+  "populated_by_implementation": false
+}
