@@ -1,0 +1,45 @@
+{
+  "request_m6": {
+    "adapter_version": "M6_CANONICAL_WEB_ADAPTER_V1",
+    "authority": "CANONICAL_V1",
+    "cells": [
+      {
+        "active_weight_ref": null,
+        "banner_dimension_id": null,
+        "base_id": "base_total",
+        "category_id": null,
+        "column_id": null,
+        "denominator_ref": "denom_ref",
+        "denominator_scope_id": "scope_resp",
+        "denominator_unit": "respondent",
+        "display_value": "50.0%",
+        "effective_n": null,
+        "entity_id": null,
+        "estimate": 0.5,
+        "formula_id": "formula_1",
+        "formula_version": "v1",
+        "loop_instance_id": null,
+        "member_id": null,
+        "metric_id": "metric_1",
+        "option_id": null,
+        "provenance_refs": [],
+        "qa_refs": [],
+        "question_id": "Q1",
+        "result_run_id": "run_m6_fixture",
+        "row_id": null,
+        "significance_tokens": [],
+        "slice_id": "slice_total",
+        "slice_label": "Total",
+        "structure_id": "RU",
+        "unweighted_n": 10,
+        "value_id": "value_total",
+        "value_status": "OK",
+        "value_unit": "PROPORTION",
+        "weighted_n": null,
+        "weighted_n_raw": null
+      }
+    ],
+    "result_fingerprint": "6131bcdfb0d0a58a9919e9ef353e0ce20b98f215b9052555e65363ccc15c49aa",
+    "result_run_id": "run_m6_fixture"
+  }
+}

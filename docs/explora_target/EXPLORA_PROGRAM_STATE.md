@@ -141,7 +141,7 @@ or grant analytical authority to AI, Web, or Excel. See the
 [contract](GATE43_PROJECT_SPEC_CONTRACT_V1.md), and
 [review](GATE43_PROJECT_INTAKE_PROJECT_SPEC_REVIEW.md).
 
-Gate 44 implements the first controlled productive end-to-end project for
+Gate 44 implemented the first controlled productive end-to-end project for
 Benchmark A / FUNSMX 297140. A narrow fail-closed compiler translates a ready
 Project Spec into released CANONICAL_V1 identities; Core executes once per run,
 and the same Canonical Results feed Web and Excel. Exact cross-surface parity,
@@ -149,8 +149,16 @@ deterministic rerun, Production Master 1.2.0 identity and VBA preservation are
 recorded in the [implementation review](GATE44_FIRST_PRODUCTIVE_E2E_IMPLEMENTATION_REVIEW.md)
 and [checkpoint](GATE44_FIRST_PRODUCTIVE_E2E_CHECKPOINT.json). Dynamic Region
 and significance presentation are truthfully NOT EXERCISED. Customer raw inputs
-remain external. Gate 44 is implemented pending Human Review; no later milestone
-is authorized.
+remain external. Gate 44 is CLOSED / ACCEPTED / MERGED through PR #17. Its
+official main is `c62145d546659a25e9d775cc634c813722cd8154`.
+
+Gate 45 introduces the project-neutral productive runtime while retaining Gate
+44 as regression and compatibility evidence. The generic path requires an
+already accepted Project Spec, honors WEB/EXCEL intent, compiles configured
+bindings into Visual Spec V1/RenderRequest, and publishes QA/provenance releases
+atomically. It contains no Benchmark decision dependency and does not alter
+M2-M7, B1/B2/B3 or Legacy rollback semantics. Gate 45 remains implementation
+pending Human Review; no later milestone is authorized.
 
 PR #14 initial source-level Human Review = FAIL / CORRECTIVE REMEDIATION REQUIRED.
 The corrective implementation resolves B-G41-01 through B-G41-06: canonical

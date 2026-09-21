@@ -1,0 +1,36 @@
+{
+  "project_id": "project_m6",
+  "runtime_version": "EXPLORA_GENERIC_PRODUCTIVE_RUNTIME_V1",
+  "project_spec_version": "1.0.0",
+  "project_spec_fingerprint": "spec_fp",
+  "source_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+  "package_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+  "binding_fingerprint": "binding_fp",
+  "core_runtime_fingerprint": "core_runtime_fp",
+  "canonical_result_fingerprints": [
+    [
+      "request_m6",
+      "6131bcdfb0d0a58a9919e9ef353e0ce20b98f215b9052555e65363ccc15c49aa"
+    ]
+  ],
+  "output_targets": [
+    "WEB",
+    "EXCEL"
+  ],
+  "release_name": "project_m6__NEUTRAL_PRESENTATION_V1",
+  "presentation_configuration_id": "NEUTRAL_PRESENTATION_V1",
+  "presentation_fingerprint": "a12c623a58c6f05cef9d4016ae6f3a0633cd5a345614e866c2d1323f038a641b",
+  "web_adapter_identity": "M6_CANONICAL_WEB_ADAPTER_V1",
+  "web_logical_fingerprint": "8075c4d233cc5b7be98b27e0418a82baaed3f0d8f181c382710c44c58e60b2f4",
+  "excel_renderer_identity": "M7B_RENDERER_V1",
+  "render_plan_fingerprint": "8ea5f095dc8b2ac8000b600fb9bae078881ae2d53fcc91197865e00117686ac4",
+  "excel_readback_fingerprint": "d590f0ca058e7a9640411dc5f8336c14d3c66a468fcfb72f3bf0785de6c34290",
+  "production_master_sha256": "f2efaac2b3d41d8719ed5557c2b6b64c4460abb63b8c0e93e321246e31650bd0",
+  "vba_sha256": "0f879b60ed12315085bc722c3f59163f86ce24609e3ba6ad379069c44779b758",
+  "canonical_web_exact": true,
+  "canonical_excel_exact": true,
+  "web_excel_exact": true,
+  "legacy_fallback": false,
+  "qa_status": "PASS",
+  "release_fingerprint": "231dd7d32e82c04dfb8a13a645a80151513da18409e7b374ade36b7b578aed6a"
+}

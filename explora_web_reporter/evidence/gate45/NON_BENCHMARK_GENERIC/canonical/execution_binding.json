@@ -1,0 +1,41 @@
+{
+  "schema_version": "EXPLORA_PROJECT_EXECUTION_BINDING_V1",
+  "project_id": "project_m6",
+  "project_spec_version": "1.0.0",
+  "project_spec_fingerprint": "spec_fp",
+  "source_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+  "package_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+  "package_id": "NEUTRAL_PACKAGE",
+  "package_version": "1.0.0",
+  "package_spec_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+  "execution_mode": "CANONICAL_V1",
+  "request_ids": [
+    "request_m6"
+  ],
+  "question_ids": [
+    "Q1"
+  ],
+  "structure_ids": [
+    "RU"
+  ],
+  "universe_ids": [
+    "U_ALL"
+  ],
+  "weight_ids": [],
+  "banner_ids": [],
+  "filter_ids": [],
+  "significance_ids": [],
+  "output_targets": [
+    "WEB",
+    "EXCEL"
+  ],
+  "policy_refs": [
+    "B1_V1",
+    "B2_V1",
+    "B3_V1"
+  ],
+  "provenance_refs": [
+    "neutral-source"
+  ],
+  "binding_fingerprint": "binding_fp"
+}
