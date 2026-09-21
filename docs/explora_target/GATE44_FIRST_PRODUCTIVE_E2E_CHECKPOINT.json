@@ -1,0 +1,17 @@
+{
+  "gate": 44,
+  "title": "FIRST PRODUCTIVE PROJECT END-TO-END",
+  "status": "PRE_IMPLEMENTATION",
+  "authoritative_starting_main_sha": "c6b40f7f4023325bc6dbc4ad9939ef91744a8c3f",
+  "feature_branch": "feature/gate44-first-productive-e2e",
+  "productive_project_candidate": "Benchmark A / FUNSMX 297140",
+  "project_spec_contract": "EXPLORA_PROJECT_SPEC_V1",
+  "required_runtime": "CANONICAL_V1",
+  "canonical_results_authority": true,
+  "web_independent_statistics_allowed": false,
+  "excel_independent_statistics_allowed": false,
+  "vba_independent_statistics_allowed": false,
+  "implementation_started": false,
+  "human_review_required": true,
+  "merge_authorized": false
+}
