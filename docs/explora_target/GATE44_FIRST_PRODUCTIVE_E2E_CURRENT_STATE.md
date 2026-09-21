@@ -1,107 +1,33 @@
-# Gate 44 — First Productive Project End-to-End — Current State
-
-Status: PRE-IMPLEMENTATION / READY FOR CODEX
-
-Authoritative starting main SHA:
-`c6b40f7f4023325bc6dbc4ad9939ef91744a8c3f`
-
-Working branch:
-`feature/gate44-first-productive-e2e`
+# Gate 44 First Productive Project End-to-End
 
 ## CURRENT STATE
 
-Gate 43 is merged and provides `EXPLORA_PROJECT_SPEC_V1` as the accepted intake boundary.
+Gate 43 accepts and fingerprints `EXPLORA_PROJECT_SPEC_V1`, but does not bind it to execution. The released Benchmark A package already defines questions, structures, universes, banners, filters, B2 requests and output requests. `run_canonical_project` is the released CANONICAL_V1 execution boundary; Canonical Results feed the accepted Web adapter and Excel renderer independently.
 
-Accepted upstream components already present in main include:
+The pre-implementation handoff remains preserved in `GATE44_CODEX_HANDOFF.md`, and its historical package skeleton remains under `evidence/gate44_first_productive_e2e/`. Those records are traceability scaffolding, not the productive release authority.
 
-- Project intake and readiness validation.
-- M2 Universe execution.
-- M3 Weight hardening under B1.
-- M4 question / structure authority.
-- M5 Canonical Results and Canonical execution adapter.
-- M6 Web migration to Canonical Results.
-- Canonical Materialization.
-- M7 Excel renderer.
-- Gate 39 significance presentation.
-- Gate 41 Dynamic Region runtime.
-- Gate 42 Production Master Dynamic Region qualification.
-- Production Master 1.2.0.
+The authoritative external inputs are `FUNSMX_297140_20260914.sav` (`71B8CC...DBB2F`) and release 1.0.1 (`78AFA3...85A41`). They remain outside Git. Production Master 1.2.0 is repository evidence with SHA-256 `f3a11f...c869c` and VBA SHA-256 `0f879b...b758`.
 
-Canonical Results remain the sole analytical source of truth.
-
-Gate 43 explicitly did not implement real productive execution or a Project Spec to downstream execution/materialization compiler.
+Manual translation previously connected the released package to Core request IDs, presentation targets and provenance. No Project Spec compiler or productive release orchestrator existed.
 
 ## TARGET STATE
 
-Demonstrate one real productive EXPLORA project through:
-
-PROJECT PACKAGE
-→ EXPLORA_PROJECT_SPEC_V1
-→ READY_FOR_EXECUTION
-→ deterministic execution binding
-→ EXPLORA Core
-→ Canonical Results
-→ Canonical Materialization
-→ Web
-→ Excel
-→ QA
-→ Provenance
-→ Release Package
-
-Web and Excel must consume the same released Canonical Results.
+The controlled flow is Project Package -> Project Spec -> deterministic execution binding -> CANONICAL_V1 Core -> one Canonical Results set -> Web and Excel presentation -> QA/provenance release.
 
 ## GAP
 
-The principal missing integration is a deterministic bridge between the accepted intake Project Spec and the already released downstream execution/materialization contracts.
-
-This bridge must not become analytical authority and must fail closed for unsupported or unresolved configuration.
+The missing boundary was deterministic, fail-closed translation from a ready Project Spec to the existing released package and request identities. Release-level cross-surface parity and rerun evidence were also absent.
 
 ## DECISION
 
-Use Benchmark A / FUNSMX 297140 as the first controlled productive candidate only if the authoritative source inputs required for genuine re-execution are available.
+Add a narrow compiler under `project_intake` and a Gate-44 productive orchestrator. The compiler translates identities and policy references only. Core remains the sole statistical authority; Web and Excel receive the same Canonical Results. There is no Legacy fallback.
 
-Benchmark A is evidence only and must not be promoted into a universal template.
-
-If authoritative inputs are not available, Gate 44 must report BLOCKED. Synthetic reconstruction cannot be called productive execution.
+Dynamic Region is `NOT EXERCISED`: the real productive proportions exceed the qualified 15-digit safe precision envelope. Rounding or weakening that contract is prohibited. Significance is also `NOT EXERCISED`: B2 is requested and preserved, but this run emits no comparisons or significance records.
 
 ## IMPLEMENTATION
 
-Implementation has not started.
-
-Codex must first audit the exact current boundary between:
-
-- `project_intake`
-- released execution contracts
-- analytics_core
-- canonical execution
-- canonical_materialization
-- web_canonical
-- excel_renderer
-- production_masters
-- Benchmark A artifacts
-- QA and provenance machinery
-
-Only after the audit may the narrowest required deterministic bridge be implemented.
+`EXPLORA_PROJECT_EXECUTION_BINDING_V1` binds source/package hashes, Project Spec fingerprint, released package identity, request/question/structure/universe identities, presentation targets and B1/B2/B3 references. The runner executes the binding twice, records deterministic logical identities, materializes all five Canonical Results, projects Web output and performs plan-derived physical Excel read-back against Production Master 1.2.0.
 
 ## VALIDATION
 
-Gate 44 must validate at minimum:
-
-- READY_FOR_EXECUTION enforcement.
-- deterministic Project Spec compilation.
-- CANONICAL_V1 execution.
-- no silent Legacy fallback.
-- Canonical Materialization.
-- productive Web output.
-- productive Excel output.
-- Canonical ↔ Web exact parity.
-- Canonical ↔ Excel exact parity through physical read-back.
-- Web ↔ Excel exact parity for common results.
-- Production Master 1.2.0 identity.
-- exact VBA preservation.
-- B1/B2/B3 authority preservation.
-- significance sourced only from Core/B2 where exercised.
-- complete provenance.
-- deterministic rerun.
-- no partial release on failure.
-- focused, relevant regression and full regression.
+The productive release is under `explora_web_reporter/evidence/gate44/FUNSMX_297140`. It contains no SAV, release ZIP, questionnaire or other customer raw input. Focused Gate-44 validation: 24 passed, 0 failed, 0 skipped. Final relevant and full regression results are recorded in the implementation review and checkpoint.

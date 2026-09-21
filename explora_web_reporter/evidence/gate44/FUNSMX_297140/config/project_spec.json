@@ -1,0 +1,481 @@
+{
+  "ai_interpretations": [
+    {
+      "confidence": 1.0,
+      "decision_id": "HDC-BENCHMARK-A-20260915-01",
+      "final_accepted_value": "71E3807F04F48F8C4753230425B3A152368F901B14D48B0C3332F1D5EB4C378E",
+      "human_approval_required": true,
+      "proposed_interpretation": "released project configuration",
+      "provenance": "B3_V1",
+      "release_state": "HUMAN_APPROVED",
+      "source_evidence": "released Benchmark A package and questionnaire fingerprint"
+    }
+  ],
+  "ambiguities": [],
+  "banners": [
+    {
+      "banner_id": "BANNER_SEGMENTO_V1",
+      "category_order": [
+        "SEG_1",
+        "SEG_2",
+        "SEG_3",
+        "SEG_4",
+        "SEG_5",
+        "SEG_6"
+      ],
+      "display_eligible": true,
+      "rule": {
+        "operator": "categories",
+        "values": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      "universe_ref": "U_BENCHMARK_ELIGIBLE_V1",
+      "variable_ref": "SEGMENTO"
+    }
+  ],
+  "dataset": {
+    "duplicate_row_policy": "FAIL",
+    "fingerprint": "sha256:71B8CC2843C1C65A92D7F18FE631EA3AAD4CBD47BC936EC28C205BAC8D0DBB2F",
+    "input_type": "SAV",
+    "respondent_id_variable": "key",
+    "source_id": "FUNSMX_297140_20260914.sav",
+    "variables": [
+      {
+        "data_type": "NUMBER",
+        "missing_values": [],
+        "source_name": "MEMBERSHIP",
+        "variable_id": "MEMBERSHIP"
+      },
+      {
+        "data_type": "NUMBER",
+        "missing_values": [],
+        "source_name": "Q_DELIVERY_APPS#1",
+        "variable_id": "Q_DELIVERY_APPS#1"
+      },
+      {
+        "data_type": "NUMBER",
+        "missing_values": [],
+        "source_name": "Q_DELIVERY_APPS#2",
+        "variable_id": "Q_DELIVERY_APPS#2"
+      },
+      {
+        "data_type": "NUMBER",
+        "missing_values": [],
+        "source_name": "Q_DELIVERY_APPS#98",
+        "variable_id": "Q_DELIVERY_APPS#98"
+      },
+      {
+        "data_type": "NUMBER",
+        "missing_values": [],
+        "source_name": "Q_DELIVERY_APPS#99",
+        "variable_id": "Q_DELIVERY_APPS#99"
+      },
+      {
+        "data_type": "NUMBER",
+        "missing_values": [],
+        "source_name": "Q_TOP_LEVER",
+        "variable_id": "Q_TOP_LEVER"
+      },
+      {
+        "data_type": "NUMBER",
+        "missing_values": [],
+        "source_name": "Q_UE_CONSIDERATION_POST",
+        "variable_id": "Q_UE_CONSIDERATION_POST"
+      },
+      {
+        "data_type": "NUMBER",
+        "missing_values": [],
+        "source_name": "SEGMENTO",
+        "variable_id": "SEGMENTO"
+      },
+      {
+        "data_type": "STRING",
+        "missing_values": [],
+        "source_name": "key",
+        "variable_id": "key"
+      }
+    ]
+  },
+  "default_weight_ref": null,
+  "derived_variables": [],
+  "filters": [
+    {
+      "combination": "AND",
+      "filter_id": "FILTER_MEMBERSHIP_V1",
+      "rule": {
+        "operator": "in",
+        "values": [
+          1,
+          2
+        ]
+      },
+      "universe_ref": "U_BENCHMARK_ELIGIBLE_V1",
+      "variable_ref": "MEMBERSHIP"
+    }
+  ],
+  "output_requests": [
+    {
+      "banner_refs": [],
+      "display_decimals": 6,
+      "excel_included": true,
+      "filter_refs": [],
+      "output_request_id": "BA-01",
+      "question_refs": [
+        "Q_TOP_LEVER"
+      ],
+      "web_included": true
+    },
+    {
+      "banner_refs": [],
+      "display_decimals": 6,
+      "excel_included": true,
+      "filter_refs": [],
+      "output_request_id": "BA-02",
+      "question_refs": [
+        "Q_DELIVERY_APPS"
+      ],
+      "web_included": true
+    },
+    {
+      "banner_refs": [],
+      "display_decimals": 6,
+      "excel_included": true,
+      "filter_refs": [],
+      "output_request_id": "BA-03",
+      "question_refs": [
+        "Q_DELIVERY_APPS"
+      ],
+      "web_included": true
+    },
+    {
+      "banner_refs": [],
+      "display_decimals": 6,
+      "excel_included": true,
+      "filter_refs": [
+        "FILTER_MEMBERSHIP_V1"
+      ],
+      "output_request_id": "BA-04",
+      "question_refs": [
+        "Q_TOP_LEVER"
+      ],
+      "web_included": true
+    },
+    {
+      "banner_refs": [
+        "BANNER_SEGMENTO_V1"
+      ],
+      "display_decimals": 6,
+      "excel_included": true,
+      "filter_refs": [],
+      "output_request_id": "BA-05",
+      "question_refs": [
+        "Q_UE_CONSIDERATION_POST"
+      ],
+      "web_included": true
+    }
+  ],
+  "project": {
+    "display_name": "Uber \u2014 Rider-to-Eater Catalyst",
+    "project_id": "FUNSMX_297140",
+    "project_version": "1.0.1",
+    "spec_version": "1.0.0"
+  },
+  "provenance": {
+    "b1_policy_ref": "B1_V1",
+    "b2_policy_ref": "B2_V1",
+    "b3_policy_ref": "B3_V1",
+    "created_at": "2026-09-16T12:00:00-06:00",
+    "created_by": "HDC-BENCHMARK-A-20260915-01",
+    "source_refs": [
+      "FUNSMX_297140_20260914.sav",
+      "BENCHMARK_A_FUNSMX_297140_CANONICAL_PROJECT_RELEASE_V1_0_1",
+      "HDC-BENCHMARK-A-20260915-01"
+    ]
+  },
+  "questions": [
+    {
+      "categories": [
+        {
+          "category_id": "LEVER_01",
+          "included": true,
+          "label": "Env\u00edos gratis en tus pedidos de supermercado con la membres\u00eda Uber One",
+          "order": 1,
+          "raw_value": 1,
+          "special": false
+        },
+        {
+          "category_id": "LEVER_02",
+          "included": true,
+          "label": "Pedir de tus supermercados y tiendas favoritas como Costco, Chedraui y Soriana",
+          "order": 2,
+          "raw_value": 2,
+          "special": false
+        },
+        {
+          "category_id": "LEVER_03",
+          "included": true,
+          "label": "Recibir comida de restaurantes en menos de 20 minutos",
+          "order": 3,
+          "raw_value": 3,
+          "special": false
+        },
+        {
+          "category_id": "LEVER_04",
+          "included": true,
+          "label": "Recibir productos de supermercado, farmacias, y tiendas como OXXO y 7-eleven en menos de 20 minutos",
+          "order": 4,
+          "raw_value": 4,
+          "special": false
+        },
+        {
+          "category_id": "LEVER_05",
+          "included": true,
+          "label": "Que tus pedidos lleguen dentro del tiempo estimado",
+          "order": 5,
+          "raw_value": 5,
+          "special": false
+        },
+        {
+          "category_id": "LEVER_06",
+          "included": true,
+          "label": "Que tus pedidos lleguen tal como los pediste",
+          "order": 6,
+          "raw_value": 6,
+          "special": false
+        },
+        {
+          "category_id": "LEVER_07",
+          "included": true,
+          "label": "Pedir desde algo que necesitas con urgencia hasta el s\u00faper del mes",
+          "order": 7,
+          "raw_value": 7,
+          "special": false
+        },
+        {
+          "category_id": "LEVER_08",
+          "included": true,
+          "label": "Acceder a la membres\u00eda Uber One con un precio especial para estudiantes",
+          "order": 8,
+          "raw_value": 8,
+          "special": false
+        },
+        {
+          "category_id": "LEVER_09",
+          "included": true,
+          "label": "Recibir promociones y descuentos que solo encuentras en Uber Eats",
+          "order": 9,
+          "raw_value": 9,
+          "special": false
+        },
+        {
+          "category_id": "LEVER_10",
+          "included": true,
+          "label": "Pedir de restaurantes que solo encuentro en Uber Eats",
+          "order": 10,
+          "raw_value": 10,
+          "special": false
+        },
+        {
+          "category_id": "LEVER_11",
+          "included": true,
+          "label": "Pedir de supermercados y tiendas que solo encuentras en Uber Eats",
+          "order": 11,
+          "raw_value": 11,
+          "special": false
+        },
+        {
+          "category_id": "LEVER_12",
+          "included": true,
+          "label": "Pedir desde la app y recoger tu pedido directamente en el restaurante o tienda",
+          "order": 12,
+          "raw_value": 12,
+          "special": false
+        },
+        {
+          "category_id": "LEVER_13",
+          "included": true,
+          "label": "Tener la mejor variedad de restaurantes para elegir",
+          "order": 13,
+          "raw_value": 13,
+          "special": false
+        },
+        {
+          "category_id": "LEVER_14",
+          "included": true,
+          "label": "Pedir productos de tiendas como Oxxo y 7-Eleven",
+          "order": 14,
+          "raw_value": 14,
+          "special": false
+        },
+        {
+          "category_id": "LEVER_15",
+          "included": true,
+          "label": "Pedir productos de farmacias como Farmacias Guadalajara y Farmacias Benavides",
+          "order": 15,
+          "raw_value": 15,
+          "special": false
+        },
+        {
+          "category_id": "LEVER_16",
+          "included": true,
+          "label": "Obtener los mismos precios que en el restaurante o en la tienda",
+          "order": 16,
+          "raw_value": 16,
+          "special": false
+        },
+        {
+          "category_id": "LEVER_17",
+          "included": true,
+          "label": "Pedir viajes, comida, supermercado y farmacia, todo desde una misma app",
+          "order": 17,
+          "raw_value": 17,
+          "special": false
+        },
+        {
+          "category_id": "LEVER_18",
+          "included": true,
+          "label": "Tener opciones de restaurantes para todo tipo de presupuestos",
+          "order": 18,
+          "raw_value": 18,
+          "special": false
+        },
+        {
+          "category_id": "LEVER_19",
+          "included": true,
+          "label": "Pedir comida de tus restaurantes locales favoritos",
+          "order": 19,
+          "raw_value": 19,
+          "special": false
+        },
+        {
+          "category_id": "LEVER_20",
+          "included": true,
+          "label": "Env\u00edos gratis en tus pedidos de restaurantes con la membres\u00eda Uber One",
+          "order": 20,
+          "raw_value": 20,
+          "special": false
+        }
+      ],
+      "display_label": "Q_TOP_LEVER",
+      "question_id": "Q_TOP_LEVER",
+      "question_type": "RU",
+      "source_variables": [
+        "Q_TOP_LEVER"
+      ],
+      "structure_ref": "STR_Q_TOP_LEVER_RU_V1",
+      "universe_ref": "U_BENCHMARK_ELIGIBLE_V1"
+    },
+    {
+      "categories": [],
+      "display_label": "Q_DELIVERY_APPS",
+      "question_id": "Q_DELIVERY_APPS",
+      "question_type": "PARENT_RM",
+      "source_variables": [
+        "Q_DELIVERY_APPS#1",
+        "Q_DELIVERY_APPS#2",
+        "Q_DELIVERY_APPS#98",
+        "Q_DELIVERY_APPS#99"
+      ],
+      "structure_ref": "STR_Q_DELIVERY_APPS_RM_V1",
+      "universe_ref": "U_BENCHMARK_ELIGIBLE_V1"
+    },
+    {
+      "categories": [
+        {
+          "category_id": "NOT_AT_ALL_LIKELY",
+          "included": true,
+          "label": "Nada probable",
+          "order": 1,
+          "raw_value": 1,
+          "special": false
+        },
+        {
+          "category_id": "NOT_VERY_LIKELY",
+          "included": true,
+          "label": "Poco probable",
+          "order": 2,
+          "raw_value": 2,
+          "special": false
+        },
+        {
+          "category_id": "NEITHER_LIKELY_NOR_UNLIKELY",
+          "included": true,
+          "label": "Ni probable ni improbable",
+          "order": 3,
+          "raw_value": 3,
+          "special": false
+        },
+        {
+          "category_id": "SOMEWHAT_LIKELY",
+          "included": true,
+          "label": "Algo probable",
+          "order": 4,
+          "raw_value": 4,
+          "special": false
+        },
+        {
+          "category_id": "VERY_LIKELY",
+          "included": true,
+          "label": "Muy probable",
+          "order": 5,
+          "raw_value": 5,
+          "special": false
+        }
+      ],
+      "display_label": "Q_UE_CONSIDERATION_POST",
+      "question_id": "Q_UE_CONSIDERATION_POST",
+      "question_type": "RU",
+      "source_variables": [
+        "Q_UE_CONSIDERATION_POST"
+      ],
+      "structure_ref": "STR_Q_UE_CONSIDERATION_POST_RU_V1",
+      "universe_ref": "U_BENCHMARK_ELIGIBLE_V1"
+    }
+  ],
+  "schema_version": "EXPLORA_PROJECT_SPEC_V1",
+  "significance_requests": [
+    {
+      "comparison_scope": "BANNER_MEMBERS",
+      "confidence": 0.95,
+      "enabled": true,
+      "policy_ref": "B2_V1",
+      "significance_request_id": "SIG_Q_UE_CON_POST_VERY_PROB_BY_SEGMENT_V1"
+    }
+  ],
+  "source_metadata_fingerprints": [
+    "sha256:64D183B965CACBF263903149A78903BC0C0D3863F21E1B44A4C393CB5960E0DC",
+    "sha256:78AFA38484DC4B27FDD0AB5C3F8F2B80B2B49CABC67A57361B94BEB591685A41"
+  ],
+  "universes": [
+    {
+      "execution_scope": "QUESTION",
+      "expression": {
+        "args": [
+          "SEGMENTO",
+          [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        ],
+        "operator": "in"
+      },
+      "parent_universe_ref": null,
+      "rule_state": "DETERMINISTIC",
+      "source_variables": [
+        "SEGMENTO"
+      ],
+      "universe_id": "U_BENCHMARK_ELIGIBLE_V1"
+    }
+  ],
+  "weights": []
+}
