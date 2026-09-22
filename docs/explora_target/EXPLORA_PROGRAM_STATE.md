@@ -152,13 +152,23 @@ and significance presentation are truthfully NOT EXERCISED. Customer raw inputs
 remain external. Gate 44 is CLOSED / ACCEPTED / MERGED through PR #17. Its
 official main is `c62145d546659a25e9d775cc634c813722cd8154`.
 
-Gate 45 introduces the project-neutral productive runtime while retaining Gate
+Gate 45 introduced the project-neutral productive runtime while retaining Gate
 44 as regression and compatibility evidence. The generic path requires an
 already accepted Project Spec, honors WEB/EXCEL intent, compiles configured
 bindings into Visual Spec V1/RenderRequest, and publishes QA/provenance releases
 atomically. It contains no Benchmark decision dependency and does not alter
-M2-M7, B1/B2/B3 or Legacy rollback semantics. Gate 45 remains implementation
-pending Human Review; no later milestone is authorized.
+M2-M7, B1/B2/B3 or Legacy rollback semantics. Gate 45 is CLOSED / ACCEPTED /
+MERGED through PR #18. Its official main is
+`c0b5dbb08ffca7425a864f00688e3c9472e0f7df`.
+
+Gate 46 is the contract/readiness phase for deterministic authoring of the ten
+loader-required RELEASED package files. The audit concludes that Project Spec
+alone is insufficient and freezes an additive
+`EXPLORA_PROJECT_EXECUTION_RELEASE_V1` boundary for executable structure,
+metric, request, weight/significance scope and B3 release decisions. Gate 46
+does not implement a builder, alter Project Spec, execute ATLAS, calculate
+statistics or change current loader/Core/B1/B2/B3/M2-M7/Legacy behavior. Its
+contract is pending Human Review; no implementation milestone is authorized.
 
 PR #14 initial source-level Human Review = FAIL / CORRECTIVE REMEDIATION REQUIRED.
 The corrective implementation resolves B-G41-01 through B-G41-06: canonical
