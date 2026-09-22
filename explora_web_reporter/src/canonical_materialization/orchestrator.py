@@ -172,7 +172,7 @@ def _question_spec(runtime: CanonicalRuntimeInput, question_id: str) -> Question
         question_id=question_id,
         physical_type=item.get("physical_type") or "released",
         analytic_role=item.get("analytic_role") or "benchmark",
-        universe_ref="U_BENCHMARK_ELIGIBLE_V1",
+        universe_ref=str(item["universe_ref"]),
         metric_refs=tuple(item.get("metric_refs", ())),
         structure_ref=item.get("structure_ref"),
     )

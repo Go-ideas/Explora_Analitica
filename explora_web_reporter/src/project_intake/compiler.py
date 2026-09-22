@@ -89,8 +89,10 @@ def compile_project_spec(
         raise ProjectCompilationError("package dataset fingerprint mismatch")
     declared_metadata = {str(item).removeprefix("sha256:").upper()
                          for item in spec["source_metadata_fingerprints"]}
-    required_metadata = {package_sha, str(package.manifest["questionnaire_sha256"]).upper()}
-    if not required_metadata.issubset(declared_metadata):
+    questionnaire_sha = str(package.manifest["questionnaire_sha256"]).upper()
+    package_spec_match = package.manifest.get("project_spec_fingerprint") == project_spec_fingerprint(spec)
+    legacy_package_match = package_sha in declared_metadata
+    if questionnaire_sha not in declared_metadata or not (package_spec_match or legacy_package_match):
         raise ProjectCompilationError("Project Spec metadata fingerprints do not match released package")
 
     question_ids = tuple(sorted(item["question_id"] for item in package.questions))
