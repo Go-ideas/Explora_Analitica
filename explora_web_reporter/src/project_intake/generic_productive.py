@@ -13,6 +13,7 @@ from openpyxl import load_workbook
 from src.analytics_core.result_identity import stable_json
 from src.analytics_core.serialization import to_canonical_data
 from src.canonical_materialization.orchestrator import run_canonical_project
+from src.canonical_materialization.materializer import load_released_package
 from src.contracts.models import ReleaseMetadata
 from src.contracts.vocabulary import ReleaseLifecycle, ReleaseMode
 from src.excel_renderer import QualifiedMaster, RenderRequest, plan_render, render, vba_sha256
@@ -122,6 +123,23 @@ def output_intent(project_spec: Mapping[str, Any]) -> tuple[dict[str, tuple[str,
     targets = tuple(key for key in ("WEB", "EXCEL") if by_target[key])
     if not targets or not set(targets).issubset(SUPPORTED_OUTPUT_TARGETS):
         raise GenericRuntimeError("unsupported output intent")
+    return {key: tuple(values) for key, values in by_target.items()}, targets
+
+
+def _analytical_output_intent(project_spec: Mapping[str, Any], package_path: str | Path) -> tuple[dict[str, tuple[str, ...]], tuple[str, ...]]:
+    package = load_released_package(package_path)
+    outputs = {item["output_request_id"]: item for item in project_spec["output_requests"]}
+    by_target: dict[str, list[str]] = {"WEB": [], "EXCEL": []}
+    for request in package.requests.get("requests", ()):
+        output_ref = request.get("output_request_ref", request["request_id"])
+        output = outputs.get(output_ref)
+        if output is None:
+            raise GenericRuntimeError("released request references unknown output intent")
+        if output.get("web_included"):
+            by_target["WEB"].append(request["request_id"])
+        if output.get("excel_included"):
+            by_target["EXCEL"].append(request["request_id"])
+    targets = tuple(key for key in ("WEB", "EXCEL") if by_target[key])
     return {key: tuple(values) for key, values in by_target.items()}, targets
 
 
@@ -244,6 +262,7 @@ def _build_release(
         expected_source_sha256=expected_source_sha256,
         expected_package_sha256=expected_package_sha256,
     )
+    intent, targets = _analytical_output_intent(spec, package_path)
     if binding.execution_mode != "CANONICAL_V1":
         raise GenericRuntimeError("generic runtime requires CANONICAL_V1")
     first = _execute_binding(binding, source_path=source_path, package_path=package_path)

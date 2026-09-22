@@ -25,6 +25,7 @@ from src.contracts.models import (
     UniverseRef,
     UniverseSpec,
     VariableBinding,
+    WeightSpec,
 )
 from src.contracts.vocabulary import ReleaseLifecycle, ReleaseMode, StructureAuthorityMode
 
@@ -77,16 +78,22 @@ def _execute_request(runtime: CanonicalRuntimeInput, request_id: str):
         ),
         authority_mode=StructureAuthorityMode.RELEASED_SPEC,
     )
+    explicitly_unweighted = request.get("weight_choice") == "EXPLICITLY_UNWEIGHTED"
+    weight_specs = () if explicitly_unweighted else _weight_specs(runtime)
     weight_result = evaluate_weighted_base(
         universe_result,
         WeightEvaluationContext(
             respondent_ids=runtime.respondent_ids,
-            project_spec=project,
+            weight_values={spec.variable_ref: runtime.values_by_variable[spec.variable_ref]
+                           for spec in weight_specs},
+            weight_specs=weight_specs,
+            project_spec=replace(project, default_weight_ref=None) if explicitly_unweighted else project,
             project_id=runtime.project_id,
             dataset_fingerprint=runtime.source_fingerprint,
             analysis_config_version=runtime.package.package_version,
             traceability={"runtime_fingerprint": runtime.fingerprint},
         ),
+        analysis_weight_override=None if explicitly_unweighted else request.get("weight_ref"),
         significance_requested=bool(request.get("significance_ref")),
     )
     return execute_canonical_request(
@@ -172,7 +179,7 @@ def _question_spec(runtime: CanonicalRuntimeInput, question_id: str) -> Question
         question_id=question_id,
         physical_type=item.get("physical_type") or "released",
         analytic_role=item.get("analytic_role") or "benchmark",
-        universe_ref="U_BENCHMARK_ELIGIBLE_V1",
+        universe_ref=str(item["universe_ref"]),
         metric_refs=tuple(item.get("metric_refs", ())),
         structure_ref=item.get("structure_ref"),
     )
@@ -234,6 +241,24 @@ def _metric_spec(runtime: CanonicalRuntimeInput, metric_id: str) -> MetricSpec:
         significance_supported=bool(significance.get("supported", False)),
         parameters=parameters,
     )
+
+
+def _weight_specs(runtime: CanonicalRuntimeInput) -> tuple[WeightSpec, ...]:
+    specs = []
+    for item in runtime.package.weights.get("weights", ()):
+        specs.append(WeightSpec(
+            spec_id=item.get("spec_id") or item["weight_id"],
+            version=item["spec_version"], release=_release(runtime),
+            weight_id=item["weight_id"], variable_ref=item["variable_ref"],
+            provenance=item["provenance"], scope=item["scope"],
+            permitted_analysis_overrides=tuple(item.get("permitted_analysis_overrides", ())),
+            missing_policy=item["missing_policy"], non_numeric_policy=item["non_numeric_policy"],
+            non_finite_policy=item["non_finite_policy"], zero_policy=item["zero_policy"],
+            negative_policy=item["negative_policy"], normalization=item["normalization"],
+            trimming=item["trimming"], weighted_significance=bool(item["weighted_significance"]),
+            is_project_default=bool(item.get("is_project_default", False)),
+        ))
+    return tuple(specs)
 
 
 def _slices(runtime: CanonicalRuntimeInput, request: dict[str, Any], universe_result: UniverseEvaluationResult):

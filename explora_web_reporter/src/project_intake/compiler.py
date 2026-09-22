@@ -89,8 +89,10 @@ def compile_project_spec(
         raise ProjectCompilationError("package dataset fingerprint mismatch")
     declared_metadata = {str(item).removeprefix("sha256:").upper()
                          for item in spec["source_metadata_fingerprints"]}
-    required_metadata = {package_sha, str(package.manifest["questionnaire_sha256"]).upper()}
-    if not required_metadata.issubset(declared_metadata):
+    questionnaire_sha = str(package.manifest["questionnaire_sha256"]).upper()
+    package_spec_match = package.manifest.get("project_spec_fingerprint") == project_spec_fingerprint(spec)
+    legacy_package_match = package_sha in declared_metadata
+    if questionnaire_sha not in declared_metadata or not (package_spec_match or legacy_package_match):
         raise ProjectCompilationError("Project Spec metadata fingerprints do not match released package")
 
     question_ids = tuple(sorted(item["question_id"] for item in package.questions))
@@ -119,10 +121,19 @@ def compile_project_spec(
         raise ProjectCompilationError("Project Spec filters do not match released package")
     if tuple(sorted(item["significance_request_id"] for item in spec["significance_requests"])) != significance:
         raise ProjectCompilationError("Project Spec significance requests do not match B2 release")
-    requests = tuple(sorted(item["request_id"] for item in package.requests.get("requests", ())))
-    requested = tuple(sorted(item["output_request_id"] for item in spec["output_requests"]))
-    if requested != requests:
-        raise ProjectCompilationError("Project Spec outputs do not match released requests")
+    released_requests = tuple(package.requests.get("requests", ()))
+    requests = tuple(sorted(item["request_id"] for item in released_requests))
+    outputs = {item["output_request_id"]: set(item["question_refs"])
+               for item in spec["output_requests"]}
+    coverage = {key: [] for key in outputs}
+    for item in released_requests:
+        output_ref = item.get("output_request_ref", item["request_id"])
+        if output_ref not in outputs or item["question_ref"] not in outputs[output_ref]:
+            raise ProjectCompilationError("released request decomposition does not match Project Spec output")
+        coverage[output_ref].append(item["question_ref"])
+    if any(set(values) != outputs[key] or len(values) != len(set(values))
+           for key, values in coverage.items()):
+        raise ProjectCompilationError("released request decomposition is incomplete or duplicated")
     targets = tuple(sorted({target for item in spec["output_requests"] for target in (
         "WEB" if item.get("web_included") else None,
         "EXCEL" if item.get("excel_included") else None) if target}))
