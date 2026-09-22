@@ -65,6 +65,8 @@ or contain Benchmark A, ATLAS, customer, question, metric, request or weight IDs
 | --- | --- |
 | RU | SUPPORTED; package, materialization and runtime proven |
 | RM | SUPPORTED; explicit option/state/denominator/scope package and materialization proven |
+| PARENT_RM | FAIL-CLOSED / NOT YET QUALIFIED |
+| MENTION | FAIL-CLOSED / NOT YET QUALIFIED |
 | NUMERIC | FAIL-CLOSED / NOT YET IMPLEMENTED |
 | SCALE | FAIL-CLOSED / NOT YET IMPLEMENTED |
 | GRID_ESCALA | FAIL-CLOSED / NOT YET IMPLEMENTED |

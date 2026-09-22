@@ -52,3 +52,15 @@ The initial Human Review result was FAIL / CORRECTIVE REMEDIATION REQUIRED at
 
 Corrective status is PASS pending Human Re-review. No PR is created and no merge
 is performed. Gate 48 and ATLAS productive execution are not authorized.
+
+## Final Corrective Resolution
+
+B-G47-05 is resolved by deriving `analysis_specific_overrides` solely from ER
+`weight_choice == REQUEST_OVERRIDE`. The registry now preserves an explicit
+override even when its `weight_ref` equals the project default. `PROJECT_DEFAULT`
+and `EXPLICITLY_UNWEIGHTED` remain distinct registry paths. Existing M3 selection
+is unchanged. The supported-profile matrix also states separately that
+`PARENT_RM` and `MENTION` are not yet qualified.
+
+Final corrective evidence is 66/0/0 focused, 644/0/0 relevant, and 1024/0/0
+full repository regression (passed/failed/skipped).

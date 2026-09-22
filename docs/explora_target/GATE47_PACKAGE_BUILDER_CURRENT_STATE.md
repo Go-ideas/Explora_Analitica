@@ -55,3 +55,10 @@ explicit output-to-analytical-request decomposition, ER-owned internal project
 identity, B2-derived complete Significance Specs, and transport of released
 WeightSpecs/raw values/request choices into existing M3. The accepted package,
 determinism, authority and atomicity architecture is unchanged.
+
+Final Human Re-review identified B-G47-05: a `REQUEST_OVERRIDE` selecting the
+same weight ID as the project default was executed correctly but omitted from
+the released override registry. The final correction derives registry entries
+from explicit `weight_choice`, preserving that configuration decision without
+changing B1 resolution or mathematics. `PARENT_RM` and `MENTION` remain
+fail-closed and not yet qualified; RM qualification does not include them.

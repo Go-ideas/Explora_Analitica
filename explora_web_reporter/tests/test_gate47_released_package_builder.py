@@ -342,3 +342,53 @@ def test_g47c_12_semantic_change_changes_package_identity(authoring_input, tmp_p
 def test_g47c_13_generic_source_neutrality() -> None:
     text = (Path(__file__).parents[1] / "src" / "package_authoring" / "builder.py").read_text().lower()
     assert all(term not in text for term in ("funsmx", "ba-01", "benchmark_a", "atlas"))
+
+
+def test_g47_final_01_same_as_default_override_is_persisted(authoring_input, tmp_path: Path) -> None:
+    project, release, source = authoring_input; add_weights(project, release)
+    release["requests"][0].update(weight_choice="REQUEST_OVERRIDE", weight_ref="W_DEFAULT"); refresh(project, release)
+    target = tmp_path / "same-default-override.zip"
+    build_released_package(project, release, destination=target, source_path=source)
+    assert load_released_package(target).weights["analysis_specific_overrides"] == [
+        {"request_id": "OUT_CHOICE", "weight_ref": "W_DEFAULT"}]
+
+
+def test_g47_final_02_same_as_default_override_executes_in_m3(authoring_input, tmp_path: Path) -> None:
+    project, release, source = authoring_input; add_weights(project, release)
+    release["requests"][0].update(weight_choice="REQUEST_OVERRIDE", weight_ref="W_DEFAULT"); refresh(project, release)
+    target = tmp_path / "same-default-runtime.zip"
+    build_released_package(project, release, destination=target, source_path=source)
+    result = run_canonical_project(source_path=source, package_path=target, request_ids=("OUT_CHOICE",)).results["OUT_CHOICE"]
+    assert {base.active_weight_ref for base in result.bases} == {"W_DEFAULT"}
+
+
+def test_g47_final_03_project_default_has_no_override_registry_entry(authoring_input, tmp_path: Path) -> None:
+    project, release, source = authoring_input; add_weights(project, release)
+    release["requests"][0].update(weight_choice="PROJECT_DEFAULT", weight_ref=None); refresh(project, release)
+    target = tmp_path / "project-default.zip"
+    build_released_package(project, release, destination=target, source_path=source)
+    assert load_released_package(target).weights["analysis_specific_overrides"] == []
+
+
+def test_g47_final_04_explicit_unweighted_registry_is_distinct(authoring_input, tmp_path: Path) -> None:
+    project, release, source = authoring_input; add_weights(project, release)
+    release["requests"][0].update(weight_choice="EXPLICITLY_UNWEIGHTED", weight_ref=None); refresh(project, release)
+    target = tmp_path / "explicit-unweighted.zip"
+    build_released_package(project, release, destination=target, source_path=source)
+    registry = load_released_package(target).weights
+    assert registry["explicitly_unweighted_requests"] == ["OUT_CHOICE"]
+    assert registry["analysis_specific_overrides"] == []
+
+
+def test_g47_final_05_missing_override_fails_closed(authoring_input) -> None:
+    project, release, _ = authoring_input; add_weights(project, release)
+    release["requests"][0].update(weight_choice="REQUEST_OVERRIDE", weight_ref=None); refresh(project, release)
+    with pytest.raises(PackageAuthoringError, match="override is missing"):
+        validate_execution_release(project, release)
+
+
+def test_g47_final_06_unknown_override_fails_closed(authoring_input) -> None:
+    project, release, _ = authoring_input; add_weights(project, release)
+    release["requests"][0].update(weight_choice="REQUEST_OVERRIDE", weight_ref="W_UNKNOWN"); refresh(project, release)
+    with pytest.raises(PackageAuthoringError, match="weight is not released"):
+        validate_execution_release(project, release)
