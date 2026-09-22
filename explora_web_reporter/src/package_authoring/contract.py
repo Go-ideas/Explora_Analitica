@@ -6,7 +6,7 @@ from pathlib import Path
 import re
 from typing import Any, Mapping
 
-from src.analytics_core.formula_registry import FORMULA_REGISTRY, FORMULA_REGISTRY_VERSION
+from src.analytics_core.formula_registry import FORMULA_REGISTRY, FORMULA_REGISTRY_VERSION, get_formula
 from src.project_intake.contract import project_spec_fingerprint, validate_project
 
 
@@ -103,10 +103,11 @@ def validate_execution_release(
         raise PackageAuthoringError("accepted B1/B2/B3/Core policy identities are required")
     package = release["package"]
     if not isinstance(package, dict) or set(package) != {
-        "package_id", "package_version", "dataset_version", "default_execution_mode"
+        "package_id", "package_version", "dataset_version", "default_execution_mode",
+        "internal_project_name",
     } or package["default_execution_mode"] != "LEGACY":
         raise PackageAuthoringError("invalid package release configuration")
-    _required_text(package, {"package_id", "package_version", "dataset_version"}, "package")
+    _required_text(package, {"package_id", "package_version", "dataset_version", "internal_project_name"}, "package")
     authority = release["source_authority"]
     if not isinstance(authority, dict) or set(authority) != {
         "dataset_filename", "dataset_sha256", "questionnaire_filename",
@@ -142,16 +143,21 @@ def validate_execution_release(
     significance_ids = _ids(release["significance"], "significance_id", "significance", allow_empty=True)
     if question_ids != project_questions or weight_ids != project_weights or banner_ids != project_banners or filter_ids != project_filters or significance_ids != project_significance:
         raise PackageAuthoringError("Execution Release identity inventory differs from Project Spec")
-    if request_ids != project_outputs:
-        raise PackageAuthoringError("one approved ER request is required per Project Spec output request")
+    if not request_ids:
+        raise PackageAuthoringError("at least one approved analytical request is required")
 
     variables = {item["variable_id"] for item in project["dataset"]["variables"]}
+    project_question_types = {item["question_id"]: item["question_type"] for item in project["questions"]}
+    structure_type_by_question: dict[str, str] = {}
     for item in release["questions"]:
         if item.get("structure_ref") not in structure_ids or not item.get("metric_refs") or not set(item["metric_refs"]).issubset(metric_ids):
             raise PackageAuthoringError("question has dangling structure or metric references")
     for item in release["structures"]:
-        if item.get("question_id") not in question_ids or item.get("structure_type") not in {"RU", "RM", "GRID_ESCALA", "GRID_RM", "LOOP_RM", "LOOP_RU", "LOOP_NUMERICO"}:
+        if item.get("question_id") not in question_ids or item.get("structure_type") not in {"RU", "RM"}:
             raise PackageAuthoringError("unsupported or dangling structure")
+        if project_question_types[item["question_id"]] != item["structure_type"]:
+            raise PackageAuthoringError("question type is outside the qualified authoring profile")
+        structure_type_by_question[item["question_id"]] = item["structure_type"]
         bindings = item.get("option_bindings", []) if item.get("structure_type") == "RM" else item.get("variable_bindings", [])
         if not bindings or any(binding.get("variable_ref") not in variables for binding in bindings):
             raise PackageAuthoringError("structure physical binding is missing or ambiguous")
@@ -173,6 +179,10 @@ def validate_execution_release(
             raise PackageAuthoringError("metric formula or reference is unsupported")
         if item.get("weight_behavior") not in {"unweighted", "weighted"}:
             raise PackageAuthoringError("metric weight behavior must be explicit")
+        if not get_formula(item["formula_id"]).supports(
+                structure_type=structure_type_by_question[item["question_ref"]],
+                weight_mode=item["weight_behavior"]):
+            raise PackageAuthoringError("formula is unsupported for released structure or weight mode")
         if not all(key in item for key in ("denominator_policy", "missing_behavior", "significance", "parameters")):
             raise PackageAuthoringError("MetricSpec configuration is incomplete")
     default_weight = project.get("default_weight_ref")
@@ -192,6 +202,9 @@ def validate_execution_release(
             if None in member_ids or len(member_ids) != len(set(member_ids)):
                 raise PackageAuthoringError(f"duplicate or missing {identity} member")
     for item in release["requests"]:
+        output_ref = item.get("output_request_ref", item["request_id"])
+        if output_ref not in project_outputs:
+            raise PackageAuthoringError("request references an unknown Project Spec output request")
         if item.get("question_ref") not in question_ids or not set(item.get("metric_refs", [])).issubset(metric_ids) or item.get("universe_ref") not in project_universes:
             raise PackageAuthoringError("request contains dangling references")
         if item.get("weight_ref") is not None and item["weight_ref"] not in weight_ids:
@@ -204,21 +217,43 @@ def validate_execution_release(
         banner = item.get("banner")
         if banner is not None and (banner.get("banner_ref") not in banner_ids or not banner.get("member_ids")):
             raise PackageAuthoringError("request banner binding is incomplete")
-    requests_by_id = {item["request_id"]: item for item in release["requests"]}
+    requests_by_output: dict[str, list[dict[str, Any]]] = {key: [] for key in project_outputs}
+    for request in release["requests"]:
+        requests_by_output[request.get("output_request_ref", request["request_id"])].append(request)
     for output in project["output_requests"]:
-        request = requests_by_id[output["output_request_id"]]
-        if output.get("question_refs") != [request["question_ref"]]:
-            raise PackageAuthoringError("implicit request splitting is forbidden")
+        configured = requests_by_output[output["output_request_id"]]
+        configured_questions = [request["question_ref"] for request in configured]
+        expected_questions = output.get("question_refs", [])
+        if (not configured or len(configured_questions) != len(set(configured_questions))
+                or set(configured_questions) != set(expected_questions)):
+            raise PackageAuthoringError("explicit request decomposition must cover each output question exactly once")
     if weight_ids:
         for item in release["requests"]:
-            if item.get("weight_ref") is None and item.get("weight_choice") != "EXPLICITLY_UNWEIGHTED":
-                raise PackageAuthoringError("weight configuration cannot silently become unweighted")
+            choice = item.get("weight_choice")
+            if choice not in {"PROJECT_DEFAULT", "REQUEST_OVERRIDE", "EXPLICITLY_UNWEIGHTED"}:
+                raise PackageAuthoringError("weight release choice must be explicit")
+            if choice == "PROJECT_DEFAULT" and (default_weight is None or item.get("weight_ref") is not None):
+                raise PackageAuthoringError("project-default weight choice is inconsistent")
+            if choice == "REQUEST_OVERRIDE" and item.get("weight_ref") is None:
+                raise PackageAuthoringError("request weight override is missing")
+            if choice == "EXPLICITLY_UNWEIGHTED" and item.get("weight_ref") is not None:
+                raise PackageAuthoringError("explicit unweighted request cannot carry a weight")
     for item in release["significance"]:
         required_b2 = {"significance_id", "question_ref", "metric_refs", "banner_ref",
                        "family_id", "family_members", "sample_relationship", "confidence",
-                       "weight_compatibility"}
+                       "weight_compatibility", "test_family"}
         if not required_b2.issubset(item) or item["question_ref"] not in question_ids or not set(item["metric_refs"]).issubset(metric_ids) or item["banner_ref"] not in banner_ids:
             raise PackageAuthoringError("B2 significance family configuration is incomplete")
-        if item["sample_relationship"] != "INDEPENDENT" or item["confidence"] not in {0.90, 0.95, 0.99}:
+        banner = next(banner for banner in release["banners"] if banner["banner_id"] == item["banner_ref"])
+        banner_members = {member["member_id"] for member in banner["members"]}
+        if not item["family_members"] or not set(item["family_members"]).issubset(banner_members):
+            raise PackageAuthoringError("unknown B2 family member")
+        methodology_fields = {"test_id", "test_version", "policy_version", "alpha", "sidedness",
+                              "minimum_base_rule", "proportion_test", "mean_test", "expected_count_rule",
+                              "adjustment", "family_scope", "total_excluded", "unsupported_behavior",
+                              "weighted_inference"}
+        if methodology_fields.intersection(item):
+            raise PackageAuthoringError("B2 methodology fields cannot be supplied by ER")
+        if item["test_family"] != "PROPORTION" or item["sample_relationship"] != "INDEPENDENT" or item["confidence"] not in {0.90, 0.95, 0.99}:
             raise PackageAuthoringError("unsupported B2 significance configuration")
     return ValidatedExecutionRelease(project, release, fingerprint)

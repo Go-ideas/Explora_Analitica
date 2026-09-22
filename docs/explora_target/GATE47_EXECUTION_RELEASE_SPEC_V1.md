@@ -10,6 +10,9 @@ source authority, policy identities, B3 release decision, and explicit arrays fo
 questions, structures, metrics, weights, banners, filters, significance and
 one-question requests.
 
+`package.internal_project_name` is mandatory ER authority. Project Spec
+`display_name`, filenames and project IDs are not fallbacks.
+
 Accepted policy identities are `B1_V1`, `B2_V1`, `B3_V1`, and
 `M5_FORMULA_REGISTRY_V1`. The package execution compatibility declaration is
 `LEGACY`; productive execution remains explicitly compiled as `CANONICAL_V1`.
@@ -23,9 +26,11 @@ significance families, and B3 provenance. Project Spec owns intake identities an
 source mappings. B1, B2 and Core own methodology. B3 owns RELEASED status.
 
 Logical variable references are joined exactly to Project Spec `source_name`
-values. Labels and observed data are never binding authority. A Project Spec
-output request must correspond to one explicit ER request and one question;
-multi-question splitting is never inferred.
+values. Labels and observed data are never binding authority. Each analytical
+request carries `output_request_ref` and exactly one `question_ref`. All questions
+in one Project Spec output request must be covered exactly once by explicit ER
+requests. The backward-compatible 1:1 form may omit `output_request_ref` only
+when `request_id == output_request_id`.
 
 ## Fail Closed
 
@@ -53,3 +58,31 @@ uses a sibling temporary file, current-loader round trip, and atomic replace.
 Authoring does not parse source data, infer analytical configuration, calculate
 statistics or eligibility, generate Canonical Results, silently select Legacy,
 or contain Benchmark A, ATLAS, customer, question, metric, request or weight IDs.
+
+## Qualified Execution Profile
+
+| Capability | Gate 47 status |
+| --- | --- |
+| RU | SUPPORTED; package, materialization and runtime proven |
+| RM | SUPPORTED; explicit option/state/denominator/scope package and materialization proven |
+| NUMERIC | FAIL-CLOSED / NOT YET IMPLEMENTED |
+| SCALE | FAIL-CLOSED / NOT YET IMPLEMENTED |
+| GRID_ESCALA | FAIL-CLOSED / NOT YET IMPLEMENTED |
+| GRID_RM | FAIL-CLOSED / NOT YET IMPLEMENTED |
+| LOOP_RU | FAIL-CLOSED / NOT YET IMPLEMENTED |
+| LOOP_RM | FAIL-CLOSED / NOT YET IMPLEMENTED |
+| LOOP_NUMERICO | FAIL-CLOSED / NOT YET IMPLEMENTED |
+| Universe `in`, `not_in`, `eq`, `neq` | SUPPORTED |
+| Universe `true`, `and`, `or`, `not`, comparisons and response-state operators | FAIL-CLOSED / NOT YET IMPLEMENTED by the builder serializer |
+
+This is an authoring profile, not a claim that Core lacks other capabilities.
+Unsupported intake configurations are rejected before package publication.
+
+## B2 Serialization Authority
+
+ER supplies significance identity, bindings, family members, sample relationship,
+confidence, weight compatibility and supported test family. The builder creates
+and validates the frozen `contracts.models.SignificanceSpec`; its machine-readable
+B2 V1 defaults supply test identities/versions, alpha, sidedness, eligibility
+rules, HOLM adjustment, family scope, total exclusion and unsupported behavior.
+ER cannot override those methodology fields.

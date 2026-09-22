@@ -24,13 +24,31 @@ fingerprint plus questionnaire identity.
 
 ## Validation
 
-Focused coverage contains 45 collected Gate 47 cases, including deterministic
+Pre-corrective focused coverage contained 45 collected Gate 47 cases, including deterministic
 bytes, exact inventory, source mismatch, no replacement, loader/materialization,
 compiler and Gate 45 runtime. The synthetic runtime creates Canonical Results and
 Web output without Legacy fallback. Relevant and full regression evidence is
 recorded in `GATE47_GENERIC_PACKAGE_BUILDER_CHECKPOINT.json` after execution.
 
+Corrective focused coverage is 60/0/0, relevant regression is 638/0/0, and full
+repository regression is 1018/0/0 (passed/failed/skipped).
+
 ## Review Decision
 
-Implementation status is PASS pending Human Review. No PR is created and no merge
+The initial Human Review result was FAIL / CORRECTIVE REMEDIATION REQUIRED at
+`daca3656df8d27940eb38a5ef72ca6eca9013ee9`.
+
+## Corrective Resolution
+
+- B-G47-01: ER requests now bind to `output_request_ref`; exact explicit
+  multi-question coverage is required, with no generated IDs or Cartesian split.
+- B-G47-02: `package.internal_project_name` is required and is the sole serialized
+  authority; Project Spec display text is not used.
+- B-G47-03: non-empty released Significance Specs combine ER project choices with
+  machine-readable, validated `SignificanceSpec` B2 V1 methodology.
+- B-G47-04: released WeightSpecs and bound raw values now reach existing M3;
+  project default, request override and explicit unweighted paths are tested.
+  Weight registry overrides are derived from explicit requests.
+
+Corrective status is PASS pending Human Re-review. No PR is created and no merge
 is performed. Gate 48 and ATLAS productive execution are not authorized.

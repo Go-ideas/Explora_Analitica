@@ -46,3 +46,12 @@ materializes the package, compiles it, executes CANONICAL_V1 through the existin
 Gate 45 productive runtime, and emits configured Web output. ATLAS productive
 execution is not attempted. Final regression counts are recorded in the Gate 47
 checkpoint and implementation review.
+
+## Human Review Corrective State
+
+Human Review at feature head `daca3656df8d27940eb38a5ef72ca6eca9013ee9`
+returned FAIL with B-G47-01 through B-G47-04. Corrective implementation adds
+explicit output-to-analytical-request decomposition, ER-owned internal project
+identity, B2-derived complete Significance Specs, and transport of released
+WeightSpecs/raw values/request choices into existing M3. The accepted package,
+determinism, authority and atomicity architecture is unchanged.

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 import hashlib
 import io
 import json
@@ -11,6 +11,9 @@ from typing import Any, Mapping
 import zipfile
 
 from src.canonical_materialization.materializer import PACKAGE_FILES, load_released_package
+from src.contracts.models import ReleaseMetadata, SignificanceSpec
+from src.contracts.validators import validate_significance_spec
+from src.contracts.vocabulary import ReleaseLifecycle, ReleaseMode, SampleRelationship
 from src.package_authoring.contract import PackageAuthoringError, validate_execution_release
 
 
@@ -92,6 +95,30 @@ def _physicalize(items: list[dict[str, Any]], variable_map: dict[str, str]) -> l
     return data
 
 
+def _b2_significance_records(items: list[dict[str, Any]], release: dict[str, Any]) -> list[dict[str, Any]]:
+    records = []
+    decision = release["release_decision"]
+    for item in items:
+        metadata = ReleaseMetadata(
+            ReleaseLifecycle.RELEASED, ReleaseMode.MANUAL,
+            decision["human_decision_id"], decision["released_at"],
+            "B2", "B2_V1", release["source_authority"]["questionnaire_sha256"],
+        )
+        proportion_test = SignificanceSpec.__dataclass_fields__["proportion_test"].default
+        spec = validate_significance_spec(SignificanceSpec(
+            spec_id=item["significance_id"], version=release["release_spec_version"],
+            release=metadata, test_id=proportion_test,
+            confidence=item["confidence"], alpha=1 - item["confidence"],
+            sample_relationship=SampleRelationship(item["sample_relationship"]),
+        ))
+        policy = asdict(spec)
+        for key in ("spec_id", "version", "release"):
+            policy.pop(key)
+        policy["sample_relationship"] = spec.sample_relationship.value.upper()
+        records.append({**item, **policy})
+    return _records(records, release, "SIGNIFICANCE_SPEC_RELEASED")
+
+
 def _artifact_payloads(project: dict[str, Any], release: dict[str, Any]) -> dict[str, bytes]:
     variables = {item["variable_id"]: item["source_name"] for item in project["dataset"]["variables"]}
     envelope = _release_envelope(release)
@@ -117,9 +144,11 @@ def _artifact_payloads(project: dict[str, Any], release: dict[str, Any]) -> dict
     weights = _physicalize(release["weights"], variables)
     banners = _physicalize(release["banners"], variables)
     filters = _physicalize(release["filters"], variables)
+    requests = [{**item, "output_request_ref": item.get("output_request_ref", item["request_id"])}
+                for item in release["requests"]]
     common_project = {
         "project_id": project["project"]["project_id"], "spec_version": project["project"]["spec_version"],
-        "internal_project_name": project["project"]["display_name"], "spec_type": "PROJECT_SPEC_RELEASED",
+        "internal_project_name": release["package"]["internal_project_name"], "spec_type": "PROJECT_SPEC_RELEASED",
         "canonical_structure_authority": "M4_STRUCTURE_V1", "release_state": "RELEASED", "productive_project": True,
         "default_execution_mode": "LEGACY", "default_weight_ref": project.get("default_weight_ref"),
         "dataset": {"dataset_fingerprint_sha256": authority["dataset_sha256"].upper(), "dataset_version": release["package"]["dataset_version"], "source_filename": authority["dataset_filename"]},
@@ -135,11 +164,11 @@ def _artifact_payloads(project: dict[str, Any], release: dict[str, Any]) -> dict
         "02_QUESTION_SPECS_RELEASED.json": _records(questions, release, "QUESTION_SPEC_RELEASED"),
         "03_STRUCTURE_SPECS_RELEASED.json": _records(structures, release, "STRUCTURE_SPEC_RELEASED"),
         "04_UNIVERSE_SPECS_RELEASED.json": _records(universes, release, "UNIVERSE_SPEC_RELEASED"),
-        "05_WEIGHT_REGISTRY_RELEASED.json": _with_hash({"weights": _records(weights, release, "WEIGHT_SPEC_RELEASED"), "registered_weights": [item["weight_id"] for item in weights], "project_default_weight_ref": project.get("default_weight_ref"), "analysis_specific_overrides": [], "explicitly_unweighted_requests": [item["request_id"] for item in release["requests"] if item.get("weight_ref") is None], "resolution": "EXPLICIT_B1"}),
+        "05_WEIGHT_REGISTRY_RELEASED.json": _with_hash({"weights": _records([{**item, "is_project_default": item["weight_id"] == project.get("default_weight_ref")} for item in weights], release, "WEIGHT_SPEC_RELEASED"), "registered_weights": [item["weight_id"] for item in weights], "project_default_weight_ref": project.get("default_weight_ref"), "analysis_specific_overrides": [{"request_id": item["request_id"], "weight_ref": item["weight_ref"]} for item in release["requests"] if item.get("weight_ref") is not None and item.get("weight_ref") != project.get("default_weight_ref")], "explicitly_unweighted_requests": [item["request_id"] for item in release["requests"] if item.get("weight_choice") == "EXPLICITLY_UNWEIGHTED"], "resolution": "EXPLICIT_B1"}),
         "06_METRIC_SPECS_RELEASED.json": _records(release["metrics"], release, "METRIC_SPEC_RELEASED"),
-        "07_SIGNIFICANCE_SPECS_RELEASED.json": _records(release["significance"], release, "SIGNIFICANCE_SPEC_RELEASED"),
+        "07_SIGNIFICANCE_SPECS_RELEASED.json": _b2_significance_records(release["significance"], release),
         "08_BANNER_FILTER_SPECS_RELEASED.json": _with_hash({"banners": _records(banners, release, "BANNER_SPEC_RELEASED"), "filters": _records(filters, release, "FILTER_SPEC_RELEASED")}),
-        "09_REQUEST_MATRIX_RELEASED.json": _with_hash({"matrix_id": f"MATRIX_{release['release_spec_id']}", "requests": _records(release["requests"], release, "REQUEST_SPEC_RELEASED")}),
+        "09_REQUEST_MATRIX_RELEASED.json": _with_hash({"matrix_id": f"MATRIX_{release['release_spec_id']}", "requests": _records(requests, release, "REQUEST_SPEC_RELEASED")}),
     }
     serialized = {name: _canonical(value) for name, value in objects.items()}
     package_spec_hash = _hash(_canonical({name: _hash(data) for name, data in sorted(serialized.items())}))
