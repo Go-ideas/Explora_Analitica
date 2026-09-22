@@ -1,0 +1,110 @@
+{
+  "ai_interpretations": [],
+  "ambiguities": [],
+  "banners": [],
+  "dataset": {
+    "duplicate_row_policy": "FAIL",
+    "fingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "input_type": "SAV",
+    "respondent_id_variable": "respondent_id",
+    "source_id": "DATASET_SYNTH_MIN",
+    "variables": [
+      {
+        "data_type": "STRING",
+        "missing_values": [],
+        "source_name": "respondent_id",
+        "variable_id": "respondent_id"
+      },
+      {
+        "data_type": "INTEGER",
+        "missing_values": [
+          99
+        ],
+        "source_name": "q1",
+        "variable_id": "q1"
+      }
+    ]
+  },
+  "default_weight_ref": null,
+  "derived_variables": [],
+  "filters": [],
+  "output_requests": [
+    {
+      "banner_refs": [],
+      "display_decimals": 2,
+      "excel_included": true,
+      "filter_refs": [],
+      "output_request_id": "request_m6",
+      "question_refs": [
+        "Q1"
+      ],
+      "web_included": true
+    }
+  ],
+  "project": {
+    "display_name": "Neutral synthetic project",
+    "project_id": "project_m6",
+    "project_version": "1.0.0",
+    "spec_version": "1.0.0"
+  },
+  "provenance": {
+    "b1_policy_ref": "B1_V1",
+    "b2_policy_ref": "B2_V1",
+    "b3_policy_ref": "B3_V1",
+    "created_at": "2026-09-19T00:00:00Z",
+    "created_by": "gate43-fixture",
+    "source_refs": [
+      "DATASET_SYNTH_MIN"
+    ]
+  },
+  "questions": [
+    {
+      "categories": [
+        {
+          "canonical_value": "YES",
+          "category_id": "Q1_YES",
+          "included": true,
+          "label": "Yes",
+          "order": 1,
+          "raw_value": 1,
+          "special": false
+        },
+        {
+          "canonical_value": "NO",
+          "category_id": "Q1_NO",
+          "included": true,
+          "label": "No",
+          "order": 2,
+          "raw_value": 2,
+          "special": false
+        }
+      ],
+      "display_label": "Synthetic choice",
+      "question_id": "Q1",
+      "question_type": "RU",
+      "source_variables": [
+        "q1"
+      ],
+      "universe_ref": "U_ALL"
+    }
+  ],
+  "schema_version": "EXPLORA_PROJECT_SPEC_V1",
+  "significance_requests": [],
+  "source_metadata_fingerprints": [
+    "sha256:minimal-datamap"
+  ],
+  "universes": [
+    {
+      "execution_scope": "PROJECT",
+      "expression": {
+        "args": [],
+        "operator": "true"
+      },
+      "parent_universe_ref": null,
+      "rule_state": "DETERMINISTIC",
+      "source_variables": [],
+      "universe_id": "U_ALL"
+    }
+  ],
+  "weights": []
+}

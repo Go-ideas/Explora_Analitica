@@ -1,0 +1,174 @@
+{
+  "request_m6": {
+    "base_records": [],
+    "bases": [
+      {
+        "active_weight_ref": null,
+        "base_id": "base_total",
+        "base_status": "OK",
+        "column_id": null,
+        "denominator_ref": "denom_ref",
+        "denominator_scope_id": "scope_resp",
+        "denominator_unit": "respondent",
+        "effective_n": null,
+        "entity_id": null,
+        "loop_instance_id": null,
+        "option_id": null,
+        "provenance_refs": [],
+        "qa_refs": [],
+        "question_id": "Q1",
+        "row_id": null,
+        "slice_id": "slice_total",
+        "structure_id": "RU",
+        "universe_ref": {
+          "universe_id": "u_project"
+        },
+        "unweighted_n": 10,
+        "weighted_n": null,
+        "weighted_n_raw": null
+      }
+    ],
+    "comparisons": [],
+    "core_version": "M5_TEST_CORE",
+    "dataset_fingerprint": "dataset_fp",
+    "manifest": {
+      "b1_policy_ref": "B1",
+      "b2_policy_ref": "B2",
+      "b3_policy_ref": "B3",
+      "core_version": "M5_TEST_CORE",
+      "created_at": null,
+      "result_fingerprint": "6131bcdfb0d0a58a9919e9ef353e0ce20b98f215b9052555e65363ccc15c49aa",
+      "ruleset": "M5_CANONICAL_RESULTS_V1",
+      "schema_version": "M5_CANONICAL_RESULT_V1",
+      "source_spec_refs": [
+        "project_spec"
+      ]
+    },
+    "project_id": "project_m6",
+    "project_spec_ref": "project_spec",
+    "qa": {
+      "aggregate_state": "PASS_WITH_WARNINGS",
+      "issues": []
+    },
+    "qa_events": [
+      {
+        "blocking": false,
+        "code": "M6_FIXTURE",
+        "details": {},
+        "message": "Fixture QA warning",
+        "policy_version": "M6_TEST",
+        "qa_domain": "RESULT",
+        "qa_id": "qa_warning",
+        "related_ids": [
+          "value_total"
+        ],
+        "scope_type": "RESULT",
+        "source_component": "tests.m6_fixtures",
+        "state": "PASS_WITH_WARNINGS"
+      }
+    ],
+    "release": {
+      "computation_status": "COMPLETE",
+      "policy_ref": "B3",
+      "qa_release_status": "PASS",
+      "reasons": [],
+      "releasable": true
+    },
+    "request": {
+      "banner_config": {
+        "segment": [
+          "segment_a"
+        ]
+      },
+      "compatibility_profile": null,
+      "execution_options": {
+        "structure_id": "RU"
+      },
+      "filters": {
+        "region": [
+          "north"
+        ]
+      },
+      "metric_refs": [
+        "metric_1"
+      ],
+      "question_ids": [
+        "Q1"
+      ],
+      "request_fingerprint": "2163535910fd2517203973c72bb40ed3a53f81b952b9259d9fb4b2ad7104bbdf",
+      "request_id": "request_m6",
+      "weight_override": null
+    },
+    "result_fingerprint": "6131bcdfb0d0a58a9919e9ef353e0ce20b98f215b9052555e65363ccc15c49aa",
+    "result_run_id": "run_m6_fixture",
+    "result_schema_version": "M5_CANONICAL_RESULT_V1",
+    "significance_records": [],
+    "slices": [
+      {
+        "banner_dimension_id": "segment",
+        "configuration": {},
+        "filter_refs": [
+          "filter_region_north"
+        ],
+        "is_total": false,
+        "label": "Segment A",
+        "member_id": "segment_a",
+        "slice_fingerprint": "slice_fp_banner_a",
+        "slice_id": "slice_banner_a"
+      },
+      {
+        "banner_dimension_id": "segment",
+        "configuration": {},
+        "filter_refs": [
+          "filter_region_north"
+        ],
+        "is_total": false,
+        "label": "Segment B",
+        "member_id": "segment_b",
+        "slice_fingerprint": "slice_fp_banner_b",
+        "slice_id": "slice_banner_b"
+      },
+      {
+        "banner_dimension_id": null,
+        "configuration": {},
+        "filter_refs": [
+          "filter_region_north"
+        ],
+        "is_total": true,
+        "label": "Total",
+        "member_id": null,
+        "slice_fingerprint": "slice_fp_total",
+        "slice_id": "slice_total"
+      }
+    ],
+    "supersedes_result_run_id": null,
+    "value_records": [],
+    "values": [
+      {
+        "base_id": "base_total",
+        "category_id": null,
+        "column_id": null,
+        "denominator": 10,
+        "entity_id": null,
+        "estimate": 0.5,
+        "formula_id": "formula_1",
+        "formula_version": "v1",
+        "loop_instance_id": null,
+        "metric_id": "metric_1",
+        "numerator": 5,
+        "option_id": null,
+        "provenance_refs": [],
+        "qa_refs": [],
+        "question_id": "Q1",
+        "row_id": null,
+        "semantic_order": 1,
+        "significance_refs": [],
+        "slice_id": "slice_total",
+        "structure_id": "RU",
+        "unit": "PROPORTION",
+        "value_id": "value_total",
+        "value_status": "OK"
+      }
+    ]
+  }
+}

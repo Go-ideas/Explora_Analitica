@@ -1,0 +1,51 @@
+{
+  "configuration_id": "NEUTRAL_PRESENTATION_V1",
+  "configuration_version": "1.0.0",
+  "project_id": "project_m6",
+  "provenance_refs": [
+    "synthetic-non-customer-fixture"
+  ],
+  "revision": 1,
+  "schema_version": "EXPLORA_PRODUCTIVE_PRESENTATION_V1",
+  "sections": [
+    {
+      "order": 0,
+      "section_id": "neutral_results",
+      "sheet_role": "presentation",
+      "title": {
+        "language": "en",
+        "text": "Neutral result"
+      },
+      "visuals": [
+        {
+          "display_profile_ref": "PROPORTION",
+          "labels": [
+            {
+              "language": "en",
+              "source_ref": "value_total",
+              "text": "Official value"
+            }
+          ],
+          "order": 0,
+          "role": "result_table",
+          "significance_presentation_refs": [],
+          "source_bindings": [
+            {
+              "field_name": "estimate",
+              "record_id": "value_total",
+              "record_role": "value",
+              "request_id": "request_m6",
+              "slot_id": "official_value"
+            }
+          ],
+          "visual_id": "neutral_value",
+          "warning_refs": []
+        }
+      ]
+    }
+  ],
+  "slot_ids": [
+    "official_value"
+  ],
+  "visual_spec_id": "NEUTRAL_VISUAL_V1"
+}
