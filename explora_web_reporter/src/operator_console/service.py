@@ -22,7 +22,7 @@ from src.project_intake.generic_productive import GenericRuntimeError, run_gener
 from src.readers.spss_reader import read_spss
 
 
-OPERATOR_CONSOLE_VERSION = "EXPLORA_OPERATOR_CONSOLE_V1_3"
+OPERATOR_CONSOLE_VERSION = "EXPLORA_OPERATOR_CONSOLE_V1_4"
 SESSION_ROOT = Path(tempfile.gettempdir()) / "explora_operator_console"
 SUPPORTED_DATASET_SUFFIXES = {".sav"}
 

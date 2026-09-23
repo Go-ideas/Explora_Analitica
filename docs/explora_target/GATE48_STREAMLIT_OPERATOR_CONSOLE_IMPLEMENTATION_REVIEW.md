@@ -12,6 +12,8 @@ Those surfaces predate the accepted Project Spec → Execution Release → Gener
 Gate 49 is CLOSED / ACCEPTED / MERGED through PR #21 at official main
 `fe5568e6420541debd01fc410c8cd057210faedf`. Gate 48 has been reconciled
 with that accepted capability authority while preserving its feature history.
+The reconciled Gate 48 feature is validated and pending Git adoption; it is not
+yet accepted, merged or closed.
 
 ## TARGET STATE
 

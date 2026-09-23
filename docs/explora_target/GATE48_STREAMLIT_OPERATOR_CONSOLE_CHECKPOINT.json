@@ -2,7 +2,7 @@
   "schema_version": "EXPLORA_GATE48_OPERATOR_CONSOLE_CHECKPOINT_V1",
   "authoritative_main": "fe5568e6420541debd01fc410c8cd057210faedf",
   "branch": "feature/gate48-streamlit-operator-console",
-  "status": "POST_GATE49_RECONCILED_VALIDATED_PENDING_HUMAN_REVIEW",
+  "status": "POST_GATE49_RECONCILED_VALIDATED_PENDING_GIT_ADOPTION",
   "operator_console_version": "EXPLORA_OPERATOR_CONSOLE_V1_4",
   "new_entry_point": "explora_web_reporter/operator_console.py",
   "legacy_app_preserved": true,
