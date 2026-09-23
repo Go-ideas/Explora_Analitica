@@ -27,6 +27,12 @@ Dependency file:
 
 `explora_web_reporter/requirements.txt`
 
+Required Python version for the certified Gate 48 deployment:
+
+`3.13`
+
+Do not deploy Gate 48 on Python 3.14 while `lxml==6.0.0` remains the certified M7 dependency. The observed Python 3.14 Community Cloud environment attempted a source build and failed because libxml2/libxslt development packages were unavailable.
+
 Community Cloud supports an entrypoint in a subdirectory and looks for dependency
 files next to the entrypoint or at repository root.
 
@@ -37,6 +43,8 @@ The repository is public.
 The Operator Console accepts customer SAV/questionnaire/datamap artifacts.
 Therefore a real-customer deployment MUST be private before customer data is
 uploaded.
+
+During deployment, open **Advanced settings** and select **Python 3.13**. Python version cannot be changed in-place after Community Cloud creates the app; an app created with the wrong Python version must be deleted and redeployed.
 
 After deployment:
 
