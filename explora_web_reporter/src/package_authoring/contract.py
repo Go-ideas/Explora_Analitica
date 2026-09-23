@@ -78,6 +78,8 @@ def _is_sha256(value: Any) -> bool:
 def validate_execution_release(
     project_spec: Mapping[str, Any] | str | Path,
     execution_release: Mapping[str, Any] | str | Path,
+    *,
+    require_approved: bool = True,
 ) -> ValidatedExecutionRelease:
     project = _load(project_spec)
     release = _load(execution_release)
@@ -121,9 +123,20 @@ def validate_execution_release(
     decision = release["release_decision"]
     if not isinstance(decision, dict) or set(decision) != {
         "human_decision_id", "human_decision_basis", "release_mode", "released_at", "approved"
-    } or decision["approved"] is not True or decision["release_mode"] != "MANUAL":
+    } or decision["release_mode"] != "MANUAL":
         raise PackageAuthoringError("B3 human release decision is required")
-    _required_text(decision, {"human_decision_id", "human_decision_basis", "released_at"}, "B3 release decision")
+    if require_approved:
+        if decision["approved"] is not True:
+            raise PackageAuthoringError("B3 human release decision is required")
+        _required_text(decision, {"human_decision_id", "human_decision_basis", "released_at"}, "B3 release decision")
+    elif decision != {
+        "human_decision_id": None,
+        "human_decision_basis": None,
+        "release_mode": "MANUAL",
+        "released_at": None,
+        "approved": False,
+    }:
+        raise PackageAuthoringError("B3 draft must preserve an empty pending human decision")
     _reject_statistical_fields(release)
 
     project_questions = {item["question_id"] for item in project["questions"]}
@@ -172,9 +185,22 @@ def validate_execution_release(
                            "exclusive_option_ids"}
             if not rm_required.issubset(item) or not item.get("option_bindings"):
                 raise PackageAuthoringError("RM semantics and explicit option bindings are required")
-            states = [set(item[name]) for name in ("selected_values", "not_selected_values", "ordinary_missing_values")]
+            try:
+                states = [
+                    {json.dumps(value, ensure_ascii=True, sort_keys=True, separators=(",", ":"), allow_nan=False) for value in item[name]}
+                    for name in ("selected_values", "not_selected_values", "ordinary_missing_values")
+                ]
+            except (KeyError, TypeError, ValueError):
+                raise PackageAuthoringError("RM response states must be canonically serializable") from None
             if any(not state for state in states) or any(states[i] & states[j] for i in range(3) for j in range(i + 1, 3)):
                 raise PackageAuthoringError("RM response states must be complete and disjoint")
+            scope = item["mention_denominator_scope"]
+            if scope != {
+                "schema_version": "M4_MENTION_SCOPE_IDENTITY_V1",
+                "scope_type": "PARENT_RM",
+                "scope_ref": item["structure_id"],
+            }:
+                raise PackageAuthoringError("RM mention_denominator_scope must be the structured current PARENT_RM identity")
         if structure_type.startswith("LOOP_"):
             _validate_loop_structure(item, bindings, project)
     for item in release["metrics"]:

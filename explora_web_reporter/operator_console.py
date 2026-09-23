@@ -11,6 +11,7 @@ from src.operator_console import (
     OPERATOR_CONSOLE_VERSION,
     OperatorConsoleError,
     analyze_source_inputs,
+    author_execution_release_draft,
     author_project_spec_draft,
     build_structure_review,
     approve_execution_release,
@@ -165,7 +166,7 @@ def main() -> None:
             _artifact_line("Project Spec", st.session_state.get("project_spec_artifact"))
 
             release_upload = st.file_uploader(
-                "EXPLORA_PROJECT_EXECUTION_RELEASE_V1 (.json)",
+                "Importar Execution Release existente (opción avanzada, .json)",
                 type=["json"],
                 key="operator_release",
             )
@@ -479,6 +480,100 @@ def main() -> None:
         if not project_spec:
             st.warning("Carga un Project Spec.")
         else:
+            intake = intake_summary(project_spec)
+            dataset = st.session_state.get("dataset_artifact")
+            questionnaire = st.session_state.get("questionnaire_artifact")
+            datamap = st.session_state.get("datamap_artifact")
+            if intake["ready"]:
+                st.subheader("Generar Execution Release Draft")
+                if dataset is None or questionnaire is None:
+                    st.warning("Dataset y cuestionario con fingerprint son necesarios para autorizar el draft.")
+                else:
+                    with st.form("execution_release_draft_form"):
+                        left, right = st.columns(2)
+                        release_spec_id = left.text_input("Release Spec ID")
+                        release_spec_version = right.text_input("Release Spec version", value="1.0.0")
+                        package_id = left.text_input("Package ID")
+                        package_version = right.text_input("Package version", value="1.0.0")
+                        dataset_version = left.text_input("Dataset version", value="1.0.0")
+                        internal_project_name = right.text_input("Internal project name")
+                        rm_inputs = {}
+                        for question in (item for item in project_spec["questions"] if item["question_type"] == "RM"):
+                            qid = question["question_id"]
+                            st.markdown(f"**RM {qid}**")
+                            st.caption(f"Variables: {', '.join(question['source_variables'])}")
+                            if question.get("categories"):
+                                st.caption("Opciones analíticas: " + ", ".join(
+                                    f"{item['category_id']}: {item['label']}" for item in question["categories"]
+                                ))
+                            c1, c2, c3 = st.columns(3)
+                            rm_inputs[qid] = {
+                                "selected": c1.text_input("Selected value(s)", placeholder='[1]', key=f"rm_selected_{qid}"),
+                                "not_selected": c2.text_input("Not-selected value(s)", placeholder='[0]', key=f"rm_not_selected_{qid}"),
+                                "missing": c3.text_input("Ordinary missing value(s)", placeholder='[99]', key=f"rm_missing_{qid}"),
+                                "confirmed": st.checkbox("Confirmo esta decisión explícita de estados físicos RM", key=f"rm_confirmed_{qid}"),
+                            }
+                        generate_release = st.form_submit_button("Generar Execution Release Draft", type="primary")
+                    if generate_release:
+                        rm_response_states = {}
+                        rm_input_error = None
+                        for qid, values in rm_inputs.items():
+                            if not values["confirmed"]:
+                                rm_input_error = f"Confirma la decisión explícita de estados físicos para {qid}."
+                                break
+                            try:
+                                rm_response_states[qid] = {
+                                    "selected_values": json.loads(values["selected"]),
+                                    "not_selected_values": json.loads(values["not_selected"]),
+                                    "ordinary_missing_values": json.loads(values["missing"]),
+                                }
+                            except json.JSONDecodeError:
+                                rm_input_error = f"Los estados RM de {qid} deben ser listas JSON válidas."
+                                break
+                        if rm_input_error:
+                            st.error(rm_input_error)
+                            st.stop()
+                        result = author_execution_release_draft(
+                            project_spec,
+                            {
+                                "dataset_filename": dataset.original_name,
+                                "dataset_sha256": dataset.sha256,
+                                "questionnaire_filename": questionnaire.original_name,
+                                "questionnaire_sha256": questionnaire.sha256,
+                                "datamap_ref": "NONE" if datamap is None else f"sha256:{datamap.sha256}",
+                            },
+                            {
+                                "release_spec_id": release_spec_id,
+                                "release_spec_version": release_spec_version,
+                                "package_id": package_id,
+                                "package_version": package_version,
+                                "dataset_version": dataset_version,
+                                "internal_project_name": internal_project_name,
+                            },
+                            rm_response_states,
+                        )
+                        st.session_state.execution_release_draft_result = result
+                        if result.status == "ER_DRAFT_VALID":
+                            st.session_state.execution_release = result.execution_release
+                            st.session_state.pop("approved_execution_release", None)
+                            st.rerun()
+            release_result = st.session_state.get("execution_release_draft_result")
+            if release_result is not None:
+                cols = st.columns(4)
+                cols[0].metric("ER Draft", release_result.status)
+                cols[1].metric("Errores", len(release_result.errors))
+                cols[2].metric("B3", release_result.b3_status)
+                cols[3].metric("Fingerprint", (release_result.execution_release_fingerprint or "—")[:12])
+                if release_result.errors:
+                    st.dataframe(pd.DataFrame(release_result.errors), width="stretch", hide_index=True)
+                if release_result.execution_release is not None:
+                    st.download_button(
+                        "Descargar Execution Release Draft",
+                        data=json.dumps(release_result.execution_release, ensure_ascii=False, indent=2).encode("utf-8"),
+                        file_name="execution_release_draft.json",
+                        mime="application/json",
+                    )
+            execution_release = st.session_state.get("approved_execution_release") or st.session_state.get("execution_release")
             rows = decision_rows(project_spec, execution_release)
             if rows:
                 st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
