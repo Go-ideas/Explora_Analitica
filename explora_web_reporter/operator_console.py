@@ -497,8 +497,42 @@ def main() -> None:
                         package_version = right.text_input("Package version", value="1.0.0")
                         dataset_version = left.text_input("Dataset version", value="1.0.0")
                         internal_project_name = right.text_input("Internal project name")
+                        rm_inputs = {}
+                        for question in (item for item in project_spec["questions"] if item["question_type"] == "RM"):
+                            qid = question["question_id"]
+                            st.markdown(f"**RM {qid}**")
+                            st.caption(f"Variables: {', '.join(question['source_variables'])}")
+                            if question.get("categories"):
+                                st.caption("Opciones analíticas: " + ", ".join(
+                                    f"{item['category_id']}: {item['label']}" for item in question["categories"]
+                                ))
+                            c1, c2, c3 = st.columns(3)
+                            rm_inputs[qid] = {
+                                "selected": c1.text_input("Selected value(s)", placeholder='[1]', key=f"rm_selected_{qid}"),
+                                "not_selected": c2.text_input("Not-selected value(s)", placeholder='[0]', key=f"rm_not_selected_{qid}"),
+                                "missing": c3.text_input("Ordinary missing value(s)", placeholder='[99]', key=f"rm_missing_{qid}"),
+                                "confirmed": st.checkbox("Confirmo esta decisión explícita de estados físicos RM", key=f"rm_confirmed_{qid}"),
+                            }
                         generate_release = st.form_submit_button("Generar Execution Release Draft", type="primary")
                     if generate_release:
+                        rm_response_states = {}
+                        rm_input_error = None
+                        for qid, values in rm_inputs.items():
+                            if not values["confirmed"]:
+                                rm_input_error = f"Confirma la decisión explícita de estados físicos para {qid}."
+                                break
+                            try:
+                                rm_response_states[qid] = {
+                                    "selected_values": json.loads(values["selected"]),
+                                    "not_selected_values": json.loads(values["not_selected"]),
+                                    "ordinary_missing_values": json.loads(values["missing"]),
+                                }
+                            except json.JSONDecodeError:
+                                rm_input_error = f"Los estados RM de {qid} deben ser listas JSON válidas."
+                                break
+                        if rm_input_error:
+                            st.error(rm_input_error)
+                            st.stop()
                         result = author_execution_release_draft(
                             project_spec,
                             {
@@ -516,6 +550,7 @@ def main() -> None:
                                 "dataset_version": dataset_version,
                                 "internal_project_name": internal_project_name,
                             },
+                            rm_response_states,
                         )
                         st.session_state.execution_release_draft_result = result
                         if result.status == "ER_DRAFT_VALID":

@@ -52,10 +52,64 @@ def _weight_mode(project: Mapping[str, Any]) -> tuple[str, str | None, str]:
     return "unweighted", None, "EXPLICITLY_UNWEIGHTED"
 
 
+def _canonical_states(value: Any, path: str, errors: list[dict[str, str]]) -> list[Any] | None:
+    if not isinstance(value, (list, tuple)) or not value:
+        errors.append(_issue("RM_RESPONSE_STATE_REQUIRED", path, "An explicit non-empty response-state list is required."))
+        return None
+    states = list(value)
+    try:
+        encoded = [json.dumps(item, ensure_ascii=True, sort_keys=True, separators=(",", ":"), allow_nan=False) for item in states]
+    except (TypeError, ValueError):
+        errors.append(_issue("RM_RESPONSE_STATE_INVALID", path, "Response states must be canonically serializable."))
+        return None
+    if len(encoded) != len(set(encoded)):
+        errors.append(_issue("RM_RESPONSE_STATE_DUPLICATE", path, "Response states must not contain duplicates."))
+        return None
+    return [item for _, item in sorted(zip(encoded, states), key=lambda pair: pair[0])]
+
+
+def _rm_authority(
+    question: Mapping[str, Any],
+    configured: Mapping[str, Any] | None,
+    errors: list[dict[str, str]],
+) -> tuple[list[dict[str, Any]], dict[str, list[Any]]] | None:
+    qid = question["question_id"]
+    if not isinstance(configured, Mapping):
+        errors.append(_issue("RM_RESPONSE_STATE_AUTHORITY_REQUIRED", f"rm_response_states.{qid}", "RM physical response states require an explicit human/configuration decision."))
+        return None
+    required = {"selected_values", "not_selected_values", "ordinary_missing_values"}
+    if set(configured) != required:
+        errors.append(_issue("RM_RESPONSE_STATE_AUTHORITY_INVALID", f"rm_response_states.{qid}", "RM authority fields must be selected_values, not_selected_values, and ordinary_missing_values."))
+        return None
+    states = {name: _canonical_states(configured.get(name), f"rm_response_states.{qid}.{name}", errors) for name in sorted(required)}
+    if any(value is None for value in states.values()):
+        return None
+    encoded = {name: {canonical_release_json({"value": item}) for item in values} for name, values in states.items()}
+    if any(encoded[left] & encoded[right] for index, left in enumerate(sorted(required)) for right in sorted(required)[index + 1:]):
+        errors.append(_issue("RM_RESPONSE_STATES_OVERLAP", f"rm_response_states.{qid}", "RM response-state domains must be pairwise disjoint."))
+        return None
+
+    variables = question["source_variables"]
+    categories = question.get("categories", [])
+    label_evidence = categories if len(categories) == len(variables) else []
+    bindings = []
+    for index, variable in enumerate(variables):
+        evidence = label_evidence[index] if label_evidence else None
+        binding = {
+            "option_id": str(evidence["category_id"]) if evidence else f"{qid}_OPTION_{index + 1}",
+            "variable_ref": variable,
+        }
+        if evidence and isinstance(evidence.get("label"), str) and evidence["label"]:
+            binding["label"] = evidence["label"]
+        bindings.append(binding)
+    return bindings, states  # type: ignore[return-value]
+
+
 def author_execution_release_draft(
     project_spec: Mapping[str, Any],
     source_authority: Mapping[str, Any],
     operator_metadata: Mapping[str, Any],
+    rm_response_states: Mapping[str, Mapping[str, Any]] | None = None,
 ) -> ExecutionReleaseDraftResult:
     errors: list[dict[str, str]] = []
     intake = validate_project(project_spec)
@@ -108,16 +162,18 @@ def author_execution_release_draft(
             "respondent_denominator_behavior": "VALID_RESPONSE", "response_state_version": "M4_STRUCTURE_V1",
         }
         if qtype == "RM":
-            raw = {item["raw_value"] for item in categories}
-            if not {0, 1}.issubset(raw):
-                errors.append(_issue("RM_RESPONSE_STATES_AMBIGUOUS", f"questions.{qid}", "RM requires explicit accepted 0/1 response states."))
+            authority = _rm_authority(question, (rm_response_states or {}).get(qid), errors)
+            if authority is None:
                 continue
+            option_bindings, response_states = authority
             structure.update({
-                "option_bindings": [{"option_id": f"{qid}_OPTION_{index}", "variable_ref": variable} for index, variable in enumerate(question["source_variables"], 1)],
-                "selected_values": [1], "not_selected_values": [0],
-                "ordinary_missing_values": missing or [99],
-                "mention_denominator_behavior": "VALID_RESPONSE",
-                "mention_denominator_scope": "PARENT_RM",
+                "option_bindings": option_bindings,
+                **response_states,
+                "completion_policy": "explicit_dichotomous_state_per_option",
+                "storage_encoding": "dichotomous_columns",
+                "respondent_denominator_behavior": "ELIGIBLE_RESPONDENT",
+                "mention_denominator_behavior": "SELECTED_MENTIONS",
+                "mention_denominator_scope": {"schema_version": "M4_MENTION_SCOPE_IDENTITY_V1", "scope_type": "PARENT_RM", "scope_ref": structure_id},
             })
         else:
             structure["variable_bindings"] = [{"variable_ref": variable} for variable in question["source_variables"]]
@@ -133,12 +189,14 @@ def author_execution_release_draft(
                 "response_domain": [category["raw_value"] for category in categories] if qtype == "LOOP_RU" else [],
             } for item in iterations]
             structure["variable_bindings"] = [{"binding_id": f"B_{index}", "variable_ref": item["variable_ref"], "loop_instance_id": item["iteration_id"]} for index, item in enumerate(iterations, 1)]
+            structure["storage_encoding"] = "single_numeric_variable"
         structures.append(structure)
         metrics.append({
-            "metric_id": metric_id, "metric_type": "MEAN" if qtype == "LOOP_NUMERICO" else "PROPORTION",
+            "metric_id": metric_id, "metric_type": "MEAN" if qtype == "LOOP_NUMERICO" else "RM_RESPONDENT_PROPORTION" if qtype == "RM" else "PROPORTION",
             "formula_id": formula, "question_ref": qid, "universe_ref": question["universe_ref"],
-            "denominator_policy": "VALID_RESPONSE", "missing_behavior": "EXCLUDE",
-            "weight_behavior": mode, "significance": {"status": "none", "supported": False}, "parameters": {},
+            "denominator_policy": "ELIGIBLE_RESPONDENT" if qtype == "RM" else "VALID_RESPONSE", "missing_behavior": "EXCLUDE",
+            "weight_behavior": mode, "significance": {"status": "none", "supported": False},
+            "parameters": ({"mention_denominator_scope": {"schema_version": "M4_MENTION_SCOPE_IDENTITY_V1", "scope_type": "PARENT_RM", "scope_ref": structure_id}} if qtype == "RM" else {}),
         })
     if errors:
         return _result("ER_DRAFT_REQUIRES_HUMAN_DECISION", errors)

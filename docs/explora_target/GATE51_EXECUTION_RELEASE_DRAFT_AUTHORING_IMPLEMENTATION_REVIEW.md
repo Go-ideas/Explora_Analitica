@@ -29,8 +29,9 @@ authority, policy refs and package metadata. Unsupported or ambiguous inputs
 return `ER_DRAFT_REQUIRES_HUMAN_DECISION`; validator rejection returns
 `ER_DRAFT_INVALID`; accepted pending structure returns `ER_DRAFT_VALID`.
 
-The Decisiones tab shows `Generar Execution Release Draft`, captures only
-explicit metadata, displays status/errors/fingerprint/B3 state, downloads JSON
+The Decisiones tab shows `Generar Execution Release Draft`, captures explicit
+metadata and an explicitly confirmed physical response-state decision for every
+RM question, displays analytical option evidence separately, displays status/errors/fingerprint/B3 state, downloads JSON
 and stores valid output in `st.session_state.execution_release`. Manual ER JSON
 import remains an advanced path. Existing B3 approval remains the only transition
 to an approved release.
@@ -40,16 +41,12 @@ to an approved release.
 Synthetic tests cover all qualified structures, deterministic identities,
 loops/categories, weighted and unweighted mappings, empty unsupported scopes,
 WEB-only decomposition, B3 pending state, source/package authority, validator
-delegation, determinism and authority boundaries. No customer artifact or
+delegation, deterministic RM state serialization, structured parent RM scope,
+and authority boundaries. A generated synthetic SAV traverses Project Spec,
+Gate 51 authoring, B3 approval, RELEASED package construction, loader roundtrip,
+and CANONICAL_V1 execution for RU, three-option RM, LOOP_RU and LOOP_NUMERICO.
+No customer artifact or
 customer-specific fixture is committed.
 
-Observed validation:
-
-- Gate 51 focused: 35 passed, 0 failed, 0 skipped.
-- Gate 50 regression: 35 passed, 0 failed, 0 skipped.
-- Gate 49 regression: 21 passed, 0 failed, 0 skipped.
-- Gate 48 regression: 21 passed, 0 failed, 0 skipped.
-- Gate 47 regression: 66 passed, 0 failed, 0 skipped.
-- Full repository regression: 1136 passed, 0 failed, 0 skipped.
-
-No unexpected numerical delta was observed.
+Corrective validation evidence is recorded by the branch handoff after the
+complete regression run.

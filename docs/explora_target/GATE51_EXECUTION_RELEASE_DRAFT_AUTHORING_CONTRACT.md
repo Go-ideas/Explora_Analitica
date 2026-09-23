@@ -27,15 +27,27 @@ human authority.
 Deterministic mappings are:
 
 - RU and LOOP_RU → `PROPORTION`;
-- RM → `RM_RESPONDENT_PROPORTION`, only with unambiguous accepted binary 0/1 states;
+- RM → `RM_RESPONDENT_PROPORTION`, only with explicit physical response-state authority;
 - LOOP_NUMERICO → `MEAN`;
 - Project Spec weights → B1 release entries without normalization/trimming;
 - no weight → `EXPLICITLY_UNWEIGHTED` requests;
 - empty banners, filters and significance remain empty;
 - WEB outputs decompose into one deterministic request per question.
 
-Non-WEB intent, unsupported types/significance, incomplete loops, ambiguous RM
-states, non-empty rules lacking released members, missing source authority and
+For RM, analytical option identity is not physical response state. Option
+identity is bound deterministically to each source variable; category metadata
+may provide ordered option IDs and labels only when cardinality is unambiguous.
+The operator/configuration must explicitly provide non-empty, pairwise-disjoint
+`selected_values`, `not_selected_values` and `ordinary_missing_values`. There is
+no default encoding and category raw values never authorize physical states.
+
+RM structures use `explicit_dichotomous_state_per_option`,
+`dichotomous_columns`, `ELIGIBLE_RESPONDENT`, `SELECTED_MENTIONS` and the
+structured `M4_MENTION_SCOPE_IDENTITY_V1` identity referencing their own
+structure ID.
+
+Non-WEB intent, unsupported types/significance, incomplete loops, absent or
+invalid RM state authority, non-empty rules lacking released members, missing source authority and
 missing package metadata fail closed.
 
 ## AUTHORITY
@@ -50,5 +62,5 @@ until the existing human approval workflow runs.
 
 No UUID, timestamp or statistical result enters the draft. Canonical sorted JSON
 is byte-identical for identical Project Spec, source authority and operator
-metadata. The authoring layer invokes formula registry identities but never
+metadata, including explicit RM state configuration. The authoring layer invokes formula registry identities but never
 evaluates formulas or reads raw survey rows.
