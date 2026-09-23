@@ -164,6 +164,13 @@ def _execute_metric(
     formula_id = metric.formula_id
     if formula_id in {"COUNT", "PROPORTION", "TOP_BOX", "BOTTOM_BOX"}:
         _require_structure_type(ctx, {"RU", "GRID_ESCALA", "LOOP_RU"})
+        if str(ctx.structure_result.structure_type) == "LOOP_RU":
+            return _execute_loop_ru_metric(
+                metric, released_metric=released_metric, ctx=ctx,
+                slice_authority=slice_authority, records=records,
+                source_ledger=_require_ledger(ctx.structure_result, DenominatorUnit.RESPONDENT),
+                result_run_id=result_run_id,
+            )
         return _execute_ru_metric(
             metric,
             released_metric=released_metric,
@@ -204,7 +211,100 @@ def _execute_metric(
             ),
             result_run_id=result_run_id,
         )
+    if formula_id in {"MEAN", "SCALE_MEAN"}:
+        _require_structure_type(ctx, {"LOOP_NUMERICO"})
+        return _execute_loop_numeric_metric(
+            metric, released_metric=released_metric, ctx=ctx,
+            slice_authority=slice_authority, records=records,
+            source_ledger=_require_ledger(ctx.structure_result, DenominatorUnit.INSTANCE),
+            result_run_id=result_run_id,
+        )
     raise ExecutionAdapterError(f"unsupported adapter formula: {formula_id}")
+
+
+def _scoped_weight_result(ctx: CanonicalExecutionContext, respondent_ids: set[str]):
+    result = ctx.weight_result
+    if result is None or not result.active_weight_id:
+        return None
+    values = [float(result.source_values_by_respondent[item]) for item in respondent_ids]
+    total = sum(values)
+    effective = total * total / sum(value * value for value in values) if values and sum(value * value for value in values) else 0.0
+    return replace(result, unweighted_n=len(values), weighted_n_raw=total, weighted_n=total, effective_n=effective)
+
+
+def _execute_loop_ru_metric(
+    metric: MetricSpec, *, released_metric: MetricSpec,
+    ctx: CanonicalExecutionContext, slice_authority: SliceExecutionAuthority,
+    records: tuple[AnalyticalRecord, ...], source_ledger: DenominatorLedger,
+    result_run_id: str,
+) -> tuple[tuple[Any, ...], tuple[CanonicalValue, ...]]:
+    categories = _requested_categories(metric, records)
+    loop_ids = tuple(dict.fromkeys(record.loop_instance_id for record in records if record.loop_instance_id is not None))
+    if not loop_ids or not categories:
+        raise ExecutionAdapterError("LOOP_RU requires iteration and category identity")
+    bases, values = [], []
+    for loop_order, loop_id in enumerate(loop_ids):
+        valid = tuple(record for record in records if record.loop_instance_id == loop_id and _valid_category(record))
+        respondents = {record.respondent_id for record in valid}
+        scoped_weight = _scoped_weight_result(ctx, respondents)
+        for category_order, category_id in enumerate(categories):
+            selected = tuple(record for record in valid if record.category_id == category_id)
+            if scoped_weight:
+                numerator = sum(float(scoped_weight.source_values_by_respondent[item.respondent_id]) for item in selected)
+                denominator = scoped_weight.weighted_n or 0.0
+            else:
+                numerator, denominator = len(selected), len(respondents)
+            ledger = _ledger(scope_id=f"loop:{loop_id}:category:{category_id}", metric_id=metric.metric_id,
+                             denominator_unit=DenominatorUnit.RESPONDENT, denominator_n=len(respondents),
+                             valid_n=len(respondents), selected_n=len(selected))
+            base = base_from_ledger(ledger, result_run_id=result_run_id, question_id=ctx.question_id,
+                                    structure_id=ctx.structure_result.structure_id, slice_id=slice_authority.slice.slice_id,
+                                    universe_ref=metric_universe(metric), weight_result=scoped_weight,
+                                    option_id=category_id, loop_instance_id=loop_id)
+            provenance = _provenance_refs(ctx, released_metric, slice_authority, ledger, source_ledger)
+            base = replace(base, provenance_refs=(*provenance, f"loop_instance:{loop_id}"))
+            value = value_from_formula(metric, base, structure_type="LOOP_RU", result_run_id=result_run_id,
+                                       numerator=numerator, denominator=denominator,
+                                       qa_refs=tuple(event.qa_id for event in ctx.qa_events))
+            value = replace(value, category_id=category_id,
+                            semantic_order=loop_order * len(categories) + category_order,
+                            provenance_refs=base.provenance_refs)
+            bases.append(base); values.append(value)
+            _validate_value_provenance(value, ctx, metric)
+    return tuple(bases), tuple(values)
+
+
+def _execute_loop_numeric_metric(
+    metric: MetricSpec, *, released_metric: MetricSpec,
+    ctx: CanonicalExecutionContext, slice_authority: SliceExecutionAuthority,
+    records: tuple[AnalyticalRecord, ...], source_ledger: DenominatorLedger,
+    result_run_id: str,
+) -> tuple[tuple[Any, ...], tuple[CanonicalValue, ...]]:
+    loop_ids = tuple(dict.fromkeys(record.loop_instance_id for record in records if record.loop_instance_id is not None))
+    if not loop_ids:
+        raise ExecutionAdapterError("LOOP_NUMERICO requires iteration identity")
+    bases, values = [], []
+    for order, loop_id in enumerate(loop_ids):
+        valid = tuple(record for record in records if record.loop_instance_id == loop_id and not record.ordinary_missing and not record.invalid and record.applicable)
+        respondents = {record.respondent_id for record in valid}
+        scoped_weight = _scoped_weight_result(ctx, respondents)
+        observations = tuple(float(record.raw_value) for record in valid)
+        weights = tuple(float(scoped_weight.source_values_by_respondent[record.respondent_id]) for record in valid) if scoped_weight else ()
+        ledger = _ledger(scope_id=f"loop:{loop_id}:numeric", metric_id=metric.metric_id,
+                         denominator_unit=DenominatorUnit.INSTANCE, denominator_n=len(valid), valid_n=len(valid))
+        base = base_from_ledger(ledger, result_run_id=result_run_id, question_id=ctx.question_id,
+                                structure_id=ctx.structure_result.structure_id, slice_id=slice_authority.slice.slice_id,
+                                universe_ref=metric_universe(metric), weight_result=scoped_weight,
+                                loop_instance_id=loop_id)
+        provenance = _provenance_refs(ctx, released_metric, slice_authority, ledger, source_ledger)
+        base = replace(base, provenance_refs=(*provenance, f"loop_instance:{loop_id}"))
+        value = value_from_formula(metric, base, structure_type="LOOP_NUMERICO", result_run_id=result_run_id,
+                                   observations=observations, observation_weights=weights,
+                                   qa_refs=tuple(event.qa_id for event in ctx.qa_events))
+        value = replace(value, semantic_order=order, provenance_refs=base.provenance_refs)
+        bases.append(base); values.append(value)
+        _validate_value_provenance(value, ctx, metric)
+    return tuple(bases), tuple(values)
 
 
 def _execute_ru_metric(

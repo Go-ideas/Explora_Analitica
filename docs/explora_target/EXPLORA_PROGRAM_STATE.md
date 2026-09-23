@@ -36,7 +36,8 @@ methodological/analytical contract is reopened by this documentation update.
 | Gate 40 dynamic growth | BLOCKED at review because frozen contracts lacked normative region semantics |
 | Gate 40A contract clarification | Dynamic Region V1 contract DEFINED FOR HUMAN REVIEW; runtime NOT AUTHORIZED |
 | Gate 46 package authoring contract | CLOSED / ACCEPTED / MERGED through PR #19; official main `2608aaf583217a998308a54ba3854ca1be82c254` |
-| Gate 47 generic package builder | IMPLEMENTATION PENDING HUMAN REVIEW; ATLAS productive execution NOT AUTHORIZED |
+| Gate 47 generic package builder | CLOSED / ACCEPTED / MERGED through PR #20; official main `8cc7a0c7ea17e29c96dfcbbfee278690c3d0eba2` |
+| Gate 49 LOOP capability | IMPLEMENTED FOR HUMAN REVIEW on feature branch; LOOP_RU and LOOP_NUMERICO qualified, LOOP_RM and loop significance fail closed; not merged |
 | M7B foundation readiness | YES within certified operation profile; implementation NOT AUTHORIZED |
 | M7B Renderer implementation | NOT AUTHORIZED |
 | M7C Master/VBA | NOT AUTHORIZED |
