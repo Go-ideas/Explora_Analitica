@@ -2,7 +2,7 @@
   "schema_version": "EXPLORA_GATE48_OPERATOR_CONSOLE_CHECKPOINT_V1",
   "authoritative_main": "8cc7a0c7ea17e29c96dfcbbfee278690c3d0eba2",
   "branch": "feature/gate48-streamlit-operator-console",
-  "status": "IMPLEMENTED_PENDING_VALIDATION",
+  "status": "IMPLEMENTED_PENDING_CODEX_VALIDATION_AND_HUMAN_REVIEW",
   "operator_console_version": "EXPLORA_OPERATOR_CONSOLE_V1",
   "new_entry_point": "explora_web_reporter/operator_console.py",
   "legacy_app_preserved": true,
@@ -20,5 +20,6 @@
   "raw_customer_data_git_path": "NONE",
   "streamlit_cloud_ready_for_branch_deployment": true,
   "human_review_required": true,
-  "merge_performed": false
-}
+  "merge_performed": false,
+  "streamlit_cloud_privacy_requirement": "PRIVATE_FOR_REAL_CUSTOMER_DATA"
+}\n

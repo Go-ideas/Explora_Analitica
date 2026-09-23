@@ -110,7 +110,7 @@ def main() -> None:
             st.rerun()
 
     st.title("EXPLORA Operator Console")
-    st.caption("Project Spec → Execution Release → RELEASED Package → CANONICAL_V1 → Web")
+    st.caption("Project Spec → Execution Release → RELEASED Package → CANONICAL_V1 → Web")\n    st.warning("Para datos reales de clientes, despliega esta consola como app PRIVADA en Streamlit Community Cloud.")
 
     upload_tab, spec_tab, decision_tab, package_tab, execute_tab, trace_tab = st.tabs(
         ["1. Proyecto", "2. Project Spec", "3. Decisiones", "4. Package", "5. Ejecutar", "6. Trazabilidad"]

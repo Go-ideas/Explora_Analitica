@@ -133,3 +133,10 @@ Para Streamlit Community Cloud selecciona como archivo principal:
 La consola usa almacenamiento temporal de sesión para archivos de cliente y no
 los añade al repositorio. La salida Excel permanece fail-closed en esta consola
 hasta integrar explícitamente el `QualifiedMaster` de M7.
+
+### Privacidad en Streamlit Community Cloud
+
+El repositorio es público, por lo que un despliegue nuevo puede quedar público
+por defecto. Antes de subir datos reales de clientes, cambia la app a privada en
+**App Settings → Sharing → Only specific people can view this app**. No utilices
+la consola con datos de clientes mientras el acceso sea público.
