@@ -48,5 +48,19 @@ and CANONICAL_V1 execution for RU, three-option RM, LOOP_RU and LOOP_NUMERICO.
 No customer artifact or
 customer-specific fixture is committed.
 
-Corrective validation evidence is recorded by the branch handoff after the
-complete regression run.
+The corrective establishes explicitly that analytical RM option identity is not
+physical RM response state. Human Review passed after corrective validation.
+
+Accepted corrective validation evidence:
+
+- Gate 51 focused: 46 passed, 0 failed, 0 skipped.
+- RM/M4/M5 relevant regression: 206 passed, 0 failed, 0 skipped.
+- Gate 50 regression: 35 passed, 0 failed, 0 skipped.
+- Gate 49 regression: 21 passed, 0 failed, 0 skipped.
+- Gate 48 regression: 21 passed, 0 failed, 0 skipped.
+- Gate 47 regression: 66 passed, 0 failed, 0 skipped.
+- Full repository regression: 1147 passed, 0 failed, 0 skipped.
+- Unexpected skips: none.
+- Unexpected numerical deltas: none.
+- Customer-specific hardcoding: none.
+- Raw customer data: none.
