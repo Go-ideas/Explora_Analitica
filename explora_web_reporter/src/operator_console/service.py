@@ -277,7 +277,15 @@ def analyze_source_inputs(
                 "label": label,
                 "data_type": _variable_type(series),
                 "value_label_count": len(value_labels.get(variable, {}) or {}),
+                "value_labels": [
+                    {"raw_value": raw_value, "label": str(category_label)}
+                    for raw_value, category_label in sorted(
+                        (value_labels.get(variable, {}) or {}).items(),
+                        key=lambda item: (type(item[0]).__name__, str(item[0])),
+                    )
+                ],
                 "missing_user_values": list(missing_user.get(variable, []) or []),
+                "missing_ranges": list(missing_ranges.get(variable, []) or []),
                 "missing_range_count": len(missing_ranges.get(variable, []) or []),
                 "unique_non_missing": unique_non_missing,
                 "uniqueness_ratio": uniqueness_ratio,
