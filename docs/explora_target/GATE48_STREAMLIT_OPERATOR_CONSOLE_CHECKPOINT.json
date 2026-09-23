@@ -1,0 +1,70 @@
+{
+  "schema_version": "EXPLORA_GATE48_OPERATOR_CONSOLE_CHECKPOINT_V1",
+  "authoritative_main": "fe5568e6420541debd01fc410c8cd057210faedf",
+  "branch": "feature/gate48-streamlit-operator-console",
+  "status": "POST_GATE49_RECONCILED_VALIDATED_PENDING_GIT_ADOPTION",
+  "operator_console_version": "EXPLORA_OPERATOR_CONSOLE_V1_4",
+  "new_entry_point": "explora_web_reporter/operator_console.py",
+  "legacy_app_preserved": true,
+  "client_reporter_preserved": true,
+  "canonical_authority": "PRESERVED",
+  "statistical_calculation_in_console": false,
+  "project_spec_validation": "DELEGATED_TO_ACCEPTED_CONTRACT",
+  "execution_release_validation": "DELEGATED_TO_ACCEPTED_CONTRACT",
+  "b3_human_release_required": true,
+  "package_builder": "DELEGATED_TO_GATE47",
+  "productive_runtime": "DELEGATED_TO_GATE45_47",
+  "web_execution": "SUPPORTED",
+  "excel_execution": "FAIL_CLOSED_PENDING_M7_QUALIFIED_MASTER_CONSOLE_INTEGRATION",
+  "questionnaire_datamap_auto_authoring": "NOT_IMPLEMENTED",
+  "raw_customer_data_git_path": "NONE",
+  "streamlit_cloud_ready_for_branch_deployment": true,
+  "human_review_required": true,
+  "merge_performed": false,
+  "streamlit_cloud_privacy_requirement": "PRIVATE_FOR_REAL_CUSTOMER_DATA",
+  "streamlit_python_version": "3.13",
+  "streamlit_python_314_status": "UNQUALIFIED_DEPENDENCY_BUILD_FAILURE_WITH_LXML_6_0_0",
+  "source_analysis_action": "IMPLEMENTED",
+  "source_analysis_authority": "SOURCE_EVIDENCE_ONLY",
+  "source_analysis_candidates": "CANDIDATE_ONLY",
+  "project_spec_auto_authoring": "NOT_IMPLEMENTED",
+  "source_analysis_version": "EXPLORA_SOURCE_ANALYSIS_V1_2",
+  "loop_candidate_separation": "IMPLEMENTED",
+  "grid_candidate_separation": "IMPLEMENTED",
+  "id_signal_uniqueness_evidence": "IMPLEMENTED",
+  "structure_review": "IMPLEMENTED",
+  "structure_review_schema": "EXPLORA_STRUCTURE_REVIEW_V1",
+  "structure_review_authority": "HUMAN_REVIEW_REQUIRED",
+  "gate49_dependency": {
+    "status": "CLOSED_ACCEPTED_MERGED",
+    "accepted_feature_head": "9f84229210ce3b9ac8ba2d833ad10823d512b124",
+    "official_main": "fe5568e6420541debd01fc410c8cd057210faedf"
+  },
+  "qualified_question_types": [
+    "LOOP_NUMERICO",
+    "LOOP_RU",
+    "RM",
+    "RU"
+  ],
+  "not_yet_qualified_question_types": [
+    "GRID_ESCALA",
+    "GRID_RM",
+    "LOOP_RM",
+    "NUMERIC",
+    "SCALE"
+  ],
+  "loop_significance": "NOT_YET_QUALIFIED_FAIL_CLOSED",
+  "automatic_human_approval": false,
+  "validation": {
+    "gate48_focused": "21_PASS_0_FAIL_0_SKIP",
+    "gate49_focused": "21_PASS_0_FAIL_0_SKIP",
+    "gate47_regression": "66_PASS_0_FAIL_0_SKIP",
+    "full_regression": "1066_PASS_0_FAIL_0_SKIP",
+    "unexpected_numerical_deltas": "NONE"
+  },
+  "structure_review_states": [
+    "NEEDS_HUMAN_DECISION",
+    "CAPABILITY_GAP",
+    "READY_FOR_PROJECT_SPEC_DRAFT"
+  ]
+}
