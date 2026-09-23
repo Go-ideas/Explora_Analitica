@@ -77,4 +77,3 @@ and fingerprints.
 Gate 50 performs no percentages, bases, weighting, significance or canonical
 statistics. It does not generate Execution Release, approve B3, normalize or
 trim weights, infer routing, define banners/filters, or add Excel intent.
-
