@@ -98,3 +98,38 @@ Los lectores viven en `src/readers`, la construcción de tablas en
 
 Cuando una regla no puede inferirse con seguridad, el constructor conserva el
 flujo y utiliza la marca `requiere_validacion` cuando corresponde.
+
+
+## EXPLORA Operator Console — flujo CANONICAL
+
+La consola operativa del flujo nuevo vive en `operator_console.py`. Esta
+entrada es distinta del reporteador histórico y no calcula estadísticas por su
+cuenta.
+
+Flujo:
+
+1. Cargar la base `.sav`.
+2. Cargar `EXPLORA_PROJECT_SPEC_V1`.
+3. Cargar `EXPLORA_PROJECT_EXECUTION_RELEASE_V1`.
+4. Revisar errores, warnings, ambigüedades y decisiones AI/humanas.
+5. Registrar una aprobación B3 humana explícita.
+6. Construir el RELEASED Package determinístico mediante el builder de Gate 47.
+7. Ejecutar `CANONICAL_V1` para proyectos con output WEB.
+8. Descargar package, resultados, QA y provenance.
+
+El cuestionario y el datamap pueden cargarse como evidencia de fuente, pero Gate
+48 no afirma generación automática de Project Spec desde esos documentos.
+
+Para ejecutar localmente:
+
+```powershell
+streamlit run operator_console.py
+```
+
+Para Streamlit Community Cloud selecciona como archivo principal:
+
+`explora_web_reporter/operator_console.py`
+
+La consola usa almacenamiento temporal de sesión para archivos de cliente y no
+los añade al repositorio. La salida Excel permanece fail-closed en esta consola
+hasta integrar explícitamente el `QualifiedMaster` de M7.
