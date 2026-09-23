@@ -226,7 +226,7 @@ def analyze_source_inputs(
     weight_candidates: list[str] = []
     variables: list[dict[str, Any]] = []
     weight_pattern = re.compile(r"(^|[_])(pond|ponder|peso|weight|wgt|factor)([_]|$)", re.IGNORECASE)
-    id_pattern = re.compile(r"(^|[_])(id|folio|case|record|respondent|respondiente|entrevista)([_]|$)", re.IGNORECASE)
+    id_pattern = re.compile(r"(?<![A-Za-z0-9])(id|folio|case|record|respondent|respondiente|entrevista)(?![A-Za-z0-9])", re.IGNORECASE)
 
     for variable in summary["variables"]:
         variable = str(variable)
