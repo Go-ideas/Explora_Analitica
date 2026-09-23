@@ -153,12 +153,13 @@ def validate_execution_release(
         if item.get("structure_ref") not in structure_ids or not item.get("metric_refs") or not set(item["metric_refs"]).issubset(metric_ids):
             raise PackageAuthoringError("question has dangling structure or metric references")
     for item in release["structures"]:
-        if item.get("question_id") not in question_ids or item.get("structure_type") not in {"RU", "RM"}:
+        structure_type = item.get("structure_type")
+        if item.get("question_id") not in question_ids or structure_type not in {"RU", "RM", "LOOP_RU", "LOOP_NUMERICO"}:
             raise PackageAuthoringError("unsupported or dangling structure")
-        if project_question_types[item["question_id"]] != item["structure_type"]:
+        if project_question_types[item["question_id"]] != structure_type:
             raise PackageAuthoringError("question type is outside the qualified authoring profile")
-        structure_type_by_question[item["question_id"]] = item["structure_type"]
-        bindings = item.get("option_bindings", []) if item.get("structure_type") == "RM" else item.get("variable_bindings", [])
+        structure_type_by_question[item["question_id"]] = structure_type
+        bindings = item.get("option_bindings", []) if structure_type == "RM" else item.get("variable_bindings", [])
         if not bindings or any(binding.get("variable_ref") not in variables for binding in bindings):
             raise PackageAuthoringError("structure physical binding is missing or ambiguous")
         required_semantics = {"completion_policy", "storage_encoding", "duplicate_policy",
@@ -174,6 +175,8 @@ def validate_execution_release(
             states = [set(item[name]) for name in ("selected_values", "not_selected_values", "ordinary_missing_values")]
             if any(not state for state in states) or any(states[i] & states[j] for i in range(3) for j in range(i + 1, 3)):
                 raise PackageAuthoringError("RM response states must be complete and disjoint")
+        if structure_type.startswith("LOOP_"):
+            _validate_loop_structure(item, bindings, project)
     for item in release["metrics"]:
         if item.get("formula_id") not in FORMULA_REGISTRY or item.get("question_ref") not in question_ids or item.get("universe_ref") not in project_universes:
             raise PackageAuthoringError("metric formula or reference is unsupported")
@@ -256,4 +259,46 @@ def validate_execution_release(
             raise PackageAuthoringError("B2 methodology fields cannot be supplied by ER")
         if item["test_family"] != "PROPORTION" or item["sample_relationship"] != "INDEPENDENT" or item["confidence"] not in {0.90, 0.95, 0.99}:
             raise PackageAuthoringError("unsupported B2 significance configuration")
+        if project_question_types[item["question_ref"]].startswith("LOOP_"):
+            raise PackageAuthoringError("LOOP significance is not qualified by Gate 49")
     return ValidatedExecutionRelease(project, release, fingerprint)
+
+
+def _validate_loop_structure(
+    structure: dict[str, Any],
+    bindings: list[dict[str, Any]],
+    project: dict[str, Any],
+) -> None:
+    iterations = structure.get("loop_iterations")
+    if not isinstance(iterations, list) or not iterations:
+        raise PackageAuthoringError("loop membership and iteration identity are required")
+    required = {"iteration_id", "order", "label", "variable_ref", "response_domain"}
+    if any(not isinstance(item, dict) or set(item) != required for item in iterations):
+        raise PackageAuthoringError("loop iteration configuration is incomplete")
+    ids = [item["iteration_id"] for item in iterations]
+    orders = [item["order"] for item in iterations]
+    refs = [item["variable_ref"] for item in iterations]
+    labels = [item["label"] for item in iterations]
+    if any(not isinstance(value, str) or not value for value in ids + refs + labels):
+        raise PackageAuthoringError("loop iteration identity is ambiguous")
+    if any(not isinstance(value, int) or isinstance(value, bool) for value in orders):
+        raise PackageAuthoringError("loop iteration order must be explicit and deterministic")
+    if len(ids) != len(set(ids)) or len(orders) != len(set(orders)) or len(refs) != len(set(refs)):
+        raise PackageAuthoringError("duplicate loop iteration identity")
+    if orders != list(range(1, len(iterations) + 1)):
+        raise PackageAuthoringError("loop iteration order must be explicit and deterministic")
+    if any(ref not in {item["variable_id"] for item in project["dataset"]["variables"]} for ref in refs):
+        raise PackageAuthoringError("loop source variable is missing")
+    binding_map = {(item.get("loop_instance_id"), item.get("variable_ref")) for item in bindings}
+    if binding_map != set(zip(ids, refs)) or len(binding_map) != len(bindings):
+        raise PackageAuthoringError("loop member bindings differ from iteration authority")
+    question = next(item for item in project["questions"] if item["question_id"] == structure["question_id"])
+    if set(question.get("source_variables", ())) != set(refs):
+        raise PackageAuthoringError("loop Project Spec source membership mismatch")
+    if structure["structure_type"] == "LOOP_RU":
+        categories = structure.get("category_bindings", [])
+        category_domain = {item.get("raw_value") for item in categories}
+        if not category_domain or any(set(item["response_domain"]) != category_domain for item in iterations):
+            raise PackageAuthoringError("LOOP_RU members have incompatible response domains")
+    elif any(item["response_domain"] for item in iterations) or structure.get("category_bindings"):
+        raise PackageAuthoringError("LOOP_NUMERICO cannot declare categorical response domains")

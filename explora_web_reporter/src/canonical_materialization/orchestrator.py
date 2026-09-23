@@ -20,6 +20,8 @@ from src.contracts.models import (
     ProjectSpec,
     QuestionSpec,
     ReleaseMetadata,
+    StructureAxis,
+    StructureMember,
     StructureSpec,
     UniverseExpression,
     UniverseRef,
@@ -187,12 +189,25 @@ def _question_spec(runtime: CanonicalRuntimeInput, question_id: str) -> Question
 
 def _structure_spec(runtime: CanonicalRuntimeInput, structure_id: str) -> StructureSpec:
     item = _one(runtime.package.structures, "structure_id", structure_id)
+    iterations = tuple(sorted(item.get("loop_iterations", ()), key=lambda value: value["order"]))
     if item["structure_type"] == "RM":
         variables = tuple(VariableBinding(binding_id=b["option_id"], variable_ref=b["variable_ref"], option_id=b["option_id"]) for b in item.get("option_bindings", ()))
         categories = ()
     else:
-        variables = tuple(VariableBinding(binding_id=b["variable_ref"], variable_ref=b["variable_ref"]) for b in item.get("variable_bindings", ()))
+        bindings = tuple(item.get("variable_bindings", ()))
+        if iterations:
+            order = {value["iteration_id"]: value["order"] for value in iterations}
+            bindings = tuple(sorted(bindings, key=lambda value: order[value["loop_instance_id"]]))
+        variables = tuple(VariableBinding(
+            binding_id=b.get("binding_id", b["variable_ref"]),
+            variable_ref=b["variable_ref"],
+            loop_instance_id=b.get("loop_instance_id"),
+        ) for b in bindings)
         categories = tuple(CategoryOptionBinding(binding_id=c["category_id"], category_id=c["category_id"], raw_values=(c["raw_value"],), label=c.get("label", "")) for c in item.get("category_bindings", ()))
+    axes = () if not iterations else (StructureAxis(
+        "loop_instance", "loop",
+        tuple(StructureMember(value["iteration_id"], value.get("label", "")) for value in iterations),
+    ),)
     scope = item.get("mention_denominator_scope")
     if isinstance(scope, dict):
         scope = MentionScopeIdentity(**scope)
@@ -203,6 +218,7 @@ def _structure_spec(runtime: CanonicalRuntimeInput, structure_id: str) -> Struct
         structure_id=item["structure_id"],
         structure_type=item["structure_type"],
         parent_question_ref=item["question_id"],
+        axes=axes,
         variable_bindings=variables,
         category_bindings=categories,
         applicability_refs={key: UniverseRef(value) for key, value in item.get("applicability_refs", {}).items()},
@@ -213,6 +229,7 @@ def _structure_spec(runtime: CanonicalRuntimeInput, structure_id: str) -> Struct
         duplicate_policy=item.get("duplicate_policy", "error"),
         exclusive_option_ids=tuple(item.get("exclusive_option_ids", ())),
         storage_encoding=STORAGE_ENCODING_MAP.get(item.get("storage_encoding"), item.get("storage_encoding", "single_variable")),
+        loop_instance_binding="released_iteration_id" if iterations else None,
         mention_denominator_scope=scope,
         structural_zero_provenance=item.get("structural_zero_provenance"),
         structural_missing_semantics=item.get("structural_missing_semantics"),
