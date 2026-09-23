@@ -488,9 +488,9 @@ def test_g48_16_structure_review_distinguishes_core_patterns() -> None:
     review = build_structure_review(_source_analysis_fixture_for_review())
     by_id = {item["item_id"]: item for item in review["items"]}
     assert by_id["RM::Q2"]["proposed_type"] == "RM"
-    assert by_id["RM::Q2"]["capability_status"] == "SUPPORTED_GATE47"
+    assert by_id["RM::Q2"]["capability_status"] == "QUALIFIED"
     assert by_id["LOOP::Q3"]["proposed_type"] == "LOOP_RU"
-    assert by_id["LOOP::Q3"]["capability_status"] == "NOT_YET_QUALIFIED"
+    assert by_id["LOOP::Q3"]["capability_status"] == "QUALIFIED"
     assert by_id["GRID::G1"]["proposed_type"] == "GRID_ESCALA"
     assert by_id["GRID::G1"]["capability_status"] == "NOT_YET_QUALIFIED"
     assert by_id["VAR::Q1"]["proposed_type"] == "RU"
@@ -518,7 +518,8 @@ def test_g48_18_approved_unsupported_structure_creates_capability_gap() -> None:
     result = finalize_structure_review(review, decisions)
     assert result["status"] == "CAPABILITY_GAP"
     gap_types = {item["final_type"] for item in result["summary"]["capability_gaps"]}
-    assert {"LOOP_RU", "GRID_ESCALA", "NUMERIC"}.issubset(gap_types)
+    assert "LOOP_RU" not in gap_types
+    assert {"GRID_ESCALA", "NUMERIC"}.issubset(gap_types)
 
 
 def test_g48_19_excluding_unqualified_scope_can_reach_project_spec_draft_readiness() -> None:
@@ -528,7 +529,7 @@ def test_g48_19_excluding_unqualified_scope_can_reach_project_spec_draft_readine
         final_type = item["proposed_type"]
         state = (
             "EXCLUDED"
-            if final_type in {"LOOP_RU", "GRID_ESCALA", "NUMERIC"}
+            if final_type in {"GRID_ESCALA", "NUMERIC"}
             else "APPROVED"
         )
         decisions.append({
@@ -561,3 +562,26 @@ def test_g48_20_unclassified_cannot_be_human_approved() -> None:
             "review_state": "APPROVED",
             "final_type": "UNCLASSIFIED",
         }])
+
+
+def test_g48_21_gate49_loop_capability_matrix_is_fail_closed_by_family() -> None:
+    source = deepcopy(_source_analysis_fixture_for_review())
+    for variable in ("Q3.1", "Q3.2"):
+        next(item for item in source["variables"] if item["variable"] == variable)[
+            "value_label_count"
+        ] = 0
+    review = build_structure_review(source)
+    loop_item = next(item for item in review["items"] if item["item_id"] == "LOOP::Q3")
+    assert loop_item["proposed_type"] == "LOOP_NUMERICO"
+    assert loop_item["capability_status"] == "QUALIFIED"
+    assert review["loop_significance"] == "NOT_YET_QUALIFIED"
+
+    result = finalize_structure_review(review, [{
+        "item_id": "LOOP::Q3",
+        "review_state": "APPROVED",
+        "final_type": "LOOP_RM",
+        "human_note": "human override",
+    }])
+    overridden = next(item for item in result["items"] if item["item_id"] == "LOOP::Q3")
+    assert overridden["capability_status"] == "NOT_YET_QUALIFIED"
+    assert result["status"] == "NEEDS_HUMAN_DECISION"

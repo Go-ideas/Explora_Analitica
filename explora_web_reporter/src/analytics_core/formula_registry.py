@@ -65,6 +65,7 @@ def evaluate_formula(
     denominator: float | int | None = None,
     numerator: float | int | None = None,
     observations: tuple[float, ...] = (),
+    observation_weights: tuple[float, ...] = (),
     promoters: int | None = None,
     detractors: int | None = None,
 ) -> FormulaResult:
@@ -85,6 +86,7 @@ def evaluate_formula(
         denominator=denominator,
         numerator=numerator,
         observations=observations,
+        observation_weights=observation_weights,
         promoters=promoters,
         detractors=detractors,
     )
@@ -170,7 +172,21 @@ def _mean(**kwargs: object) -> FormulaResult:
         )
     if not observations:
         return FormulaResult(ValueStatus.NO_VALID_BASE, ValueUnit.MEAN, None)
-    estimate = mean(observations)
+    weights, invalid_weights = _checked_observations(
+        kwargs.get("observation_weights", ())
+    )
+    if weights:
+        if invalid_weights or len(weights) != len(observations) or any(weight < 0 for weight in weights) or sum(weights) <= 0:
+            return FormulaResult(
+                ValueStatus.ERROR,
+                ValueUnit.MEAN,
+                None,
+                denominator=len(observations),
+                reason="invalid weighted mean input",
+            )
+        estimate = sum(value * weight for value, weight in zip(observations, weights)) / sum(weights)
+    else:
+        estimate = mean(observations)
     if not math.isfinite(estimate):
         return FormulaResult(
             ValueStatus.ERROR,

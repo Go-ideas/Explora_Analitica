@@ -214,7 +214,7 @@ def main() -> None:
             group_sections = [
                 ("Grupos RM candidatos — requieren revisión", analysis["rm_group_candidates"]),
                 ("Repeticiones LOOP candidatas — no tratar como RM", analysis.get("loop_group_candidates", [])),
-                ("Filas GRID candidatas — fuera del perfil Gate 47 actual", analysis.get("grid_group_candidates", [])),
+                ("Filas GRID candidatas — fuera del perfil cualificado actual", analysis.get("grid_group_candidates", [])),
             ]
             for title, items in group_sections:
                 if items:
@@ -296,7 +296,8 @@ def main() -> None:
                 st.subheader("Revisión de estructuras y roles")
                 st.caption(
                     "Nada se convierte en Project Spec desde esta tabla hasta que exista una decisión humana. "
-                    "RU/RM están cualificados en Gate 47; LOOP/GRID/NUMERIC permanecen fuera del perfil productivo actual."
+                    "RU, RM, LOOP_RU y LOOP_NUMERICO están cualificados. LOOP_RM, GRID y NUMERIC "
+                    "independiente permanecen fuera del perfil; significancia LOOP continúa fail-closed."
                 )
                 summary = review.get("summary", {})
                 m = st.columns(5)
@@ -373,7 +374,7 @@ def main() -> None:
                     st.warning("Aún existen decisiones pendientes.")
                 elif review.get("status") == "CAPABILITY_GAP":
                     st.error(
-                        "La revisión está completa, pero incluye estructuras no cualificadas por Gate 47. "
+                        "La revisión está completa, pero incluye estructuras no cualificadas por el perfil vigente. "
                         "Puedes excluirlas para un alcance parcial o abrir un milestone de capacidad."
                     )
                     if gaps:

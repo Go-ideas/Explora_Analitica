@@ -1,9 +1,9 @@
 {
   "schema_version": "EXPLORA_GATE48_OPERATOR_CONSOLE_CHECKPOINT_V1",
-  "authoritative_main": "8cc7a0c7ea17e29c96dfcbbfee278690c3d0eba2",
+  "authoritative_main": "fe5568e6420541debd01fc410c8cd057210faedf",
   "branch": "feature/gate48-streamlit-operator-console",
-  "status": "IMPLEMENTED_STRUCTURE_REVIEW_PENDING_LOCAL_RETEST_AND_HUMAN_REVIEW",
-  "operator_console_version": "EXPLORA_OPERATOR_CONSOLE_V1_3",
+  "status": "POST_GATE49_RECONCILED_VALIDATED_PENDING_HUMAN_REVIEW",
+  "operator_console_version": "EXPLORA_OPERATOR_CONSOLE_V1_4",
   "new_entry_point": "explora_web_reporter/operator_console.py",
   "legacy_app_preserved": true,
   "client_reporter_preserved": true,
@@ -35,6 +35,33 @@
   "structure_review": "IMPLEMENTED",
   "structure_review_schema": "EXPLORA_STRUCTURE_REVIEW_V1",
   "structure_review_authority": "HUMAN_REVIEW_REQUIRED",
+  "gate49_dependency": {
+    "status": "CLOSED_ACCEPTED_MERGED",
+    "accepted_feature_head": "9f84229210ce3b9ac8ba2d833ad10823d512b124",
+    "official_main": "fe5568e6420541debd01fc410c8cd057210faedf"
+  },
+  "qualified_question_types": [
+    "LOOP_NUMERICO",
+    "LOOP_RU",
+    "RM",
+    "RU"
+  ],
+  "not_yet_qualified_question_types": [
+    "GRID_ESCALA",
+    "GRID_RM",
+    "LOOP_RM",
+    "NUMERIC",
+    "SCALE"
+  ],
+  "loop_significance": "NOT_YET_QUALIFIED_FAIL_CLOSED",
+  "automatic_human_approval": false,
+  "validation": {
+    "gate48_focused": "21_PASS_0_FAIL_0_SKIP",
+    "gate49_focused": "21_PASS_0_FAIL_0_SKIP",
+    "gate47_regression": "66_PASS_0_FAIL_0_SKIP",
+    "full_regression": "1066_PASS_0_FAIL_0_SKIP",
+    "unexpected_numerical_deltas": "NONE"
+  },
   "structure_review_states": [
     "NEEDS_HUMAN_DECISION",
     "CAPABILITY_GAP",

@@ -215,6 +215,8 @@ def _qa_events(df: pd.DataFrame, respondent_ids: tuple[str, ...], variables: tup
 def _category_domain_failure(variables: tuple[BoundVariable, ...], package: ReleasedPackage) -> str:
     by_ref = {variable.variable_ref: set(variable.observed_values) for variable in variables}
     for structure in package.structures:
+        if structure.get("structure_type") == "LOOP_NUMERICO":
+            continue
         allowed = set(structure.get("ordinary_missing_values", ()))
         if structure.get("structure_type") == "RM":
             allowed |= set(structure.get("selected_values", ())) | set(structure.get("not_selected_values", ()))

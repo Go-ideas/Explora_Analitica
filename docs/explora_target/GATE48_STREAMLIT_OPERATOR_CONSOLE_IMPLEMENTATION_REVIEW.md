@@ -9,8 +9,9 @@ EXPLORA already had two Streamlit entry points before Gate 48:
 
 Those surfaces predate the accepted Project Spec → Execution Release → Generic Package Builder → CANONICAL_V1 architecture. They are preserved unchanged for compatibility.
 
-Gate 47 is CLOSED / ACCEPTED / MERGED through PR #20 at official main
-`8cc7a0c7ea17e29c96dfcbbfee278690c3d0eba2`.
+Gate 49 is CLOSED / ACCEPTED / MERGED through PR #21 at official main
+`fe5568e6420541debd01fc410c8cd057210faedf`. Gate 48 has been reconciled
+with that accepted capability authority while preserving its feature history.
 
 ## TARGET STATE
 
@@ -139,8 +140,8 @@ solely from their suffix. The SPSS labels contain explicit
 `LOOP_MEMBER_CANDIDATE` / loop groups and excludes them from RM candidates.
 
 Variables using `_rN` notation are surfaced separately as
-`GRID_ROW_CANDIDATE`. This is important because Gate 47 has not yet qualified
-GRID or LOOP authoring/execution profiles.
+`GRID_ROW_CANDIDATE`. GRID remains outside the qualified profile. Gate 49 now
+qualifies LOOP_RU and LOOP_NUMERICO, while LOOP_RM remains fail-closed.
 
 The analyzer also records respondent-identity signals and uniqueness ratio even
 when a likely identity field is not globally unique. None of these candidates
@@ -164,11 +165,34 @@ saved review returns exactly one of:
 - `CAPABILITY_GAP`
 - `READY_FOR_PROJECT_SPEC_DRAFT`
 
-Gate 47 capability boundaries remain explicit: RU and RM are qualified;
-NUMERIC/GRID/LOOP are not yet qualified. Approving an unsupported structure does
-not silently execute it; it produces `CAPABILITY_GAP`. Excluding unsupported
-items can produce a bounded partial scope ready for the future Project Spec draft
-authoring step.
+The accepted post-Gate49 capability matrix is explicit: RU, RM, LOOP_RU and
+LOOP_NUMERICO are qualified. LOOP_RM, GRID_ESCALA, GRID_RM, SCALE and standalone
+NUMERIC remain fail-closed. Loop significance is also fail-closed pending a
+dedicated B2 family contract. Approving an unsupported structure does not
+silently execute it; it produces `CAPABILITY_GAP`. Qualified loop structures do
+not produce a false capability gap.
 
 Structure Review is a human-reviewed configuration artifact, not a Project Spec
 and not a statistical result.
+
+## Post-Gate49 Reconciliation
+
+The console consumes the Gate 49 capability decision only as structure-review
+metadata. It does not calculate statistics, approve review items, generate a
+Project Spec, or create a parallel execution path. Every proposed structure
+still begins `PENDING`; only an explicit human decision can approve or exclude
+it. Web and Excel continue consuming Canonical Results through the accepted
+runtime and package boundaries.
+
+The capability matrix records the authority for each family. LOOP_RU and
+LOOP_NUMERICO cite Gate 49; LOOP_RM and loop significance remain explicitly
+fail-closed. No customer-specific logic or raw customer data was introduced.
+
+Post-reconciliation validation:
+
+- Gate 48 focused: 21 passed, 0 failed, 0 skipped.
+- Gate 49 focused: 21 passed, 0 failed, 0 skipped.
+- Gate 47 released package builder: 66 passed, 0 failed, 0 skipped.
+- Full repository regression: 1066 passed, 0 failed, 0 skipped.
+
+No unexpected numerical deltas were observed.

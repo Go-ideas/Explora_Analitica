@@ -352,14 +352,28 @@ def analyze_source_inputs(
 
 
 
-GATE47_QUALIFIED_QUESTION_TYPES = {"RU", "RM"}
+CAPABILITY_MATRIX = {
+    "RU": {"status": "QUALIFIED", "authority": "GATE47"},
+    "RM": {"status": "QUALIFIED", "authority": "GATE47"},
+    "LOOP_RU": {"status": "QUALIFIED", "authority": "GATE49"},
+    "LOOP_NUMERICO": {"status": "QUALIFIED", "authority": "GATE49"},
+    "LOOP_RM": {"status": "NOT_YET_QUALIFIED", "authority": "GATE49_FAIL_CLOSED"},
+    "GRID_ESCALA": {"status": "NOT_YET_QUALIFIED", "authority": "UNQUALIFIED"},
+    "GRID_RM": {"status": "NOT_YET_QUALIFIED", "authority": "UNQUALIFIED"},
+    "SCALE": {"status": "NOT_YET_QUALIFIED", "authority": "UNQUALIFIED"},
+    "NUMERIC": {"status": "NOT_YET_QUALIFIED", "authority": "UNQUALIFIED"},
+}
+QUALIFIED_QUESTION_TYPES = {
+    final_type for final_type, capability in CAPABILITY_MATRIX.items()
+    if capability["status"] == "QUALIFIED"
+}
 NOT_YET_QUALIFIED_QUESTION_TYPES = {
-    "NUMERIC", "SCALE", "GRID_ESCALA", "GRID_RM",
-    "LOOP_RU", "LOOP_RM", "LOOP_NUMERICO",
+    final_type for final_type, capability in CAPABILITY_MATRIX.items()
+    if capability["status"] == "NOT_YET_QUALIFIED"
 }
 CONFIG_REVIEW_TYPES = {"RESPONDENT_ID", "WEIGHT", "META_CONTROL"}
 STRUCTURE_REVIEW_FINAL_TYPES = tuple(sorted(
-    GATE47_QUALIFIED_QUESTION_TYPES
+    QUALIFIED_QUESTION_TYPES
     | NOT_YET_QUALIFIED_QUESTION_TYPES
     | CONFIG_REVIEW_TYPES
     | {"UNCLASSIFIED"}
@@ -391,10 +405,8 @@ def _questionnaire_marker(item: Mapping[str, Any]) -> str | None:
 
 
 def _capability_status(final_type: str) -> str:
-    if final_type in GATE47_QUALIFIED_QUESTION_TYPES:
-        return "SUPPORTED_GATE47"
-    if final_type in NOT_YET_QUALIFIED_QUESTION_TYPES:
-        return "NOT_YET_QUALIFIED"
+    if final_type in CAPABILITY_MATRIX:
+        return CAPABILITY_MATRIX[final_type]["status"]
     if final_type in CONFIG_REVIEW_TYPES:
         return "CONFIG_ROLE"
     return "UNRESOLVED"
@@ -586,8 +598,10 @@ def build_structure_review(source_analysis: Mapping[str, Any]) -> dict[str, Any]
         "status": "NEEDS_HUMAN_DECISION",
         "items": items,
         "proposal_type_counts": dict(sorted(type_counts.items())),
-        "qualified_question_types": sorted(GATE47_QUALIFIED_QUESTION_TYPES),
+        "capability_matrix": deepcopy(CAPABILITY_MATRIX),
+        "qualified_question_types": sorted(QUALIFIED_QUESTION_TYPES),
         "not_yet_qualified_question_types": sorted(NOT_YET_QUALIFIED_QUESTION_TYPES),
+        "loop_significance": "NOT_YET_QUALIFIED",
         "summary": {
             "total_items": len(items),
             "pending_items": len(items),
