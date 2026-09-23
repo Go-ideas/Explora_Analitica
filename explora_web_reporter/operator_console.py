@@ -10,6 +10,7 @@ import streamlit as st
 from src.operator_console import (
     OPERATOR_CONSOLE_VERSION,
     OperatorConsoleError,
+    analyze_source_inputs,
     approve_execution_release,
     archive_directory,
     build_package,
@@ -120,8 +121,8 @@ def main() -> None:
     with upload_tab:
         st.subheader("Archivos del proyecto")
         st.info(
-            "La consola no interpreta automáticamente el cuestionario ni el datamap en esta versión. "
-            "Se conservan como evidencia de fuente; el Project Spec sigue siendo la configuración analítica aprobada."
+            "Carga lo que tengas. EXPLORA puede analizar determinísticamente la metadata del SAV y usar el cuestionario DOCX como evidencia. "
+            "Las clasificaciones detectadas son candidatos y no se convierten en Project Spec sin revisión."
         )
         left, right = st.columns(2)
         with left:
@@ -163,6 +164,85 @@ def main() -> None:
             )
             execution_release = _activate_json("execution_release", release_upload, role="execution_release")
             _artifact_line("Execution Release", st.session_state.get("execution_release_artifact"))
+
+        st.divider()
+        st.subheader("Analizar fuentes")
+        can_analyze = dataset is not None
+        if st.button(
+            "Analizar archivos cargados",
+            type="primary",
+            disabled=not can_analyze,
+            help="Lee metadata SPSS y evidencia textual del cuestionario. No calcula resultados analíticos.",
+        ):
+            try:
+                analysis = analyze_source_inputs(
+                    dataset.stored_path,
+                    questionnaire_path=None if questionnaire is None else questionnaire.stored_path,
+                    datamap_path=None if datamap is None else datamap.stored_path,
+                )
+                st.session_state.source_analysis = analysis
+                st.success("Análisis de fuentes completado. Revisa candidatos antes de generar configuración.")
+            except OperatorConsoleError as exc:
+                st.error(str(exc))
+
+        analysis = st.session_state.get("source_analysis")
+        if analysis:
+            metrics = st.columns(5)
+            metrics[0].metric("Casos", f"{analysis['dataset']['n_cases']:,}")
+            metrics[1].metric("Variables", f"{analysis['dataset']['n_variables']:,}")
+            metrics[2].metric("ID candidatos", len(analysis["id_candidates"]))
+            metrics[3].metric("Pesos candidatos", len(analysis["weight_candidates"]))
+            metrics[4].metric("Grupos RM candidatos", len(analysis["rm_group_candidates"]))
+
+            if analysis["id_candidates"]:
+                st.caption("Candidatos a ID: " + ", ".join(analysis["id_candidates"]))
+            if analysis["weight_candidates"]:
+                st.caption("Candidatos a ponderador: " + ", ".join(analysis["weight_candidates"]))
+
+            if analysis["rm_group_candidates"]:
+                st.markdown("**Grupos RM candidatos — requieren revisión**")
+                rm_rows = [
+                    {
+                        "grupo": item["group"],
+                        "n_variables": len(item["variables"]),
+                        "variables": ", ".join(item["variables"]),
+                        "autoridad": item["authority"],
+                    }
+                    for item in analysis["rm_group_candidates"]
+                ]
+                st.dataframe(pd.DataFrame(rm_rows), width="stretch", hide_index=True)
+
+            st.markdown("**Inventario de variables y evidencia**")
+            variable_rows = [
+                {
+                    "variable": item["variable"],
+                    "label": item["label"],
+                    "tipo": item["data_type"],
+                    "value_labels": item["value_label_count"],
+                    "match_cuestionario": item["questionnaire_exact_matches"],
+                    "candidato": item["candidate_role"],
+                    "autoridad": item["authority"],
+                }
+                for item in analysis["variables"]
+            ]
+            st.dataframe(pd.DataFrame(variable_rows), width="stretch", hide_index=True, height=420)
+
+            questionnaire_info = analysis["questionnaire"]
+            if questionnaire_info["filename"]:
+                st.caption(
+                    f"Cuestionario: {questionnaire_info['paragraphs_extracted']} párrafos extraídos · "
+                    f"{questionnaire_info['variables_with_exact_questionnaire_match']} variables con match exacto."
+                )
+            st.download_button(
+                "Descargar análisis de fuentes",
+                data=json.dumps(analysis, ensure_ascii=False, indent=2, default=str).encode("utf-8"),
+                file_name="explora_source_analysis.json",
+                mime="application/json",
+            )
+            st.warning(
+                "Este análisis todavía NO es Project Spec. El siguiente módulo convertirá los candidatos revisados "
+                "en decisiones estructuradas y dejará cualquier ambigüedad como HUMAN_DECISION_REQUIRED."
+            )
 
         if project_spec:
             summary = intake_summary(project_spec)

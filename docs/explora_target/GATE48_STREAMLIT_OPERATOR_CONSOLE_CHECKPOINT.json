@@ -2,8 +2,8 @@
   "schema_version": "EXPLORA_GATE48_OPERATOR_CONSOLE_CHECKPOINT_V1",
   "authoritative_main": "8cc7a0c7ea17e29c96dfcbbfee278690c3d0eba2",
   "branch": "feature/gate48-streamlit-operator-console",
-  "status": "IMPLEMENTED_PENDING_CODEX_VALIDATION_AND_HUMAN_REVIEW",
-  "operator_console_version": "EXPLORA_OPERATOR_CONSOLE_V1",
+  "status": "IMPLEMENTED_SOURCE_ANALYSIS_PENDING_LOCAL_RETEST_AND_HUMAN_REVIEW",
+  "operator_console_version": "EXPLORA_OPERATOR_CONSOLE_V1_1",
   "new_entry_point": "explora_web_reporter/operator_console.py",
   "legacy_app_preserved": true,
   "client_reporter_preserved": true,
@@ -23,5 +23,9 @@
   "merge_performed": false,
   "streamlit_cloud_privacy_requirement": "PRIVATE_FOR_REAL_CUSTOMER_DATA",
   "streamlit_python_version": "3.13",
-  "streamlit_python_314_status": "UNQUALIFIED_DEPENDENCY_BUILD_FAILURE_WITH_LXML_6_0_0"
+  "streamlit_python_314_status": "UNQUALIFIED_DEPENDENCY_BUILD_FAILURE_WITH_LXML_6_0_0",
+  "source_analysis_action": "IMPLEMENTED",
+  "source_analysis_authority": "SOURCE_EVIDENCE_ONLY",
+  "source_analysis_candidates": "CANDIDATE_ONLY",
+  "project_spec_auto_authoring": "NOT_IMPLEMENTED"
 }

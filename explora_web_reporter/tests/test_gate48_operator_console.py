@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from copy import deepcopy
 from hashlib import sha256
+import zipfile
 
 import pytest
 
 from src.operator_console.service import (
     OperatorConsoleError,
+    analyze_source_inputs,
     approve_execution_release,
     cleanup_workspace,
     create_workspace,
@@ -154,3 +156,117 @@ def test_g48_09_web_console_readiness(monkeypatch) -> None:
         True,
         "READY_FOR_CANONICAL_WEB_EXECUTION",
     )
+
+
+def test_g48_10_source_analysis_is_evidence_only(tmp_path, monkeypatch) -> None:
+    from src.operator_console import service
+
+    class FakeSeries:
+        dtype = "int64"
+        def nunique(self, dropna=True):
+            return 3
+
+    class FakeFrame:
+        def __len__(self):
+            return 3
+        def __getitem__(self, key):
+            return FakeSeries()
+
+    summary = {
+        "n_casos": 3,
+        "n_variables": 3,
+        "variables": ["respondent_id", "Q1", "Q5_1"],
+        "variable_labels": {
+            "respondent_id": "Respondent ID",
+            "Q1": "Pregunta uno",
+            "Q5_1": "Opción uno",
+        },
+        "value_labels": {"Q1": {1: "Sí", 2: "No"}, "Q5_1": {0: "No", 1: "Sí"}},
+        "missing_ranges": {},
+        "missing_user_values": {},
+    }
+    monkeypatch.setattr(service, "read_spss", lambda _: (FakeFrame(), object(), summary))
+    monkeypatch.setattr(service, "_variable_type", lambda _: "INTEGER")
+    sav = tmp_path / "study.sav"
+    sav.write_bytes(b"synthetic")
+
+    result = analyze_source_inputs(sav)
+    assert result["authority"] == "SOURCE_EVIDENCE_ONLY"
+    assert result["dataset"]["n_cases"] == 3
+    assert all(item["authority"] == "CANDIDATE_ONLY" for item in result["variables"])
+    assert "No percentages, bases, weights, significance or Canonical Results are calculated." in result["limitations"]
+
+
+def test_g48_11_rm_group_candidates_require_separator(tmp_path, monkeypatch) -> None:
+    from src.operator_console import service
+
+    class Series:
+        dtype = "int64"
+        def nunique(self, dropna=True):
+            return 2
+
+    class Frame:
+        def __len__(self):
+            return 3
+        def __getitem__(self, key):
+            return Series()
+
+    summary = {
+        "n_casos": 3,
+        "n_variables": 4,
+        "variables": ["Q1", "Q2", "Q5_1", "Q5_2"],
+        "variable_labels": {},
+        "value_labels": {},
+        "missing_ranges": {},
+        "missing_user_values": {},
+    }
+    monkeypatch.setattr(service, "read_spss", lambda _: (Frame(), object(), summary))
+    monkeypatch.setattr(service, "_variable_type", lambda _: "INTEGER")
+    sav = tmp_path / "study.sav"
+    sav.write_bytes(b"synthetic")
+
+    result = analyze_source_inputs(sav)
+    assert result["rm_group_candidates"] == [
+        {"group": "Q5", "variables": ["Q5_1", "Q5_2"], "authority": "CANDIDATE_ONLY"}
+    ]
+
+
+def test_g48_12_docx_questionnaire_exact_match_evidence(tmp_path, monkeypatch) -> None:
+    from src.operator_console import service
+
+    class Series:
+        dtype = "int64"
+        def nunique(self, dropna=True):
+            return 2
+
+    class Frame:
+        def __len__(self):
+            return 2
+        def __getitem__(self, key):
+            return Series()
+
+    summary = {
+        "n_casos": 2,
+        "n_variables": 1,
+        "variables": ["Q10"],
+        "variable_labels": {"Q10": "Compra"},
+        "value_labels": {"Q10": {1: "Sí", 2: "No"}},
+        "missing_ranges": {},
+        "missing_user_values": {},
+    }
+    monkeypatch.setattr(service, "read_spss", lambda _: (Frame(), object(), summary))
+    monkeypatch.setattr(service, "_variable_type", lambda _: "INTEGER")
+    sav = tmp_path / "study.sav"
+    sav.write_bytes(b"synthetic")
+    docx = tmp_path / "questionnaire.docx"
+    xml = (
+        '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+        '<w:body><w:p><w:r><w:t>Q10. ¿Compró el producto?</w:t></w:r></w:p></w:body></w:document>'
+    )
+    with zipfile.ZipFile(docx, "w") as archive:
+        archive.writestr("word/document.xml", xml)
+
+    result = analyze_source_inputs(sav, questionnaire_path=docx)
+    assert result["questionnaire"]["paragraphs_extracted"] == 1
+    assert result["variables"][0]["questionnaire_exact_matches"] == 1
+    assert result["variables"][0]["questionnaire_evidence"] == ["Q10. ¿Compró el producto?"]

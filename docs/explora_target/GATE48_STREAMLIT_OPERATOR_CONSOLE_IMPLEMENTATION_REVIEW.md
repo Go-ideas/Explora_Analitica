@@ -110,3 +110,21 @@ Dependencies:
 
 Do not point the Operator Console deployment at `app.py` or
 `streamlit_app.py`; those are separate historical/reporting surfaces.
+
+
+## Source Analysis V1.1
+
+After first operator testing, Gate 48 V1 exposed no action when only SAV and
+questionnaire were available. V1.1 adds `Analizar archivos cargados`.
+
+The action uses the existing SPSS reader and a deterministic DOCX text extractor
+to produce `EXPLORA_SOURCE_ANALYSIS_V1`. It records source fingerprints,
+case/variable counts, variable labels, value-label presence, user-missing
+metadata, exact lexical questionnaire evidence, conservative respondent-ID and
+weight candidates, and RM naming-pattern candidates.
+
+All suggested roles are explicitly `CANDIDATE_ONLY`. The analysis is
+`SOURCE_EVIDENCE_ONLY` and does not become Project Spec authority. No
+percentages, analytical bases, weighting, significance, or Canonical Results are
+calculated. This closes the immediate UX gap without bypassing the future
+Project Spec authoring/human-decision boundary.
