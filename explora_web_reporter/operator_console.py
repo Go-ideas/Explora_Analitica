@@ -11,6 +11,7 @@ from src.operator_console import (
     OPERATOR_CONSOLE_VERSION,
     OperatorConsoleError,
     analyze_source_inputs,
+    build_structure_review,
     approve_execution_release,
     archive_directory,
     build_package,
@@ -18,6 +19,7 @@ from src.operator_console import (
     create_workspace,
     decision_rows,
     execution_targets,
+    finalize_structure_review,
     intake_summary,
     parse_json_upload,
     release_summary,
@@ -114,8 +116,8 @@ def main() -> None:
     st.caption("Project Spec → Execution Release → RELEASED Package → CANONICAL_V1 → Web")
     st.warning("Para datos reales de clientes, despliega esta consola como app PRIVADA en Streamlit Community Cloud.")
 
-    upload_tab, spec_tab, decision_tab, package_tab, execute_tab, trace_tab = st.tabs(
-        ["1. Proyecto", "2. Project Spec", "3. Decisiones", "4. Package", "5. Ejecutar", "6. Trazabilidad"]
+    upload_tab, review_tab, spec_tab, decision_tab, package_tab, execute_tab, trace_tab = st.tabs(
+        ["1. Proyecto", "2. Revisión", "3. Project Spec", "4. Decisiones", "5. Package", "6. Ejecutar", "7. Trazabilidad"]
     )
 
     with upload_tab:
@@ -181,6 +183,7 @@ def main() -> None:
                     datamap_path=None if datamap is None else datamap.stored_path,
                 )
                 st.session_state.source_analysis = analysis
+                st.session_state.pop("structure_review", None)
                 st.success("Análisis de fuentes completado. Revisa candidatos antes de generar configuración.")
             except OperatorConsoleError as exc:
                 st.error(str(exc))
@@ -259,6 +262,13 @@ def main() -> None:
                 "en decisiones estructuradas y dejará cualquier ambigüedad como HUMAN_DECISION_REQUIRED."
             )
 
+        if analysis:
+            st.markdown("**Siguiente paso: revisión humana de estructuras**")
+            if st.button("Preparar revisión de estructuras", key="prepare_structure_review"):
+                st.session_state.structure_review = build_structure_review(analysis)
+                st.success("Revisión preparada. Abre la pestaña 2. Revisión.")
+                st.rerun()
+
         if project_spec:
             summary = intake_summary(project_spec)
             st.divider()
@@ -267,6 +277,119 @@ def main() -> None:
             cols[1].metric("Project Spec", summary["status"])
             cols[2].metric("Targets", " + ".join(execution_targets(project_spec)) or "NONE")
             cols[3].metric("Fingerprint", summary["fingerprint"][:12] + "…")
+
+    with review_tab:
+        analysis = st.session_state.get("source_analysis")
+        if not analysis:
+            st.warning("Primero ejecuta Analizar archivos cargados en la pestaña Proyecto.")
+        else:
+            review = st.session_state.get("structure_review")
+            if review is None:
+                st.info(
+                    "El análisis de fuentes ya existe. Prepara la revisión para convertir candidatos "
+                    "en decisiones humanas explícitas."
+                )
+                if st.button("Preparar revisión", type="primary", key="prepare_review_tab"):
+                    st.session_state.structure_review = build_structure_review(analysis)
+                    st.rerun()
+            else:
+                st.subheader("Revisión de estructuras y roles")
+                st.caption(
+                    "Nada se convierte en Project Spec desde esta tabla hasta que exista una decisión humana. "
+                    "RU/RM están cualificados en Gate 47; LOOP/GRID/NUMERIC permanecen fuera del perfil productivo actual."
+                )
+                summary = review.get("summary", {})
+                m = st.columns(5)
+                m[0].metric("Items", summary.get("total_items", 0))
+                m[1].metric("Pendientes", summary.get("pending_items", 0))
+                m[2].metric("Aprobados", summary.get("approved_items", 0))
+                m[3].metric("Excluidos", summary.get("excluded_items", 0))
+                m[4].metric("Estado", review.get("status", "—"))
+
+                rows = []
+                for item in review["items"]:
+                    rows.append(
+                        {
+                            "item_id": item["item_id"],
+                            "variables": ", ".join(item["variables"]),
+                            "propuesta": item["proposed_type"],
+                            "confianza": item["proposal_confidence"],
+                            "capacidad": item["capability_status"],
+                            "estado": item["review_state"],
+                            "tipo_final": item["final_type"],
+                            "nota_humana": item.get("human_note", ""),
+                            "evidencia": " | ".join(item.get("evidence", [])),
+                        }
+                    )
+                edited = st.data_editor(
+                    pd.DataFrame(rows),
+                    width="stretch",
+                    hide_index=True,
+                    disabled=[
+                        "item_id", "variables", "propuesta", "confianza",
+                        "capacidad", "evidencia",
+                    ],
+                    column_config={
+                        "estado": st.column_config.SelectboxColumn(
+                            "estado",
+                            options=["PENDING", "APPROVED", "EXCLUDED"],
+                            required=True,
+                        ),
+                        "tipo_final": st.column_config.SelectboxColumn(
+                            "tipo_final",
+                            options=[
+                                "RU", "RM", "NUMERIC", "SCALE", "GRID_ESCALA", "GRID_RM",
+                                "LOOP_RU", "LOOP_RM", "LOOP_NUMERICO",
+                                "RESPONDENT_ID", "WEIGHT", "META_CONTROL", "UNCLASSIFIED",
+                            ],
+                            required=True,
+                        ),
+                    },
+                    key="structure_review_editor",
+                    height=520,
+                )
+                if st.button("Guardar revisión humana", type="primary"):
+                    decisions = [
+                        {
+                            "item_id": row["item_id"],
+                            "review_state": row["estado"],
+                            "final_type": row["tipo_final"],
+                            "human_note": row["nota_humana"],
+                        }
+                        for row in edited.to_dict("records")
+                    ]
+                    try:
+                        st.session_state.structure_review = finalize_structure_review(
+                            review, decisions
+                        )
+                        st.success("Revisión guardada.")
+                        st.rerun()
+                    except OperatorConsoleError as exc:
+                        st.error(str(exc))
+
+                review = st.session_state.get("structure_review", review)
+                gaps = review.get("summary", {}).get("capability_gaps", [])
+                if review.get("status") == "NEEDS_HUMAN_DECISION":
+                    st.warning("Aún existen decisiones pendientes.")
+                elif review.get("status") == "CAPABILITY_GAP":
+                    st.error(
+                        "La revisión está completa, pero incluye estructuras no cualificadas por Gate 47. "
+                        "Puedes excluirlas para un alcance parcial o abrir un milestone de capacidad."
+                    )
+                    if gaps:
+                        st.dataframe(pd.DataFrame(gaps), width="stretch", hide_index=True)
+                elif review.get("status") == "READY_FOR_PROJECT_SPEC_DRAFT":
+                    st.success(
+                        "Revisión completa y compatible con el perfil actual. "
+                        "Está lista para alimentar el futuro generador de Project Spec draft."
+                    )
+
+                st.download_button(
+                    "Descargar revisión de estructuras",
+                    data=json.dumps(review, ensure_ascii=False, indent=2, default=str).encode("utf-8"),
+                    file_name="explora_structure_review.json",
+                    mime="application/json",
+                )
 
     with spec_tab:
         project_spec = st.session_state.get("project_spec")

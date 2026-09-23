@@ -22,7 +22,7 @@ from src.project_intake.generic_productive import GenericRuntimeError, run_gener
 from src.readers.spss_reader import read_spss
 
 
-OPERATOR_CONSOLE_VERSION = "EXPLORA_OPERATOR_CONSOLE_V1_2"
+OPERATOR_CONSOLE_VERSION = "EXPLORA_OPERATOR_CONSOLE_V1_3"
 SESSION_ROOT = Path(tempfile.gettempdir()) / "explora_operator_console"
 SUPPORTED_DATASET_SUFFIXES = {".sav"}
 
@@ -349,6 +349,332 @@ def analyze_source_inputs(
             "No percentages, bases, weights, significance or Canonical Results are calculated.",
         ],
     }
+
+
+
+GATE47_QUALIFIED_QUESTION_TYPES = {"RU", "RM"}
+NOT_YET_QUALIFIED_QUESTION_TYPES = {
+    "NUMERIC", "SCALE", "GRID_ESCALA", "GRID_RM",
+    "LOOP_RU", "LOOP_RM", "LOOP_NUMERICO",
+}
+CONFIG_REVIEW_TYPES = {"RESPONDENT_ID", "WEIGHT", "META_CONTROL"}
+STRUCTURE_REVIEW_FINAL_TYPES = tuple(sorted(
+    GATE47_QUALIFIED_QUESTION_TYPES
+    | NOT_YET_QUALIFIED_QUESTION_TYPES
+    | CONFIG_REVIEW_TYPES
+    | {"UNCLASSIFIED"}
+))
+
+
+def _control_candidate(item: Mapping[str, Any]) -> bool:
+    text = f"{item.get('variable', '')} {item.get('label', '')}"
+    pattern = re.compile(
+        r"(^|[_\s.-])("
+        r"sys|system|rotation|rotacion|rotación|cell|celda|key|clave|"
+        r"product|producto|lot|lote|classification|clasificacion|clasificación|"
+        r"quota|cuota|sample|muestra|usuario"
+        r")([_\s.-]|$)",
+        re.IGNORECASE,
+    )
+    return bool(pattern.search(text))
+
+
+def _questionnaire_marker(item: Mapping[str, Any]) -> str | None:
+    evidence = " ".join(item.get("questionnaire_evidence", []) or [])
+    markers = []
+    for marker_name in ("RM", "RU", "RN"):
+        if re.search(rf"(?<![A-Za-z0-9_]){marker_name}(?![A-Za-z0-9_])", evidence, re.IGNORECASE):
+            markers.append(marker_name)
+    if len(markers) != 1:
+        return None
+    return {"RM": "RM", "RU": "RU", "RN": "NUMERIC"}[markers[0]]
+
+
+def _capability_status(final_type: str) -> str:
+    if final_type in GATE47_QUALIFIED_QUESTION_TYPES:
+        return "SUPPORTED_GATE47"
+    if final_type in NOT_YET_QUALIFIED_QUESTION_TYPES:
+        return "NOT_YET_QUALIFIED"
+    if final_type in CONFIG_REVIEW_TYPES:
+        return "CONFIG_ROLE"
+    return "UNRESOLVED"
+
+
+def _review_item(
+    *,
+    item_id: str,
+    source_kind: str,
+    variables: list[str],
+    proposed_type: str,
+    confidence: str,
+    evidence: list[str],
+) -> dict[str, Any]:
+    return {
+        "item_id": item_id,
+        "source_kind": source_kind,
+        "variables": variables,
+        "proposed_type": proposed_type,
+        "proposal_confidence": confidence,
+        "evidence": evidence,
+        "capability_status": _capability_status(proposed_type),
+        "review_state": "PENDING",
+        "final_type": proposed_type,
+        "human_note": "",
+        "authority": "HUMAN_REVIEW_REQUIRED",
+    }
+
+
+def build_structure_review(source_analysis: Mapping[str, Any]) -> dict[str, Any]:
+    if source_analysis.get("schema_version") != "EXPLORA_SOURCE_ANALYSIS_V1":
+        raise OperatorConsoleError("Structure Review requires EXPLORA_SOURCE_ANALYSIS_V1")
+    variable_lookup = {
+        item["variable"]: item
+        for item in source_analysis.get("variables", [])
+        if isinstance(item, dict) and item.get("variable")
+    }
+    items: list[dict[str, Any]] = []
+    grouped_variables: set[str] = set()
+
+    for group in source_analysis.get("loop_group_candidates", []):
+        variables = list(group.get("variables", []))
+        if not variables:
+            continue
+        grouped_variables.update(variables)
+        member_rows = [variable_lookup.get(variable, {}) for variable in variables]
+        proposed = (
+            "LOOP_RU"
+            if member_rows and all(int(row.get("value_label_count", 0)) > 0 for row in member_rows)
+            else "LOOP_NUMERICO"
+        )
+        items.append(_review_item(
+            item_id=f"LOOP::{group['group']}",
+            source_kind="GROUP",
+            variables=variables,
+            proposed_type=proposed,
+            confidence="HIGH",
+            evidence=[
+                "Variables share a numbered repeated-measure stem.",
+                "SPSS labels contain explicit LoopLabel/Looptime metadata.",
+                "Loop candidates are intentionally excluded from RM grouping.",
+            ],
+        ))
+
+    for group in source_analysis.get("grid_group_candidates", []):
+        variables = list(group.get("variables", []))
+        if not variables:
+            continue
+        grouped_variables.update(variables)
+        member_rows = [variable_lookup.get(variable, {}) for variable in variables]
+        proposed = (
+            "GRID_ESCALA"
+            if member_rows and all(int(row.get("value_label_count", 0)) > 0 for row in member_rows)
+            else "UNCLASSIFIED"
+        )
+        items.append(_review_item(
+            item_id=f"GRID::{group['group']}",
+            source_kind="GROUP",
+            variables=variables,
+            proposed_type=proposed,
+            confidence="MEDIUM",
+            evidence=[
+                "Variables share _rN row notation.",
+                "The proposal is structural only; questionnaire semantics still require review.",
+            ],
+        ))
+
+    for group in source_analysis.get("rm_group_candidates", []):
+        variables = list(group.get("variables", []))
+        if not variables:
+            continue
+        grouped_variables.update(variables)
+        items.append(_review_item(
+            item_id=f"RM::{group['group']}",
+            source_kind="GROUP",
+            variables=variables,
+            proposed_type="RM",
+            confidence="MEDIUM",
+            evidence=[
+                "Variables share a numbered option stem without explicit loop metadata.",
+                "RM proposal remains naming-pattern evidence and requires human confirmation.",
+            ],
+        ))
+
+    id_unique = set(source_analysis.get("id_candidates", []))
+    id_signals = {
+        item.get("variable")
+        for item in source_analysis.get("id_signal_candidates", [])
+        if item.get("variable")
+    }
+    weight_candidates = set(source_analysis.get("weight_candidates", []))
+
+    for variable, row in variable_lookup.items():
+        if variable in grouped_variables:
+            continue
+        marker = _questionnaire_marker(row)
+        if variable in weight_candidates:
+            proposed = "WEIGHT"
+            confidence = "MEDIUM"
+            evidence = ["Variable name/label matches generic weight terminology."]
+        elif variable in id_unique:
+            proposed = "RESPONDENT_ID"
+            confidence = "HIGH"
+            evidence = [
+                "Variable has respondent-identity naming evidence.",
+                "Non-missing values are unique across all source rows.",
+            ]
+        elif variable in id_signals:
+            proposed = "RESPONDENT_ID"
+            confidence = "MEDIUM"
+            evidence = [
+                "Variable has respondent-identity naming evidence.",
+                f"Observed uniqueness ratio: {float(row.get('uniqueness_ratio', 0.0)):.1%}.",
+                "Identity authority requires human selection.",
+            ]
+        elif _control_candidate(row):
+            proposed = "META_CONTROL"
+            confidence = "MEDIUM"
+            evidence = ["Variable name/label matches generic survey-control metadata terminology."]
+        elif marker is not None:
+            proposed = marker
+            confidence = "HIGH"
+            evidence = [
+                f"Questionnaire evidence contains explicit {marker if marker != 'NUMERIC' else 'RN'} marker.",
+                *list(row.get("questionnaire_evidence", []) or [])[:2],
+            ]
+        elif row.get("candidate_role") == "RU_CANDIDATE":
+            proposed = "RU"
+            confidence = "MEDIUM"
+            evidence = [
+                f"SPSS metadata contains {int(row.get('value_label_count', 0))} value labels.",
+                "No stronger LOOP/GRID/RM/control pattern was detected.",
+            ]
+        elif (
+            row.get("data_type") in {"INTEGER", "NUMBER"}
+            and int(row.get("value_label_count", 0)) == 0
+            and (row.get("label") or row.get("questionnaire_evidence"))
+        ):
+            proposed = "NUMERIC"
+            confidence = "MEDIUM"
+            evidence = [
+                "Numeric SPSS variable has no value-label domain.",
+                "Question/label evidence exists but requires human confirmation.",
+            ]
+        else:
+            proposed = "UNCLASSIFIED"
+            confidence = "LOW"
+            evidence = ["Insufficient deterministic evidence for a question/configuration role."]
+
+        items.append(_review_item(
+            item_id=f"VAR::{variable}",
+            source_kind="VARIABLE",
+            variables=[variable],
+            proposed_type=proposed,
+            confidence=confidence,
+            evidence=evidence,
+        ))
+
+    type_counts: dict[str, int] = {}
+    for item in items:
+        type_counts[item["proposed_type"]] = type_counts.get(item["proposed_type"], 0) + 1
+
+    return {
+        "schema_version": "EXPLORA_STRUCTURE_REVIEW_V1",
+        "source_analysis_sha256": sha256(
+            json.dumps(source_analysis, ensure_ascii=True, sort_keys=True, default=str).encode("utf-8")
+        ).hexdigest().upper(),
+        "authority": "HUMAN_REVIEW_REQUIRED",
+        "status": "NEEDS_HUMAN_DECISION",
+        "items": items,
+        "proposal_type_counts": dict(sorted(type_counts.items())),
+        "qualified_question_types": sorted(GATE47_QUALIFIED_QUESTION_TYPES),
+        "not_yet_qualified_question_types": sorted(NOT_YET_QUALIFIED_QUESTION_TYPES),
+        "summary": {
+            "total_items": len(items),
+            "pending_items": len(items),
+            "approved_items": 0,
+            "excluded_items": 0,
+            "capability_gaps": [],
+        },
+    }
+
+
+def finalize_structure_review(
+    review: Mapping[str, Any],
+    decisions: list[Mapping[str, Any]],
+) -> dict[str, Any]:
+    if review.get("schema_version") != "EXPLORA_STRUCTURE_REVIEW_V1":
+        raise OperatorConsoleError("Unsupported Structure Review schema")
+    items = deepcopy(list(review.get("items", [])))
+    decision_by_id = {
+        str(item.get("item_id")): item
+        for item in decisions
+        if item.get("item_id")
+    }
+    allowed_states = {"PENDING", "APPROVED", "EXCLUDED"}
+    allowed_types = set(STRUCTURE_REVIEW_FINAL_TYPES)
+
+    for item in items:
+        decision = decision_by_id.get(item["item_id"])
+        if decision is None:
+            continue
+        state = str(decision.get("review_state", "PENDING"))
+        final_type = str(decision.get("final_type", item["proposed_type"]))
+        note = str(decision.get("human_note", "") or "")
+        if state not in allowed_states:
+            raise OperatorConsoleError(f"Invalid review state for {item['item_id']}: {state}")
+        if final_type not in allowed_types:
+            raise OperatorConsoleError(f"Invalid final type for {item['item_id']}: {final_type}")
+        if state == "APPROVED" and final_type == "UNCLASSIFIED":
+            raise OperatorConsoleError(
+                f"{item['item_id']} cannot be approved as UNCLASSIFIED"
+            )
+        item["review_state"] = state
+        item["final_type"] = final_type
+        item["human_note"] = note
+        item["capability_status"] = _capability_status(final_type)
+        item["authority"] = (
+            "HUMAN_APPROVED"
+            if state == "APPROVED"
+            else "HUMAN_EXCLUDED"
+            if state == "EXCLUDED"
+            else "HUMAN_REVIEW_REQUIRED"
+        )
+
+    pending = [item for item in items if item["review_state"] == "PENDING"]
+    approved = [item for item in items if item["review_state"] == "APPROVED"]
+    excluded = [item for item in items if item["review_state"] == "EXCLUDED"]
+    capability_gaps = [
+        {
+            "item_id": item["item_id"],
+            "final_type": item["final_type"],
+            "variables": item["variables"],
+        }
+        for item in approved
+        if item["final_type"] in NOT_YET_QUALIFIED_QUESTION_TYPES
+    ]
+    if pending:
+        status = "NEEDS_HUMAN_DECISION"
+    elif capability_gaps:
+        status = "CAPABILITY_GAP"
+    else:
+        status = "READY_FOR_PROJECT_SPEC_DRAFT"
+
+    output = deepcopy(dict(review))
+    output["items"] = items
+    output["status"] = status
+    output["authority"] = (
+        "HUMAN_REVIEWED"
+        if not pending
+        else "HUMAN_REVIEW_REQUIRED"
+    )
+    output["summary"] = {
+        "total_items": len(items),
+        "pending_items": len(pending),
+        "approved_items": len(approved),
+        "excluded_items": len(excluded),
+        "capability_gaps": capability_gaps,
+    }
+    return output
 
 
 def intake_summary(project_spec: Mapping[str, Any]) -> dict[str, Any]:

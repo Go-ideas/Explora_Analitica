@@ -9,10 +9,12 @@ import pytest
 from src.operator_console.service import (
     OperatorConsoleError,
     analyze_source_inputs,
+    build_structure_review,
     approve_execution_release,
     cleanup_workspace,
     create_workspace,
     execution_targets,
+    finalize_structure_review,
     release_summary,
     safe_upload_name,
     save_upload,
@@ -378,3 +380,184 @@ def test_g48_15_id_signal_is_preserved_even_when_not_unique(tmp_path, monkeypatc
     assert result["id_candidates"] == []
     assert result["id_signal_candidates"][0]["variable"] == "FOLIO"
     assert result["id_signal_candidates"][0]["uniqueness_ratio"] == 0.5
+
+
+def _source_analysis_fixture_for_review() -> dict:
+    return {
+        "schema_version": "EXPLORA_SOURCE_ANALYSIS_V1",
+        "dataset": {"n_cases": 10, "n_variables": 9},
+        "variables": [
+            {
+                "variable": "Q1",
+                "label": "Pregunta simple",
+                "data_type": "NUMBER",
+                "value_label_count": 5,
+                "questionnaire_evidence": ["Q1 texto RU"],
+                "candidate_role": "RU_CANDIDATE",
+                "uniqueness_ratio": 0.5,
+            },
+            {
+                "variable": "AGE",
+                "label": "Edad RN",
+                "data_type": "NUMBER",
+                "value_label_count": 0,
+                "questionnaire_evidence": ["AGE edad RN"],
+                "candidate_role": "UNCLASSIFIED",
+                "uniqueness_ratio": 0.8,
+            },
+            {
+                "variable": "Q2_1",
+                "label": "Opción 1",
+                "data_type": "NUMBER",
+                "value_label_count": 2,
+                "questionnaire_evidence": [],
+                "candidate_role": "RM_MEMBER_CANDIDATE",
+                "uniqueness_ratio": 0.2,
+            },
+            {
+                "variable": "Q2_2",
+                "label": "Opción 2",
+                "data_type": "NUMBER",
+                "value_label_count": 2,
+                "questionnaire_evidence": [],
+                "candidate_role": "RM_MEMBER_CANDIDATE",
+                "uniqueness_ratio": 0.2,
+            },
+            {
+                "variable": "Q3.1",
+                "label": "[% LoopLabel(Looptime) %] Q3",
+                "data_type": "NUMBER",
+                "value_label_count": 5,
+                "questionnaire_evidence": [],
+                "candidate_role": "LOOP_MEMBER_CANDIDATE",
+                "uniqueness_ratio": 0.2,
+            },
+            {
+                "variable": "Q3.2",
+                "label": "[% LoopLabel(Looptime) %] Q3",
+                "data_type": "NUMBER",
+                "value_label_count": 5,
+                "questionnaire_evidence": [],
+                "candidate_role": "LOOP_MEMBER_CANDIDATE",
+                "uniqueness_ratio": 0.2,
+            },
+            {
+                "variable": "G1_r1",
+                "label": "Grid row 1",
+                "data_type": "NUMBER",
+                "value_label_count": 5,
+                "questionnaire_evidence": [],
+                "candidate_role": "GRID_ROW_CANDIDATE",
+                "uniqueness_ratio": 0.2,
+            },
+            {
+                "variable": "G1_r2",
+                "label": "Grid row 2",
+                "data_type": "NUMBER",
+                "value_label_count": 5,
+                "questionnaire_evidence": [],
+                "candidate_role": "GRID_ROW_CANDIDATE",
+                "uniqueness_ratio": 0.2,
+            },
+            {
+                "variable": "rotation_code",
+                "label": "Rotation",
+                "data_type": "NUMBER",
+                "value_label_count": 4,
+                "questionnaire_evidence": [],
+                "candidate_role": "RU_CANDIDATE",
+                "uniqueness_ratio": 0.4,
+            },
+        ],
+        "id_candidates": [],
+        "id_signal_candidates": [],
+        "weight_candidates": [],
+        "rm_group_candidates": [
+            {"group": "Q2", "variables": ["Q2_1", "Q2_2"], "authority": "CANDIDATE_ONLY"}
+        ],
+        "loop_group_candidates": [
+            {"group": "Q3", "variables": ["Q3.1", "Q3.2"], "authority": "CANDIDATE_ONLY"}
+        ],
+        "grid_group_candidates": [
+            {"group": "G1", "variables": ["G1_r1", "G1_r2"], "authority": "CANDIDATE_ONLY"}
+        ],
+    }
+
+
+def test_g48_16_structure_review_distinguishes_core_patterns() -> None:
+    review = build_structure_review(_source_analysis_fixture_for_review())
+    by_id = {item["item_id"]: item for item in review["items"]}
+    assert by_id["RM::Q2"]["proposed_type"] == "RM"
+    assert by_id["RM::Q2"]["capability_status"] == "SUPPORTED_GATE47"
+    assert by_id["LOOP::Q3"]["proposed_type"] == "LOOP_RU"
+    assert by_id["LOOP::Q3"]["capability_status"] == "NOT_YET_QUALIFIED"
+    assert by_id["GRID::G1"]["proposed_type"] == "GRID_ESCALA"
+    assert by_id["GRID::G1"]["capability_status"] == "NOT_YET_QUALIFIED"
+    assert by_id["VAR::Q1"]["proposed_type"] == "RU"
+    assert by_id["VAR::AGE"]["proposed_type"] == "NUMERIC"
+    assert by_id["VAR::rotation_code"]["proposed_type"] == "META_CONTROL"
+
+
+def test_g48_17_structure_review_never_auto_approves() -> None:
+    review = build_structure_review(_source_analysis_fixture_for_review())
+    assert review["status"] == "NEEDS_HUMAN_DECISION"
+    assert review["authority"] == "HUMAN_REVIEW_REQUIRED"
+    assert all(item["review_state"] == "PENDING" for item in review["items"])
+
+
+def test_g48_18_approved_unsupported_structure_creates_capability_gap() -> None:
+    review = build_structure_review(_source_analysis_fixture_for_review())
+    decisions = []
+    for item in review["items"]:
+        decisions.append({
+            "item_id": item["item_id"],
+            "review_state": "APPROVED",
+            "final_type": item["proposed_type"],
+            "human_note": "reviewed",
+        })
+    result = finalize_structure_review(review, decisions)
+    assert result["status"] == "CAPABILITY_GAP"
+    gap_types = {item["final_type"] for item in result["summary"]["capability_gaps"]}
+    assert {"LOOP_RU", "GRID_ESCALA", "NUMERIC"}.issubset(gap_types)
+
+
+def test_g48_19_excluding_unqualified_scope_can_reach_project_spec_draft_readiness() -> None:
+    review = build_structure_review(_source_analysis_fixture_for_review())
+    decisions = []
+    for item in review["items"]:
+        final_type = item["proposed_type"]
+        state = (
+            "EXCLUDED"
+            if final_type in {"LOOP_RU", "GRID_ESCALA", "NUMERIC"}
+            else "APPROVED"
+        )
+        decisions.append({
+            "item_id": item["item_id"],
+            "review_state": state,
+            "final_type": final_type,
+            "human_note": "reviewed",
+        })
+    result = finalize_structure_review(review, decisions)
+    assert result["status"] == "READY_FOR_PROJECT_SPEC_DRAFT"
+    assert result["summary"]["pending_items"] == 0
+    assert result["summary"]["capability_gaps"] == []
+
+
+def test_g48_20_unclassified_cannot_be_human_approved() -> None:
+    review = {
+        "schema_version": "EXPLORA_STRUCTURE_REVIEW_V1",
+        "items": [{
+            "item_id": "VAR::X",
+            "proposed_type": "UNCLASSIFIED",
+            "review_state": "PENDING",
+            "final_type": "UNCLASSIFIED",
+            "variables": ["X"],
+            "capability_status": "UNRESOLVED",
+        }],
+    }
+    with pytest.raises(OperatorConsoleError, match="cannot be approved"):
+        finalize_structure_review(review, [{
+            "item_id": "VAR::X",
+            "review_state": "APPROVED",
+            "final_type": "UNCLASSIFIED",
+        }])

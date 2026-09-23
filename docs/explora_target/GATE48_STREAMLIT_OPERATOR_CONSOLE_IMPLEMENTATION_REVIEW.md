@@ -145,3 +145,30 @@ GRID or LOOP authoring/execution profiles.
 The analyzer also records respondent-identity signals and uniqueness ratio even
 when a likely identity field is not globally unique. None of these candidates
 become Project Spec authority automatically.
+
+
+## Structure Review V1.3
+
+Gate 48 V1.3 adds an explicit human-review layer between Source Analysis and
+Project Spec. The layer is generic and contains no customer/project IDs.
+
+`build_structure_review` converts source-evidence candidates into review items
+for RU, RM, NUMERIC, LOOP, GRID, respondent identity, weight and survey-control
+metadata. Every item begins as `PENDING` with authority
+`HUMAN_REVIEW_REQUIRED`.
+
+The operator can approve, exclude or change the final type in Streamlit. The
+saved review returns exactly one of:
+
+- `NEEDS_HUMAN_DECISION`
+- `CAPABILITY_GAP`
+- `READY_FOR_PROJECT_SPEC_DRAFT`
+
+Gate 47 capability boundaries remain explicit: RU and RM are qualified;
+NUMERIC/GRID/LOOP are not yet qualified. Approving an unsupported structure does
+not silently execute it; it produces `CAPABILITY_GAP`. Excluding unsupported
+items can produce a bounded partial scope ready for the future Project Spec draft
+authoring step.
+
+Structure Review is a human-reviewed configuration artifact, not a Project Spec
+and not a statistical result.
