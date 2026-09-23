@@ -128,3 +128,20 @@ All suggested roles are explicitly `CANDIDATE_ONLY`. The analysis is
 percentages, analytical bases, weighting, significance, or Canonical Results are
 calculated. This closes the immediate UX gap without bypassing the future
 Project Spec authoring/human-decision boundary.
+
+
+## Source Analysis V1.2 — Real-project corrective
+
+The first real source-analysis export exposed an important false-positive class:
+numbered loop repetitions such as `P11.1`–`P31.4` were being grouped as RM
+solely from their suffix. The SPSS labels contain explicit
+`LoopLabel(Looptime)` evidence, so V1.2 separates these into
+`LOOP_MEMBER_CANDIDATE` / loop groups and excludes them from RM candidates.
+
+Variables using `_rN` notation are surfaced separately as
+`GRID_ROW_CANDIDATE`. This is important because Gate 47 has not yet qualified
+GRID or LOOP authoring/execution profiles.
+
+The analyzer also records respondent-identity signals and uniqueness ratio even
+when a likely identity field is not globally unique. None of these candidates
+become Project Spec authority automatically.

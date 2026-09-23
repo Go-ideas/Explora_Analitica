@@ -22,7 +22,7 @@ from src.project_intake.generic_productive import GenericRuntimeError, run_gener
 from src.readers.spss_reader import read_spss
 
 
-OPERATOR_CONSOLE_VERSION = "EXPLORA_OPERATOR_CONSOLE_V1_1"
+OPERATOR_CONSOLE_VERSION = "EXPLORA_OPERATOR_CONSOLE_V1_2"
 SESSION_ROOT = Path(tempfile.gettempdir()) / "explora_operator_console"
 SUPPORTED_DATASET_SUFFIXES = {".sav"}
 
@@ -150,12 +150,25 @@ def _variable_type(series) -> str:
     return "STRING"
 
 
-def _rm_prefix(variable: str) -> str | None:
+def _numbered_prefix(variable: str) -> str | None:
     match = re.fullmatch(r"(.+?)[_.](\d{1,3})", variable)
     if not match:
         return None
     prefix = match.group(1).rstrip("_.")
     return prefix if len(prefix) >= 2 else None
+
+
+def _grid_prefix(variable: str) -> str | None:
+    match = re.fullmatch(r"(.+?)_r(\d{1,3})", variable, flags=re.IGNORECASE)
+    if not match:
+        return None
+    prefix = match.group(1).rstrip("_")
+    return prefix if len(prefix) >= 2 else None
+
+
+def _has_explicit_loop_marker(label: str) -> bool:
+    lowered = label.lower()
+    return "looplabel" in lowered or "looptime" in lowered
 
 
 def analyze_source_inputs(
@@ -181,17 +194,35 @@ def analyze_source_inputs(
     missing_ranges = summary.get("missing_ranges", {}) or {}
 
     rm_groups: dict[str, list[str]] = {}
-    for variable in summary["variables"]:
-        prefix = _rm_prefix(str(variable))
-        if prefix:
-            rm_groups.setdefault(prefix, []).append(str(variable))
-    rm_groups = {
-        key: values for key, values in rm_groups.items()
-        if len(values) >= 2
-    }
+    loop_groups: dict[str, list[str]] = {}
+    grid_groups: dict[str, list[str]] = {}
+    for raw_variable in summary["variables"]:
+        variable = str(raw_variable)
+        label = _normalise_text(labels.get(variable, ""))
+        grid_prefix = _grid_prefix(variable)
+        numbered_prefix = _numbered_prefix(variable)
+        if grid_prefix:
+            grid_groups.setdefault(grid_prefix, []).append(variable)
+        elif numbered_prefix and _has_explicit_loop_marker(label):
+            loop_groups.setdefault(numbered_prefix, []).append(variable)
+        elif numbered_prefix:
+            rm_groups.setdefault(numbered_prefix, []).append(variable)
+
+    def qualified_groups(groups: dict[str, list[str]]) -> dict[str, list[str]]:
+        return {
+            key: values for key, values in groups.items()
+            if len(values) >= 2
+        }
+
+    rm_groups = qualified_groups(rm_groups)
+    loop_groups = qualified_groups(loop_groups)
+    grid_groups = qualified_groups(grid_groups)
     rm_members = {variable for values in rm_groups.values() for variable in values}
+    loop_members = {variable for values in loop_groups.values() for variable in values}
+    grid_members = {variable for values in grid_groups.values() for variable in values}
 
     id_candidates: list[str] = []
+    id_signal_candidates: list[dict[str, Any]] = []
     weight_candidates: list[str] = []
     variables: list[dict[str, Any]] = []
     weight_pattern = re.compile(r"(^|[_])(pond|ponder|peso|weight|wgt|factor)([_]|$)", re.IGNORECASE)
@@ -207,11 +238,19 @@ def analyze_source_inputs(
             weight_candidates.append(variable)
 
         unique_non_missing = int(series.nunique(dropna=True))
-        is_id = (
-            len(df) > 0
-            and unique_non_missing == len(df)
-            and bool(id_pattern.search(combined))
-        )
+        has_id_signal = bool(id_pattern.search(combined))
+        uniqueness_ratio = 0.0 if len(df) == 0 else unique_non_missing / len(df)
+        is_id = len(df) > 0 and unique_non_missing == len(df) and has_id_signal
+        if has_id_signal:
+            id_signal_candidates.append(
+                {
+                    "variable": variable,
+                    "unique_non_missing": unique_non_missing,
+                    "n_cases": len(df),
+                    "uniqueness_ratio": uniqueness_ratio,
+                    "authority": "CANDIDATE_ONLY",
+                }
+            )
         if is_id:
             id_candidates.append(variable)
 
@@ -222,6 +261,10 @@ def analyze_source_inputs(
             if is_weight
             else "ID_CANDIDATE"
             if is_id
+            else "LOOP_MEMBER_CANDIDATE"
+            if variable in loop_members
+            else "GRID_ROW_CANDIDATE"
+            if variable in grid_members
             else "RM_MEMBER_CANDIDATE"
             if variable in rm_members
             else "RU_CANDIDATE"
@@ -236,6 +279,8 @@ def analyze_source_inputs(
                 "value_label_count": len(value_labels.get(variable, {}) or {}),
                 "missing_user_values": list(missing_user.get(variable, []) or []),
                 "missing_range_count": len(missing_ranges.get(variable, []) or []),
+                "unique_non_missing": unique_non_missing,
+                "uniqueness_ratio": uniqueness_ratio,
                 "questionnaire_exact_matches": len(matched_lines),
                 "questionnaire_evidence": matched_lines[:3],
                 "candidate_role": role,
@@ -274,10 +319,19 @@ def analyze_source_inputs(
         },
         "datamap": datamap,
         "id_candidates": sorted(id_candidates),
+        "id_signal_candidates": sorted(id_signal_candidates, key=lambda item: item["variable"]),
         "weight_candidates": sorted(weight_candidates),
         "rm_group_candidates": [
             {"group": key, "variables": values, "authority": "CANDIDATE_ONLY"}
             for key, values in sorted(rm_groups.items())
+        ],
+        "loop_group_candidates": [
+            {"group": key, "variables": values, "authority": "CANDIDATE_ONLY"}
+            for key, values in sorted(loop_groups.items())
+        ],
+        "grid_group_candidates": [
+            {"group": key, "variables": values, "authority": "CANDIDATE_ONLY"}
+            for key, values in sorted(grid_groups.items())
         ],
         "variables": variables,
         "next_state": (
@@ -288,6 +342,8 @@ def analyze_source_inputs(
         "limitations": [
             "No question type is promoted to Project Spec authority automatically.",
             "RM groups are naming-pattern candidates only and require review.",
+            "Explicit LoopLabel/Looptime metadata separates loop repetitions from RM candidates.",
+            "Variables using _rN row notation are surfaced as grid-row candidates.",
             "Weight and respondent-ID candidates require review.",
             "Questionnaire matching is lexical evidence, not semantic authority.",
             "No percentages, bases, weights, significance or Canonical Results are calculated.",

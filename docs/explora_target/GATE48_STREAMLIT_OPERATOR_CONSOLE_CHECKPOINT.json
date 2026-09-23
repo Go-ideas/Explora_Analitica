@@ -2,8 +2,8 @@
   "schema_version": "EXPLORA_GATE48_OPERATOR_CONSOLE_CHECKPOINT_V1",
   "authoritative_main": "8cc7a0c7ea17e29c96dfcbbfee278690c3d0eba2",
   "branch": "feature/gate48-streamlit-operator-console",
-  "status": "IMPLEMENTED_SOURCE_ANALYSIS_PENDING_LOCAL_RETEST_AND_HUMAN_REVIEW",
-  "operator_console_version": "EXPLORA_OPERATOR_CONSOLE_V1_1",
+  "status": "IMPLEMENTED_REAL_SOURCE_CORRECTIVE_PENDING_LOCAL_RETEST_AND_HUMAN_REVIEW",
+  "operator_console_version": "EXPLORA_OPERATOR_CONSOLE_V1_2",
   "new_entry_point": "explora_web_reporter/operator_console.py",
   "legacy_app_preserved": true,
   "client_reporter_preserved": true,
@@ -27,5 +27,9 @@
   "source_analysis_action": "IMPLEMENTED",
   "source_analysis_authority": "SOURCE_EVIDENCE_ONLY",
   "source_analysis_candidates": "CANDIDATE_ONLY",
-  "project_spec_auto_authoring": "NOT_IMPLEMENTED"
+  "project_spec_auto_authoring": "NOT_IMPLEMENTED",
+  "source_analysis_version": "EXPLORA_SOURCE_ANALYSIS_V1_2",
+  "loop_candidate_separation": "IMPLEMENTED",
+  "grid_candidate_separation": "IMPLEMENTED",
+  "id_signal_uniqueness_evidence": "IMPLEMENTED"
 }

@@ -187,30 +187,45 @@ def main() -> None:
 
         analysis = st.session_state.get("source_analysis")
         if analysis:
-            metrics = st.columns(5)
+            metrics = st.columns(6)
             metrics[0].metric("Casos", f"{analysis['dataset']['n_cases']:,}")
             metrics[1].metric("Variables", f"{analysis['dataset']['n_variables']:,}")
-            metrics[2].metric("ID candidatos", len(analysis["id_candidates"]))
-            metrics[3].metric("Pesos candidatos", len(analysis["weight_candidates"]))
-            metrics[4].metric("Grupos RM candidatos", len(analysis["rm_group_candidates"]))
+            metrics[2].metric("RM candidatos", len(analysis["rm_group_candidates"]))
+            metrics[3].metric("Loop candidatos", len(analysis.get("loop_group_candidates", [])))
+            metrics[4].metric("Grid candidatos", len(analysis.get("grid_group_candidates", [])))
+            metrics[5].metric("Pesos candidatos", len(analysis["weight_candidates"]))
 
             if analysis["id_candidates"]:
-                st.caption("Candidatos a ID: " + ", ".join(analysis["id_candidates"]))
+                st.caption("ID únicos candidatos: " + ", ".join(analysis["id_candidates"]))
+            if analysis.get("id_signal_candidates"):
+                st.caption(
+                    "Señales de identidad para revisión: "
+                    + ", ".join(
+                        f"{item['variable']} ({item['uniqueness_ratio']:.1%} únicos)"
+                        for item in analysis["id_signal_candidates"]
+                    )
+                )
             if analysis["weight_candidates"]:
                 st.caption("Candidatos a ponderador: " + ", ".join(analysis["weight_candidates"]))
 
-            if analysis["rm_group_candidates"]:
-                st.markdown("**Grupos RM candidatos — requieren revisión**")
-                rm_rows = [
-                    {
-                        "grupo": item["group"],
-                        "n_variables": len(item["variables"]),
-                        "variables": ", ".join(item["variables"]),
-                        "autoridad": item["authority"],
-                    }
-                    for item in analysis["rm_group_candidates"]
-                ]
-                st.dataframe(pd.DataFrame(rm_rows), width="stretch", hide_index=True)
+            group_sections = [
+                ("Grupos RM candidatos — requieren revisión", analysis["rm_group_candidates"]),
+                ("Repeticiones LOOP candidatas — no tratar como RM", analysis.get("loop_group_candidates", [])),
+                ("Filas GRID candidatas — fuera del perfil Gate 47 actual", analysis.get("grid_group_candidates", [])),
+            ]
+            for title, items in group_sections:
+                if items:
+                    st.markdown(f"**{title}**")
+                    rows = [
+                        {
+                            "grupo": item["group"],
+                            "n_variables": len(item["variables"]),
+                            "variables": ", ".join(item["variables"]),
+                            "autoridad": item["authority"],
+                        }
+                        for item in items
+                    ]
+                    st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
 
             st.markdown("**Inventario de variables y evidencia**")
             variable_rows = [

@@ -270,3 +270,111 @@ def test_g48_12_docx_questionnaire_exact_match_evidence(tmp_path, monkeypatch) -
     assert result["questionnaire"]["paragraphs_extracted"] == 1
     assert result["variables"][0]["questionnaire_exact_matches"] == 1
     assert result["variables"][0]["questionnaire_evidence"] == ["Q10. ¿Compró el producto?"]
+
+
+def test_g48_13_loop_marker_prevents_false_rm_group(tmp_path, monkeypatch) -> None:
+    from src.operator_console import service
+
+    class Series:
+        dtype = "int64"
+        def nunique(self, dropna=True):
+            return 2
+
+    class Frame:
+        def __len__(self):
+            return 2
+        def __getitem__(self, key):
+            return Series()
+
+    summary = {
+        "n_casos": 2,
+        "n_variables": 2,
+        "variables": ["P11.1", "P11.2"],
+        "variable_labels": {
+            "P11.1": "[% LoopLabel(Looptime) %] P.11 evaluación",
+            "P11.2": "[% LoopLabel(Looptime) %] P.11 evaluación",
+        },
+        "value_labels": {"P11.1": {1: "A"}, "P11.2": {1: "A"}},
+        "missing_ranges": {},
+        "missing_user_values": {},
+    }
+    monkeypatch.setattr(service, "read_spss", lambda _: (Frame(), object(), summary))
+    monkeypatch.setattr(service, "_variable_type", lambda _: "INTEGER")
+    sav = tmp_path / "study.sav"
+    sav.write_bytes(b"synthetic")
+
+    result = analyze_source_inputs(sav)
+    assert result["rm_group_candidates"] == []
+    assert result["loop_group_candidates"] == [
+        {"group": "P11", "variables": ["P11.1", "P11.2"], "authority": "CANDIDATE_ONLY"}
+    ]
+    assert {item["candidate_role"] for item in result["variables"]} == {"LOOP_MEMBER_CANDIDATE"}
+
+
+def test_g48_14_grid_row_notation_is_not_ru_or_rm(tmp_path, monkeypatch) -> None:
+    from src.operator_console import service
+
+    class Series:
+        dtype = "int64"
+        def nunique(self, dropna=True):
+            return 2
+
+    class Frame:
+        def __len__(self):
+            return 2
+        def __getitem__(self, key):
+            return Series()
+
+    summary = {
+        "n_casos": 2,
+        "n_variables": 2,
+        "variables": ["C1_r1", "C1_r2"],
+        "variable_labels": {"C1_r1": "C1 atributo uno", "C1_r2": "C1 atributo dos"},
+        "value_labels": {"C1_r1": {1: "A"}, "C1_r2": {1: "A"}},
+        "missing_ranges": {},
+        "missing_user_values": {},
+    }
+    monkeypatch.setattr(service, "read_spss", lambda _: (Frame(), object(), summary))
+    monkeypatch.setattr(service, "_variable_type", lambda _: "INTEGER")
+    sav = tmp_path / "study.sav"
+    sav.write_bytes(b"synthetic")
+
+    result = analyze_source_inputs(sav)
+    assert result["grid_group_candidates"] == [
+        {"group": "C1", "variables": ["C1_r1", "C1_r2"], "authority": "CANDIDATE_ONLY"}
+    ]
+    assert {item["candidate_role"] for item in result["variables"]} == {"GRID_ROW_CANDIDATE"}
+
+
+def test_g48_15_id_signal_is_preserved_even_when_not_unique(tmp_path, monkeypatch) -> None:
+    from src.operator_console import service
+
+    class Series:
+        dtype = "object"
+        def nunique(self, dropna=True):
+            return 2
+
+    class Frame:
+        def __len__(self):
+            return 4
+        def __getitem__(self, key):
+            return Series()
+
+    summary = {
+        "n_casos": 4,
+        "n_variables": 1,
+        "variables": ["FOLIO"],
+        "variable_labels": {"FOLIO": "Número de entrevista / folio"},
+        "value_labels": {},
+        "missing_ranges": {},
+        "missing_user_values": {},
+    }
+    monkeypatch.setattr(service, "read_spss", lambda _: (Frame(), object(), summary))
+    monkeypatch.setattr(service, "_variable_type", lambda _: "STRING")
+    sav = tmp_path / "study.sav"
+    sav.write_bytes(b"synthetic")
+
+    result = analyze_source_inputs(sav)
+    assert result["id_candidates"] == []
+    assert result["id_signal_candidates"][0]["variable"] == "FOLIO"
+    assert result["id_signal_candidates"][0]["uniqueness_ratio"] == 0.5
