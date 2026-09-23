@@ -21,5 +21,7 @@
   "streamlit_cloud_ready_for_branch_deployment": true,
   "human_review_required": true,
   "merge_performed": false,
-  "streamlit_cloud_privacy_requirement": "PRIVATE_FOR_REAL_CUSTOMER_DATA"
-}\n
+  "streamlit_cloud_privacy_requirement": "PRIVATE_FOR_REAL_CUSTOMER_DATA",
+  "streamlit_python_version": "3.13",
+  "streamlit_python_314_status": "UNQUALIFIED_DEPENDENCY_BUILD_FAILURE_WITH_LXML_6_0_0"
+}
