@@ -11,6 +11,7 @@ from src.operator_console import (
     OPERATOR_CONSOLE_VERSION,
     OperatorConsoleError,
     analyze_source_inputs,
+    author_project_spec_draft,
     build_structure_review,
     approve_execution_release,
     archive_directory,
@@ -155,7 +156,11 @@ def main() -> None:
             _artifact_line("Datamap", datamap)
 
         with right:
-            project_upload = st.file_uploader("EXPLORA_PROJECT_SPEC_V1 (.json)", type=["json"], key="operator_project")
+            project_upload = st.file_uploader(
+                "Importar Project Spec existente (opción avanzada, .json)",
+                type=["json"],
+                key="operator_project",
+            )
             project_spec = _activate_json("project_spec", project_upload, role="project_spec")
             _artifact_line("Project Spec", st.session_state.get("project_spec_artifact"))
 
@@ -382,7 +387,7 @@ def main() -> None:
                 elif review.get("status") == "READY_FOR_PROJECT_SPEC_DRAFT":
                     st.success(
                         "Revisión completa y compatible con el perfil actual. "
-                        "Está lista para alimentar el futuro generador de Project Spec draft."
+                        "Continúa en la pestaña Project Spec para generar el Project Spec Draft."
                     )
 
                 st.download_button(
@@ -393,9 +398,64 @@ def main() -> None:
                 )
 
     with spec_tab:
+        analysis = st.session_state.get("source_analysis")
+        review = st.session_state.get("structure_review")
+        if analysis and review and review.get("status") == "READY_FOR_PROJECT_SPEC_DRAFT":
+            st.subheader("Generar Project Spec Draft")
+            with st.form("project_spec_draft_form"):
+                left, right = st.columns(2)
+                project_id = left.text_input("Project ID")
+                display_name = right.text_input("Display name")
+                project_version = left.text_input("Project version", value="1.0.0")
+                spec_version = right.text_input("Spec version", value="1.0.0")
+                generate_draft = st.form_submit_button(
+                    "Generar Project Spec Draft",
+                    type="primary",
+                )
+            if generate_draft:
+                result = author_project_spec_draft(
+                    analysis,
+                    review,
+                    {
+                        "project_id": project_id,
+                        "display_name": display_name,
+                        "project_version": project_version,
+                        "spec_version": spec_version,
+                    },
+                )
+                st.session_state.project_spec_draft_result = result
+                if result.status == "DRAFT_VALID" and result.project_spec is not None:
+                    st.session_state.project_spec = result.project_spec
+
+        draft_result = st.session_state.get("project_spec_draft_result")
+        if draft_result is not None:
+            metrics = st.columns(4)
+            metrics[0].metric("Draft", draft_result.status)
+            metrics[1].metric("Errores", len(draft_result.errors))
+            metrics[2].metric("Warnings", len(draft_result.warnings))
+            metrics[3].metric(
+                "Fingerprint",
+                (draft_result.project_spec_fingerprint or "—")[:12],
+            )
+            if draft_result.errors:
+                st.dataframe(pd.DataFrame(draft_result.errors), width="stretch", hide_index=True)
+            if draft_result.ambiguities:
+                st.dataframe(pd.DataFrame(draft_result.ambiguities), width="stretch", hide_index=True)
+            if draft_result.project_spec is not None:
+                st.download_button(
+                    "Descargar Project Spec Draft",
+                    data=json.dumps(
+                        draft_result.project_spec,
+                        ensure_ascii=False,
+                        indent=2,
+                    ).encode("utf-8"),
+                    file_name="explora_project_spec_draft.json",
+                    mime="application/json",
+                )
+
         project_spec = st.session_state.get("project_spec")
         if not project_spec:
-            st.warning("Carga un Project Spec.")
+            st.warning("Completa la revisión para generar un draft o importa un Project Spec existente.")
         else:
             summary = intake_summary(project_spec)
             c1, c2, c3 = st.columns(3)

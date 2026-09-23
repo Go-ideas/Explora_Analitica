@@ -20,6 +20,12 @@ from src.operator_console.service import (
     save_upload,
     web_execution_readiness,
 )
+from src.project_spec_authoring import (
+    PROJECT_SPEC_DRAFT_AUTHORING_VERSION,
+    DraftAuthoringResult,
+    author_project_spec_draft,
+    canonical_draft_json,
+)
 
 __all__ = [
     "OPERATOR_CONSOLE_VERSION",
@@ -42,4 +48,8 @@ __all__ = [
     "run_web_project",
     "save_upload",
     "web_execution_readiness",
+    "PROJECT_SPEC_DRAFT_AUTHORING_VERSION",
+    "DraftAuthoringResult",
+    "author_project_spec_draft",
+    "canonical_draft_json",
 ]
