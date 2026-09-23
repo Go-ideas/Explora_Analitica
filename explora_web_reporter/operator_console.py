@@ -387,7 +387,7 @@ def main() -> None:
                 elif review.get("status") == "READY_FOR_PROJECT_SPEC_DRAFT":
                     st.success(
                         "Revisión completa y compatible con el perfil actual. "
-                        "Está lista para alimentar el futuro generador de Project Spec draft."
+                        "Continúa en la pestaña Project Spec para generar el Project Spec Draft."
                     )
 
                 st.download_button(
