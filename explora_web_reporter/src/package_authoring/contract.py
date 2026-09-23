@@ -78,6 +78,8 @@ def _is_sha256(value: Any) -> bool:
 def validate_execution_release(
     project_spec: Mapping[str, Any] | str | Path,
     execution_release: Mapping[str, Any] | str | Path,
+    *,
+    require_approved: bool = True,
 ) -> ValidatedExecutionRelease:
     project = _load(project_spec)
     release = _load(execution_release)
@@ -121,9 +123,20 @@ def validate_execution_release(
     decision = release["release_decision"]
     if not isinstance(decision, dict) or set(decision) != {
         "human_decision_id", "human_decision_basis", "release_mode", "released_at", "approved"
-    } or decision["approved"] is not True or decision["release_mode"] != "MANUAL":
+    } or decision["release_mode"] != "MANUAL":
         raise PackageAuthoringError("B3 human release decision is required")
-    _required_text(decision, {"human_decision_id", "human_decision_basis", "released_at"}, "B3 release decision")
+    if require_approved:
+        if decision["approved"] is not True:
+            raise PackageAuthoringError("B3 human release decision is required")
+        _required_text(decision, {"human_decision_id", "human_decision_basis", "released_at"}, "B3 release decision")
+    elif decision != {
+        "human_decision_id": None,
+        "human_decision_basis": None,
+        "release_mode": "MANUAL",
+        "released_at": None,
+        "approved": False,
+    }:
+        raise PackageAuthoringError("B3 draft must preserve an empty pending human decision")
     _reject_statistical_fields(release)
 
     project_questions = {item["question_id"] for item in project["questions"]}

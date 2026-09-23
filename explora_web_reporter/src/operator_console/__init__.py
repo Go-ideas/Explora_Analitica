@@ -26,6 +26,12 @@ from src.project_spec_authoring import (
     author_project_spec_draft,
     canonical_draft_json,
 )
+from src.execution_release_authoring import (
+    EXECUTION_RELEASE_DRAFT_AUTHORING_VERSION,
+    ExecutionReleaseDraftResult,
+    author_execution_release_draft,
+    canonical_release_json,
+)
 
 __all__ = [
     "OPERATOR_CONSOLE_VERSION",
@@ -52,4 +58,8 @@ __all__ = [
     "DraftAuthoringResult",
     "author_project_spec_draft",
     "canonical_draft_json",
+    "EXECUTION_RELEASE_DRAFT_AUTHORING_VERSION",
+    "ExecutionReleaseDraftResult",
+    "author_execution_release_draft",
+    "canonical_release_json",
 ]

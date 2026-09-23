@@ -11,6 +11,7 @@ from src.operator_console import (
     OPERATOR_CONSOLE_VERSION,
     OperatorConsoleError,
     analyze_source_inputs,
+    author_execution_release_draft,
     author_project_spec_draft,
     build_structure_review,
     approve_execution_release,
@@ -165,7 +166,7 @@ def main() -> None:
             _artifact_line("Project Spec", st.session_state.get("project_spec_artifact"))
 
             release_upload = st.file_uploader(
-                "EXPLORA_PROJECT_EXECUTION_RELEASE_V1 (.json)",
+                "Importar Execution Release existente (opción avanzada, .json)",
                 type=["json"],
                 key="operator_release",
             )
@@ -479,6 +480,65 @@ def main() -> None:
         if not project_spec:
             st.warning("Carga un Project Spec.")
         else:
+            intake = intake_summary(project_spec)
+            dataset = st.session_state.get("dataset_artifact")
+            questionnaire = st.session_state.get("questionnaire_artifact")
+            datamap = st.session_state.get("datamap_artifact")
+            if intake["ready"]:
+                st.subheader("Generar Execution Release Draft")
+                if dataset is None or questionnaire is None:
+                    st.warning("Dataset y cuestionario con fingerprint son necesarios para autorizar el draft.")
+                else:
+                    with st.form("execution_release_draft_form"):
+                        left, right = st.columns(2)
+                        release_spec_id = left.text_input("Release Spec ID")
+                        release_spec_version = right.text_input("Release Spec version", value="1.0.0")
+                        package_id = left.text_input("Package ID")
+                        package_version = right.text_input("Package version", value="1.0.0")
+                        dataset_version = left.text_input("Dataset version", value="1.0.0")
+                        internal_project_name = right.text_input("Internal project name")
+                        generate_release = st.form_submit_button("Generar Execution Release Draft", type="primary")
+                    if generate_release:
+                        result = author_execution_release_draft(
+                            project_spec,
+                            {
+                                "dataset_filename": dataset.original_name,
+                                "dataset_sha256": dataset.sha256,
+                                "questionnaire_filename": questionnaire.original_name,
+                                "questionnaire_sha256": questionnaire.sha256,
+                                "datamap_ref": "NONE" if datamap is None else f"sha256:{datamap.sha256}",
+                            },
+                            {
+                                "release_spec_id": release_spec_id,
+                                "release_spec_version": release_spec_version,
+                                "package_id": package_id,
+                                "package_version": package_version,
+                                "dataset_version": dataset_version,
+                                "internal_project_name": internal_project_name,
+                            },
+                        )
+                        st.session_state.execution_release_draft_result = result
+                        if result.status == "ER_DRAFT_VALID":
+                            st.session_state.execution_release = result.execution_release
+                            st.session_state.pop("approved_execution_release", None)
+                            st.rerun()
+            release_result = st.session_state.get("execution_release_draft_result")
+            if release_result is not None:
+                cols = st.columns(4)
+                cols[0].metric("ER Draft", release_result.status)
+                cols[1].metric("Errores", len(release_result.errors))
+                cols[2].metric("B3", release_result.b3_status)
+                cols[3].metric("Fingerprint", (release_result.execution_release_fingerprint or "—")[:12])
+                if release_result.errors:
+                    st.dataframe(pd.DataFrame(release_result.errors), width="stretch", hide_index=True)
+                if release_result.execution_release is not None:
+                    st.download_button(
+                        "Descargar Execution Release Draft",
+                        data=json.dumps(release_result.execution_release, ensure_ascii=False, indent=2).encode("utf-8"),
+                        file_name="execution_release_draft.json",
+                        mime="application/json",
+                    )
+            execution_release = st.session_state.get("approved_execution_release") or st.session_state.get("execution_release")
             rows = decision_rows(project_spec, execution_release)
             if rows:
                 st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
