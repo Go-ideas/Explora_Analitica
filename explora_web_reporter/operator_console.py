@@ -414,16 +414,17 @@ def main() -> None:
                     type="primary",
                 )
             if generate_draft:
-                result = author_project_spec_draft(
-                    analysis,
-                    review,
-                    {
-                        "project_id": project_id,
-                        "display_name": display_name,
-                        "project_version": project_version,
-                        "spec_version": spec_version,
-                    },
-                )
+                with st.spinner("Generando Project Spec Draft..."):
+                    result = author_project_spec_draft(
+                        analysis,
+                        review,
+                        {
+                            "project_id": project_id,
+                            "display_name": display_name,
+                            "project_version": project_version,
+                            "spec_version": spec_version,
+                        },
+                    )
                 st.session_state.project_spec_draft_result = result
                 if result.status == "DRAFT_VALID" and result.project_spec is not None:
                     st.session_state.project_spec = result.project_spec
@@ -464,7 +465,10 @@ def main() -> None:
             c2.metric("Errores", len(summary["errors"]))
             c3.metric("Warnings", len(summary["warnings"]))
             if summary["ready"]:
-                st.success("Project Spec READY_FOR_EXECUTION")
+                st.success(
+                    "Project Spec generado y guardado: READY_FOR_EXECUTION. "
+                    "Continúa en la pestaña 4. Decisiones."
+                )
             else:
                 st.error("Project Spec todavía no puede ejecutarse.")
             if summary["errors"]:

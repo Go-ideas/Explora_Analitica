@@ -322,3 +322,10 @@ def test_g50_35_approved_unqualified_type_fails_closed():
     grid["review_state"] = "APPROVED"
     result = author_project_spec_draft(analysis, review, metadata)
     assert any(item["code"] == "HUMAN_UNSUPPORTED_ANALYTICAL_TYPE" for item in result.errors)
+
+
+def test_g50_36_operator_console_confirms_saved_project_spec_transition():
+    source = Path("operator_console.py").read_text(encoding="utf-8")
+    assert "Generando Project Spec Draft..." in source
+    assert "Project Spec generado y guardado: READY_FOR_EXECUTION" in source
+    assert "Continúa en la pestaña 4. Decisiones." in source
