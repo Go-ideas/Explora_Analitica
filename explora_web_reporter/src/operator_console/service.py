@@ -620,6 +620,18 @@ def build_structure_review(source_analysis: Mapping[str, Any]) -> dict[str, Any]
     }
 
 
+def review_editor_state(item: Mapping[str, Any]) -> str:
+    """Suggest an editor value without granting or changing persisted authority."""
+    state = item["review_state"]
+    if state != "PENDING":
+        return state
+    if item["capability_status"] == "QUALIFIED" and item["final_type"] in {
+        "RU", "RM", "LOOP_RU", "LOOP_NUMERICO",
+    }:
+        return "APPROVED"
+    return "PENDING"
+
+
 def finalize_structure_review(
     review: Mapping[str, Any],
     decisions: list[Mapping[str, Any]],

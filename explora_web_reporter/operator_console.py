@@ -25,6 +25,7 @@ from src.operator_console import (
     intake_summary,
     parse_json_upload,
     release_summary,
+    review_editor_state,
     run_web_project,
     save_upload,
     web_execution_readiness,
@@ -272,6 +273,7 @@ def main() -> None:
             st.markdown("**Siguiente paso: revisión humana de estructuras**")
             if st.button("Preparar revisión de estructuras", key="prepare_structure_review"):
                 st.session_state.structure_review = build_structure_review(analysis)
+                st.session_state.pop("structure_review_editor", None)
                 st.success("Revisión preparada. Abre la pestaña 2. Revisión.")
                 st.rerun()
 
@@ -297,6 +299,7 @@ def main() -> None:
                 )
                 if st.button("Preparar revisión", type="primary", key="prepare_review_tab"):
                     st.session_state.structure_review = build_structure_review(analysis)
+                    st.session_state.pop("structure_review_editor", None)
                     st.rerun()
             else:
                 st.subheader("Revisión de estructuras y roles")
@@ -322,12 +325,17 @@ def main() -> None:
                             "propuesta": item["proposed_type"],
                             "confianza": item["proposal_confidence"],
                             "capacidad": item["capability_status"],
-                            "estado": item["review_state"],
+                            "estado": review_editor_state(item),
                             "tipo_final": item["final_type"],
                             "nota_humana": item.get("human_note", ""),
                             "evidencia": " | ".join(item.get("evidence", [])),
                         }
                     )
+                st.caption(
+                    "Las estructuras analíticas cualificadas se muestran preseleccionadas como "
+                    "APPROVED. Esta preselección es sólo una ayuda de revisión y no constituye "
+                    "aprobación humana hasta pulsar 'Guardar revisión humana'."
+                )
                 edited = st.data_editor(
                     pd.DataFrame(rows),
                     width="stretch",

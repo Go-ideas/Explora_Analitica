@@ -223,3 +223,10 @@ Historical adoption/reproducibility findings remain unchanged in
 not the current runtime, implementation inventory or merge policy.
 The current accepted state is the table above; do not apply historical blocked
 or Legacy-default statements as current instructions.
+
+Operator Console safe review preselection UX corrective: pending Human Review /
+Git Adoption. DETERMINISTIC UI PRESELECTION != HUMAN APPROVAL. Only QUALIFIED
+RU/RM/LOOP_RU/LOOP_NUMERICO PENDING items are suggested as APPROVED in the editor;
+stored review/authority remain unchanged until explicit human save. Existing
+human decisions are preserved; preparing a fresh review resets editor edits.
+This adds no analytical capability and does not reopen a milestone.
