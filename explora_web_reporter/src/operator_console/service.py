@@ -20,6 +20,7 @@ from src.package_authoring.contract import PackageAuthoringError, validate_execu
 from src.project_intake.contract import IntakeResult, project_spec_fingerprint, validate_project
 from src.project_intake.generic_productive import GenericRuntimeError, run_generic_productive
 from src.readers.spss_reader import read_spss
+from src.operator_console.questionnaire_order import questionnaire_sequence, exact_questionnaire_positions
 
 
 OPERATOR_CONSOLE_VERSION = "EXPLORA_OPERATOR_CONSOLE_V1_4"
@@ -132,8 +133,7 @@ def _questionnaire_docx_lines(path: str | Path | None) -> list[str]:
     for paragraph in root.iter(namespace + "p"):
         text = "".join(node.text or "" for node in paragraph.iter(namespace + "t"))
         text = _normalise_text(text)
-        if text:
-            lines.append(text)
+        lines.append(text)
     return lines
 
 
@@ -290,6 +290,7 @@ def analyze_source_inputs(
                 "unique_non_missing": unique_non_missing,
                 "uniqueness_ratio": uniqueness_ratio,
                 "questionnaire_exact_matches": len(matched_lines),
+                "questionnaire_exact_positions": exact_questionnaire_positions(variable, questionnaire_lines),
                 "questionnaire_evidence": matched_lines[:3],
                 "candidate_role": role,
                 "authority": "CANDIDATE_ONLY",
@@ -320,7 +321,10 @@ def analyze_source_inputs(
             "format_supported_for_text_evidence": bool(
                 questionnaire_path is not None and Path(questionnaire_path).suffix.lower() == ".docx"
             ),
-            "paragraphs_extracted": len(questionnaire_lines),
+            "paragraphs_extracted": sum(bool(line) for line in questionnaire_lines),
+            "question_sequence": questionnaire_sequence(questionnaire_lines),
+            "question_sequence_authority": "SOURCE_PRESENTATION_EVIDENCE_ONLY",
+            "paragraph_index_base": 0,
             "variables_with_exact_questionnaire_match": sum(
                 1 for item in variables if item["questionnaire_exact_matches"] > 0
             ),

@@ -1,4 +1,4 @@
-﻿from copy import deepcopy
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
@@ -73,7 +73,7 @@ def test_render_does_not_grant_authority_and_save_uses_editor_values(monkeypatch
     assert rows.loc["VAR::Q1", "estado"] == "APPROVED"
     assert rows.loc["GRID::G1", "estado"] == "PENDING"
     assert all(item["review_state"] == "PENDING" and item["authority"] == "HUMAN_REVIEW_REQUIRED" for item in review["items"])
-    assert any("no constituye aprobación humana" in caption.value for caption in app.caption)
+    assert any("ninguna preselección constituye aprobación humana" in caption.value for caption in app.caption)
     _click(app, "Guardar revisión humana")
     saved = app.session_state["structure_review"]
     approved = next(item for item in saved["items"] if item["item_id"] == "VAR::Q1")

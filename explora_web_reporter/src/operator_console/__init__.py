@@ -1,3 +1,4 @@
+from src.operator_console.questionnaire_order import review_editor_items
 from src.operator_console.service import (
     OPERATOR_CONSOLE_VERSION,
     OperatorConsoleError,
@@ -53,6 +54,7 @@ __all__ = [
     "parse_json_upload",
     "release_summary",
     "review_editor_state",
+    "review_editor_items",
     "run_web_project",
     "save_upload",
     "web_execution_readiness",

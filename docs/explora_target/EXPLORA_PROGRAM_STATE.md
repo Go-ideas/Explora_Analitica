@@ -230,3 +230,11 @@ RU/RM/LOOP_RU/LOOP_NUMERICO PENDING items are suggested as APPROVED in the edito
 stored review/authority remain unchanged until explicit human save. Existing
 human decisions are preserved; preparing a fresh review resets editor edits.
 This adds no analytical capability and does not reopen a milestone.
+
+Operator Console questionnaire order + safe review preselection: bounded UX
+corrective pending Human Review / Git Adoption on
+`fix/operator-review-safe-preselection-questionnaire-order`.
+QUESTIONNAIRE ORDER = deterministic source/presentation evidence;
+DETERMINISTIC PRESELECTION != HUMAN APPROVAL. Ambiguous/unmapped rows appear
+last in a technical block; stored types, review states and authority are not
+changed by ordering or rendering. No analytical capability is added.

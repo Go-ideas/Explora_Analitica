@@ -26,6 +26,7 @@ from src.operator_console import (
     parse_json_upload,
     release_summary,
     review_editor_state,
+    review_editor_items,
     run_web_project,
     save_upload,
     web_execution_readiness,
@@ -191,6 +192,7 @@ def main() -> None:
                 )
                 st.session_state.source_analysis = analysis
                 st.session_state.pop("structure_review", None)
+                st.session_state.pop("structure_review_editor", None)
                 st.success("Análisis de fuentes completado. Revisa candidatos antes de generar configuración.")
             except OperatorConsoleError as exc:
                 st.error(str(exc))
@@ -317,9 +319,12 @@ def main() -> None:
                 m[4].metric("Estado", review.get("status", "—"))
 
                 rows = []
-                for item in review["items"]:
+                for item in review_editor_items(review, analysis):
                     rows.append(
                         {
+                            "orden_cuestionario": item["questionnaire_order_key"],
+                            "pregunta_ref": item["questionnaire_question_ref"],
+                            "bloque": "Cuestionario" if item["questionnaire_order_key"] is not None else "Roles técnicos / sin posición inequívoca en cuestionario",
                             "item_id": item["item_id"],
                             "variables": ", ".join(item["variables"]),
                             "propuesta": item["proposed_type"],
@@ -332,15 +337,16 @@ def main() -> None:
                         }
                     )
                 st.caption(
-                    "Las estructuras analíticas cualificadas se muestran preseleccionadas como "
-                    "APPROVED. Esta preselección es sólo una ayuda de revisión y no constituye "
-                    "aprobación humana hasta pulsar 'Guardar revisión humana'."
+                    "Las preguntas se presentan en el orden detectado del cuestionario. Las "
+                    "estructuras analíticas cualificadas se muestran preseleccionadas como APPROVED; "
+                    "ninguna preselección constituye aprobación humana hasta pulsar 'Guardar revisión humana'."
                 )
                 edited = st.data_editor(
                     pd.DataFrame(rows),
                     width="stretch",
                     hide_index=True,
                     disabled=[
+                        "orden_cuestionario", "pregunta_ref", "bloque",
                         "item_id", "variables", "propuesta", "confianza",
                         "capacidad", "evidencia",
                     ],

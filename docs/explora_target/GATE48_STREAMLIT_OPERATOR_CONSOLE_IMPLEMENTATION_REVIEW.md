@@ -1,5 +1,9 @@
 # Gate 48 — Streamlit Operator Console Foundation
 
+The combined questionnaire-order extension is documented in
+[Operator Review Questionnaire Order Corrective](OPERATOR_REVIEW_QUESTIONNAIRE_ORDER_CORRECTIVE.md).
+It changes presentation only and remains pending Human Review / Git Adoption.
+
 ## SAFE REVIEW PRESELECTION UX CORRECTIVE (2026-10-06)
 
 Authoritative starting main: `4a03d0e703ded522b703a203dcfc77459f5de1e0`.
