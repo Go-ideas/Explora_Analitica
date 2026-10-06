@@ -1,5 +1,53 @@
 # Gate 48 — Streamlit Operator Console Foundation
 
+The combined questionnaire-order extension is documented in
+[Operator Review Questionnaire Order Corrective](OPERATOR_REVIEW_QUESTIONNAIRE_ORDER_CORRECTIVE.md).
+It changes presentation only and remains pending Human Review / Git Adoption.
+
+## SAFE REVIEW PRESELECTION UX CORRECTIVE (2026-10-06)
+
+Authoritative starting main: `4a03d0e703ded522b703a203dcfc77459f5de1e0`.
+Branch: `fix/operator-review-safe-preselection`.
+Status: implemented, pending Human Review / Git Adoption. This is a UX
+corrective, not a new analytical capability or a reopened milestone.
+
+DETERMINISTIC UI PRESELECTION != HUMAN APPROVAL.
+
+`review_editor_state(item)` suggests APPROVED only for persisted PENDING items
+whose capability_status is QUALIFIED and final_type is RU, RM, LOOP_RU, or
+LOOP_NUMERICO. Existing APPROVED and EXCLUDED decisions remain unchanged.
+Configuration roles, unclassified items, grids, LOOP_RM, independent numeric
+and scale items, and unqualified/unresolved capabilities receive no approval
+suggestion. The helper only populates the editable dataframe and does not mutate
+the stored EXPLORA_STRUCTURE_REVIEW_V1 or its authority.
+
+A caption immediately above the editor explains that preselection is a review
+aid and becomes human approval only after clicking Guardar revisión humana.
+That action continues to pass current editor values through the existing
+`finalize_structure_review(...)` path. Operators can override suggested states
+and types before saving; no persisted authority type is added.
+
+Both preparation buttons clear `structure_review_editor` widget state when
+creating a fresh review from current source analysis. Ordinary reruns preserve
+stored human decisions and in-progress editor changes. No source classification,
+capability matrix, schema, authoring, B1/B2/B3, respondent-ID contract, formulas,
+or canonical runtime changes are included.
+
+Focused tests use generic synthetic source evidence and Streamlit AppTest to
+exercise rendering, explicit save, persisted exclusions, editable suggestions,
+and stale-editor reset through both preparation routes.
+
+Corrective validation:
+
+- Focused preselection tests: 65 passed, 0 failed, 0 skipped.
+- Gate 48 regression: 21 passed, 0 failed, 0 skipped.
+- Gate 50 regression: 35 passed, 0 failed, 0 skipped.
+- Gate 51 regression: 46 passed, 0 failed, 0 skipped.
+- Full repository regression: 1212 passed, 0 failed, 0 skipped (1326.21 seconds).
+- Unexpected skips, numerical deltas, customer-specific hardcoding, and warnings: none.
+- No customer data or customer-specific fixture is added to Git.
+- PR creation and merge: not performed.
+
 ## CURRENT STATE
 
 EXPLORA already had two Streamlit entry points before Gate 48:
