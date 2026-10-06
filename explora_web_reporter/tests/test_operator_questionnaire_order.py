@@ -49,7 +49,7 @@ def test_group_uses_normalized_parent_and_earliest_stable_position(family, kind)
 
 def test_exact_variable_match_has_priority_over_label_candidates():
     row = {"variable": "X2b", "label": "X10 unrelated label", "questionnaire_exact_positions": [{"question_ref": "X2B", "paragraph_index": 3}]}
-    ordered = review_editor_items({"items": [_item("VAR::X2b")]}, _source(["X10 Early", "X2 Second"], [row]))
+    ordered = review_editor_items({"items": [_item("VAR::X2b")]}, _source(["X10 Early", "X2 Second", "Instruction", "X2.b Direct heading"], [row]))
     assert ordered[0]["questionnaire_order_key"] == 3
 
 
@@ -150,3 +150,93 @@ def test_new_source_analysis_resets_editor_and_old_review(monkeypatch):
     assert app.session_state["source_analysis"]["dataset"]["n_cases"] == 20
     assert "structure_review" not in app.session_state.filtered_state
     assert "structure_review_editor" not in app.session_state.filtered_state
+from src.operator_console.questionnaire_order import exact_questionnaire_positions, normalized_question_ref
+
+
+@pytest.mark.parametrize("token,expected", [
+    ("F8", "F8"), ("F.8", "F8"), ("F8a", "F8A"), ("F.8a", "F8A"),
+    ("F8.a", "F8A"), ("F.8.a", "F8A"),
+    ("P40", "P40"), ("P40a", "P40A"), ("P.40a", "P40A"),
+    ("P40.a", "P40A"), ("P.40.a", "P40A"), ("zx-7-b", "ZX7B"),
+])
+def test_suffix_separator_normalization(token, expected):
+    assert normalized_question_ref(token) == expected
+    assert questionnaire_sequence([token + " Heading"])[0]["question_ref"] == expected
+    assert questionnaire_sequence([token + " Heading"]) == questionnaire_sequence([token + " Heading"])
+
+
+@pytest.mark.parametrize("text", ["8", "40. Narrative", "PROGRAMMER: REPEAT X11 TO X32", "REPEAT QUESTIONS X32", "F8.aa unsupported suffix", "F8.a1 malformed suffix", "P40.12 unsupported component"])
+def test_no_narrative_or_partial_heading_identity(text):
+    assert questionnaire_sequence([text]) == []
+
+
+def test_parent_and_suffix_identity_do_not_collapse():
+    paragraphs = ["F8.a Suffix first", "F.8 Parent second", "P40.a Suffix", "P40 Parent"]
+    assert [x["question_ref"] for x in questionnaire_sequence(paragraphs)] == ["F8A", "F8", "P40A", "P40"]
+    items = [_item("VAR::F8"), _item("VAR::F8a"), _item("VAR::P40"), _item("VAR::P40a")]
+    ordered = review_editor_items({"items": items}, _source(paragraphs))
+    assert _ids(ordered) == ["VAR::F8a", "VAR::F8", "VAR::P40a", "VAR::P40"]
+    assert [x["questionnaire_order_key"] for x in ordered] == [0, 1, 2, 3]
+
+
+@pytest.mark.parametrize("paragraphs,expected", [
+    (["PROGRAMMER: REPEAT QUESTIONS X11 TO X32", "...", "X32 SHOW SCREEN actual question"], 2),
+    (["X32 SHOW SCREEN actual question", "PROGRAMMER: REPEAT X32 later"], 0),
+    (["REPEAT X32", "PROGRAMMER: REPEAT X32", "X11 Other question mentioning X32", "X32 Actual", "AGAIN REFER TO X32"], 3),
+])
+def test_narrative_mentions_never_supply_positions(paragraphs, expected):
+    positions = exact_questionnaire_positions("X32", paragraphs)
+    assert positions == [{"question_ref": "X32", "paragraph_index": expected}]
+    row = {"variable": "X32", "questionnaire_exact_positions": positions}
+    item = _item("VAR::X32")
+    item.update(proposed_type="RU", capability_status="QUALIFIED")
+    before = deepcopy(item)
+    ordered = review_editor_items({"items": [item]}, _source(paragraphs, [row]))
+    assert ordered[0]["questionnaire_order_key"] == expected
+    assert item == before
+    for field in ["proposed_type", "final_type", "capability_status", "review_state", "authority"]:
+        assert ordered[0][field] == before[field]
+
+
+def test_legacy_unqualified_positions_do_not_override_heading_sequence():
+    source = _source(["PROGRAMMER: REPEAT X32", "X11 Mention X32", "X32 Actual"])
+    source["variables"] = [{"variable": "X32", "questionnaire_exact_positions": [{"question_ref": "X32", "paragraph_index": 0}, {"question_ref": "X11", "paragraph_index": 1}], "questionnaire_evidence": ["PROGRAMMER: REPEAT X32"]}]
+    review = {"items": [_item("VAR::X32")]}
+    assert review_editor_items(review, source)[0]["questionnaire_order_key"] == 2
+    assert review_editor_items(review, source) == review_editor_items(review, source)
+    source["questionnaire"]["question_sequence"] = []
+    assert review_editor_items(review, source)[0]["questionnaire_order_key"] is None
+
+
+def test_legacy_sequence_reparses_retained_heading_text():
+    source = {"questionnaire": {"question_sequence": [
+        {"question_ref": "F8", "paragraph_index": 0, "source_text": "F8.a Actual suffix"},
+        {"question_ref": "F8", "paragraph_index": 1, "source_text": "F.8 Actual parent"},
+        {"question_ref": "X32", "paragraph_index": 2, "source_text": "REPEAT X32"},
+    ]}}
+    ordered = review_editor_items({"items": [_item("VAR::F8"), _item("VAR::F8a"), _item("VAR::X32")]}, source)
+    assert _ids(ordered) == ["VAR::F8a", "VAR::F8", "VAR::X32"]
+    assert ordered[-1]["questionnaire_order_key"] is None
+
+
+def test_general_lexical_source_evidence_remains_separate(tmp_path, monkeypatch):
+    from src.operator_console import service
+    paragraphs = ["PROGRAMMER: REPEAT X32", "X32 Actual question", "X11 Mention X32"]
+    frame = pd.DataFrame({"X32": [1, 2]})
+    summary = {"variables": ["X32"], "n_casos": 2, "n_variables": 1}
+    monkeypatch.setattr(service, "read_spss", lambda _: (frame, None, summary))
+    sav = tmp_path / "synthetic.sav"; sav.write_bytes(b"synthetic")
+    docx = tmp_path / "synthetic.docx"
+    xml = '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>' + ''.join(f'<w:p><w:r><w:t>{escape(text)}</w:t></w:r></w:p>' for text in paragraphs) + '</w:body></w:document>'
+    with zipfile.ZipFile(docx, "w") as archive:
+        archive.writestr("word/document.xml", xml)
+    result = analyze_source_inputs(sav, questionnaire_path=docx)
+    row = result["variables"][0]
+    assert row["questionnaire_evidence"] == paragraphs
+    assert row["questionnaire_exact_matches"] == 3
+    assert row["questionnaire_exact_positions"] == [{"question_ref": "X32", "paragraph_index": 1}]
+
+
+def test_document_order_for_parent_question_numbers():
+    review = {"items": [_item("VAR::P10"), _item("VAR::P2")]}
+    assert _ids(review_editor_items(review, _source(["P2 First", "P10 Second"]))) == ["VAR::P2", "VAR::P10"]

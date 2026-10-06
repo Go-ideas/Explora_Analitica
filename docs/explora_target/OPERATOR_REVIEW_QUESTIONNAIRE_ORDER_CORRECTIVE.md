@@ -21,14 +21,17 @@ Evidence text preserves normalized paragraph content, bounded to 240 characters.
 The evidence authority is `SOURCE_PRESENTATION_EVIDENCE_ONLY`.
 
 Only explicit paragraph-leading tokens containing letters then digits, with an
-optional dot, underscore, or hyphen separator and optional letter suffix, are
+optional dot, underscore, or hyphen separators before the numeric part and
+before an optional letter suffix, are
 recognized. Matching normalizes case and separators. Bare numbers and narrative
 mentions do not create question sequence entries. No AI, customer IDs, numerical
 question sorting, section inference, or analytical inference is used.
 
-Each source variable also retains all exact lexical questionnaire match
-positions. Existing bounded questionnaire text evidence and classification
-behavior remain intact. No questionnaire or an unsupported format yields no
+Each source variable retains direct, header-qualified questionnaire positions
+in `questionnaire_exact_positions`. General `questionnaire_evidence` and
+`questionnaire_exact_matches` still capture lexical mentions anywhere in text
+for source classification; they never authorize question order. Existing
+classification behavior remains intact. No questionnaire or an unsupported format yields no
 sequence and deterministic fallback order.
 
 ## Display ordering
@@ -39,10 +42,13 @@ It never writes those fields into the stored Structure Review schema.
 
 LOOP, RM, and GRID items use their normalized logical parent identity. Repeated
 positions for the same identity use the earliest stable paragraph position.
-Variable items prefer exact variable-name position evidence. Otherwise label
-tokens may match explicit questionnaire identities as candidate order evidence.
-Older Source Analysis with only bounded exact-match evidence can still match
-its variable identity against the question sequence.
+Variable items first match their normalized identity against explicit heading
+sequence entries. Otherwise label tokens may match those heading identities as
+candidate order evidence. Legacy unqualified exact-position arrays and general
+lexical mention counts are not used as order positions. Retained sequence source
+text is reparsed with the corrected grammar, repairing separated suffixes and
+rejecting narrative entries. Without usable heading sequence evidence, older
+Source Analysis falls back deterministically to the technical/unmapped block.
 
 Distinct competing questionnaire identities are unresolved and receive no
 position. At a shared mapped position, groups precede individual items; detection
@@ -75,7 +81,57 @@ Release semantics, runtime, Gate49 loop semantics, significance, weight, or
 respondent-ID methodology changes are included. Tests and DOCX/SAV artifacts
 are generic and synthetic; no customer artifacts are added to Git.
 
-## Validation
+## Human Review corrective - B-ORQO-01 / B-ORQO-02
+
+Starting accepted feature head: `de1c9618a0520f3caafa15d7a085e000aa21e152`.
+The safe-preselection portion is accepted and its semantics remain unchanged.
+The questionnaire-order corrective is pending Human Review / Git Adoption.
+
+QUESTIONNAIRE ORDER AUTHORITY = EXPLICIT QUESTION HEADING SOURCE EVIDENCE.
+GENERAL LEXICAL MENTION != QUESTION ORDER AUTHORITY.
+
+B-ORQO-01: `exact_questionnaire_positions(...)` now accepts only paragraphs
+beginning with an explicit heading identity matching the normalized variable.
+A programmer instruction mentioning a question, or another question heading
+referring to that variable, does not supply an order position. General bounded
+lexical evidence remains available separately and is unchanged. The renderer
+reconstructs positions from the heading sequence rather than trusting legacy
+unqualified position arrays. Label fallback continues to require a corresponding
+explicit heading. Competing logical identities remain unresolved.
+
+B-ORQO-02: separators before optional alphabetic suffixes are normalized without
+collapsing the suffix into its parent. Generic forms `X8`, `X.8` normalize to
+`X8`; `X8a`, `X.8a`, `X8.a`, and `X.8.a` normalize to `X8A`. `X8` and `X8A`
+remain distinct. The same rules apply to all supported letter prefixes. Partial
+matches of malformed suffixes and bare numeric headings are rejected. This is
+conservative lexical parsing, not semantic questionnaire understanding.
+
+Synthetic coverage checks narrative mentions before/after real headings,
+repeated narrative references, references from another heading, direct heading
+matching, preserved general lexical evidence, legacy fallback and legacy suffix
+repair, separator variants, parent/suffix distinction, malformed tokens, and
+presentation authority boundaries. No customer benchmark artifacts are committed.
+
+Corrective validation (2026-10-06; `python -m pytest ... -q`):
+
+- Focused questionnaire-order tests: 41 passed, 0 failed, 0 skipped.
+- Focused accepted safe-preselection tests: 65 passed, 0 failed, 0 skipped.
+- Gate48 regression: 21 passed, 0 failed, 0 skipped.
+- Gate49 regression: 21 passed, 0 failed, 0 skipped.
+- Gate50 regression: 35 passed, 0 failed, 0 skipped.
+- Gate51 regression: 46 passed, 0 failed, 0 skipped.
+- Full repository regression: 1253 passed, 0 failed, 0 skipped (990.16 seconds).
+- Unexpected numerical deltas and customer-specific hardcoding: none.
+- Fixtures are synthetic; no customer source artifacts are added to Git.
+- Real benchmark smoke check: not run; source was not located in the workspace
+  search. Synthetic blocker regressions provide implementation validation.
+- Safe-preselection service, review UI, persisted authority, and stale-editor
+  reset behavior are unchanged; accepted historical commits are preserved.
+- A new corrective commit is published on the same feature branch. Human Review
+  remains pending; no PR or merge is performed.
+
+
+## Validation (original implementation)
 
 - Focused questionnaire-order + safe-preselection tests: 79 passed, 0 failed, 0 skipped.
 - Gate48 regression: 21 passed, 0 failed, 0 skipped.
