@@ -2,13 +2,14 @@
 
 The combined questionnaire-order extension is documented in
 [Operator Review Questionnaire Order Corrective](OPERATOR_REVIEW_QUESTIONNAIRE_ORDER_CORRECTIVE.md).
-It changes presentation only and remains pending Human Review / Git Adoption.
+It changes presentation only and is ACCEPTED / MERGED through PR #26
+(Human Review PASS; merge `083aa81260f88dc9dfc3acc6fd4cade0c1152058`).
 
 ## SAFE REVIEW PRESELECTION UX CORRECTIVE (2026-10-06)
 
 Authoritative starting main: `4a03d0e703ded522b703a203dcfc77459f5de1e0`.
 Branch: `fix/operator-review-safe-preselection`.
-Status: implemented, pending Human Review / Git Adoption. This is a UX
+Status: ACCEPTED / MERGED as part of the combined corrective in PR #26. This is a UX
 corrective, not a new analytical capability or a reopened milestone.
 
 DETERMINISTIC UI PRESELECTION != HUMAN APPROVAL.
@@ -46,7 +47,9 @@ Corrective validation:
 - Full repository regression: 1212 passed, 0 failed, 0 skipped (1326.21 seconds).
 - Unexpected skips, numerical deltas, customer-specific hardcoding, and warnings: none.
 - No customer data or customer-specific fixture is added to Git.
-- PR creation and merge: not performed.
+- Historical standalone validation preceded PR creation and merge. The combined
+  corrective is now accepted through PR #26; post-merge evidence is recorded in
+  [Operator Review Questionnaire Order Corrective](OPERATOR_REVIEW_QUESTIONNAIRE_ORDER_CORRECTIVE.md).
 
 ## CURRENT STATE
 

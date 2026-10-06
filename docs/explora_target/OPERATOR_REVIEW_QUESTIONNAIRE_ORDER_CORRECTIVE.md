@@ -1,6 +1,9 @@
 # Operator Console - questionnaire order and safe preselection
 
-Status: bounded Operator Console UX corrective pending Human Review / Git Adoption.
+Status: bounded Operator Console UX corrective ACCEPTED / MERGED.
+Human Review: PASS. Adopted through PR #26 on 2026-10-06.
+Accepted feature head: `0df86a066d9a915fe1ec44f7b55c44b93a4edb93`.
+Merge SHA: `083aa81260f88dc9dfc3acc6fd4cade0c1152058`.
 No analytical milestone is reopened and no capability is added.
 
 Authoritative starting main: `4a03d0e703ded522b703a203dcfc77459f5de1e0`.
@@ -85,7 +88,7 @@ are generic and synthetic; no customer artifacts are added to Git.
 
 Starting accepted feature head: `de1c9618a0520f3caafa15d7a085e000aa21e152`.
 The safe-preselection portion is accepted and its semantics remain unchanged.
-The questionnaire-order corrective is pending Human Review / Git Adoption.
+The questionnaire-order corrective is now ACCEPTED / MERGED through PR #26.
 
 QUESTIONNAIRE ORDER AUTHORITY = EXPLICIT QUESTION HEADING SOURCE EVIDENCE.
 GENERAL LEXICAL MENTION != QUESTION ORDER AUTHORITY.
@@ -127,8 +130,9 @@ Corrective validation (2026-10-06; `python -m pytest ... -q`):
   search. Synthetic blocker regressions provide implementation validation.
 - Safe-preselection service, review UI, persisted authority, and stale-editor
   reset behavior are unchanged; accepted historical commits are preserved.
-- A new corrective commit is published on the same feature branch. Human Review
-  remains pending; no PR or merge is performed.
+- At this historical validation point, the corrective commit was published on
+  the same feature branch and awaited Human Review / Git Adoption. Human Review
+  subsequently passed and PR #26 merged the exact accepted head.
 
 
 ## Validation (original implementation)
@@ -145,4 +149,26 @@ Corrective validation (2026-10-06; `python -m pytest ... -q`):
   preserved review authority, stale state on both fresh-review routes, and
   reset following successful analysis of a new source.
 
-PR creation and merge are not performed.
+At the original implementation validation point, PR creation and merge had not
+been performed. Current adoption is recorded above and below.
+
+## Post-merge Git adoption validation (2026-10-06)
+
+PR #26 used base main `4a03d0e703ded522b703a203dcfc77459f5de1e0` and the exact
+accepted feature head listed above. Its scope was exactly the nine accepted
+application, test and documentation files. GitHub reported CLEAN / MERGEABLE;
+no repository status checks were configured. A normal merge commit adopted the
+feature without rewriting its accepted history.
+
+All validation ran on clean main at the adoption merge SHA:
+
+- Focused questionnaire order: 41 passed.
+- Focused safe preselection: 65 passed.
+- Gate48: 21 passed; Gate49: 21 passed; Gate50: 35 passed; Gate51: 46 passed.
+- Full regression: 1253 passed, 0 failed, 0 skipped (727.66 seconds).
+- Unexpected skips and numerical deltas: none.
+- Customer-specific hardcoding: none; customer source data committed: no.
+
+This documentation closure records the bounded UX corrective as ACCEPTED /
+MERGED. It adds no analytical milestone or capability and changes no application
+code, tests, formulas, runtime or human approval authority.

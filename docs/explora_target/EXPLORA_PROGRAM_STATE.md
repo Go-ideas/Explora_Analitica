@@ -224,16 +224,22 @@ not the current runtime, implementation inventory or merge policy.
 The current accepted state is the table above; do not apply historical blocked
 or Legacy-default statements as current instructions.
 
-Operator Console safe review preselection UX corrective: pending Human Review /
-Git Adoption. DETERMINISTIC UI PRESELECTION != HUMAN APPROVAL. Only QUALIFIED
+Operator Console safe review preselection UX corrective: ACCEPTED / MERGED
+(Human Review PASS; PR #26). DETERMINISTIC UI PRESELECTION != HUMAN APPROVAL. Only QUALIFIED
 RU/RM/LOOP_RU/LOOP_NUMERICO PENDING items are suggested as APPROVED in the editor;
 stored review/authority remain unchanged until explicit human save. Existing
 human decisions are preserved; preparing a fresh review resets editor edits.
 This adds no analytical capability and does not reopen a milestone.
 
 Operator Console questionnaire order + safe review preselection: bounded UX
-corrective pending Human Review / Git Adoption on
+corrective ACCEPTED / MERGED through PR #26 from
 `fix/operator-review-safe-preselection-questionnaire-order`.
+Accepted feature head: `0df86a066d9a915fe1ec44f7b55c44b93a4edb93`.
+Adoption merge: `083aa81260f88dc9dfc3acc6fd4cade0c1152058`.
+Post-merge validation on clean main: questionnaire order 41, safe preselection 65,
+Gate48 21, Gate49 21, Gate50 35, Gate51 46; full regression 1253 passed /
+0 failed / 0 skipped (727.66 seconds). No unexpected numerical deltas.
+No customer-specific hardcoding or customer source data entered Git.
 QUESTIONNAIRE ORDER = deterministic source/presentation evidence;
 DETERMINISTIC PRESELECTION != HUMAN APPROVAL. Ambiguous/unmapped rows appear
 last in a technical block; stored types, review states and authority are not
