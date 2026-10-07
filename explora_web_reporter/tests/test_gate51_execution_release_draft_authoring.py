@@ -204,8 +204,8 @@ def test_g51c_02_missing_rm_authority_requires_human_decision():
     assert any(item["code"] == "RM_RESPONSE_STATE_AUTHORITY_REQUIRED" for item in result.errors)
 
 
-@pytest.mark.parametrize("field", ["selected_values", "not_selected_values", "ordinary_missing_values"])
-def test_g51c_03_05_empty_rm_state_fails_closed(field):
+@pytest.mark.parametrize("field", ["selected_values", "not_selected_values"])
+def test_g51c_03_04_empty_required_rm_state_fails_closed(field):
     states = _rm_states(); states["RM"][field] = []
     assert _author(*_inputs(), states).status == "ER_DRAFT_REQUIRES_HUMAN_DECISION"
 

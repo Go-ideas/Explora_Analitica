@@ -88,3 +88,35 @@ and validates the frozen `contracts.models.SignificanceSpec`; its machine-readab
 B2 V1 defaults supply test identities/versions, alpha, sidedness, eligibility
 rules, HOLM adjustment, family scope, total exclusion and unsupported behavior.
 ER cannot override those methodology fields.
+
+## RM explicit empty ordinary-missing shared contract corrective (2026-10-06)
+
+Status: BOUNDED CONTRACT CORRECTIVE / CLARIFICATION, pending Human Review / Git
+Adoption. Starting main: `2380cb79df36109ee4a3216834a96d27c6571be6`.
+Branch: `fix/gate51-rm-empty-ordinary-missing`.
+
+RM `selected_values` and `not_selected_values` are explicit required lists/tuples
+and must be non-empty. `ordinary_missing_values` is also an explicit required
+list/tuple but MAY be empty. Explicit `[]` means no additional ordinary-missing
+physical response state exists; it is not absent, unknown, inferred or fallback
+authority. Complete response-state authority means all three fields are explicitly
+present and valid, rather than all three domains containing a value.
+
+Canonical serializability, deterministic authoring order, duplicate-state
+rejection in authoring, pairwise disjointness and fail-closed validation remain.
+The shared package validator explicitly checks container types and retains
+non-empty selected/not-selected domains. The Operator Console placeholder is
+`[]`; its actual initial value stays blank, valid JSON must be entered, and
+explicit human RM confirmation remains mandatory.
+
+Builder, loader, materializer and formulas are unchanged. Synthetic coverage
+checks empty and non-empty missing package paths, released-array preservation,
+loader roundtrip, materialization and canonical RM results. An observed third
+state not in selected/not-selected fails category-domain reconciliation when
+missing is `[]`; explicitly declaring that state in missing permits it.
+
+Package compatibility declaration remains `LEGACY`; productive execution remains
+`CANONICAL_V1`. This corrective changes no execution-mode contract, rollback,
+DUAL_RUN, option identity, denominator, PARENT_RM scope, completion policy,
+storage encoding, missing calculation policy, B1/B2/B3 or analytical capability.
+Only synthetic generic fixtures are used; no customer source data is committed.

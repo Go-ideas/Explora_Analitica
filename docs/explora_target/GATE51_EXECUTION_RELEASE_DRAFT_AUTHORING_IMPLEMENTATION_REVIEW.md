@@ -64,3 +64,57 @@ Accepted corrective validation evidence:
 - Unexpected numerical deltas: none.
 - Customer-specific hardcoding: none.
 - Raw customer data: none.
+
+## RM explicit empty ordinary-missing shared contract corrective (2026-10-06)
+
+Status: BOUNDED CONTRACT CORRECTIVE / CLARIFICATION, pending Human Review / Git
+Adoption. Starting main: `2380cb79df36109ee4a3216834a96d27c6571be6`.
+Branch: `fix/gate51-rm-empty-ordinary-missing`.
+
+RM `selected_values` and `not_selected_values` are explicit required lists/tuples
+and must be non-empty. `ordinary_missing_values` is also an explicit required
+list/tuple but MAY be empty. Explicit `[]` means no additional ordinary-missing
+physical response state exists; it is not absent, unknown, inferred or fallback
+authority. Complete response-state authority means all three fields are explicitly
+present and valid, rather than all three domains containing a value.
+
+Canonical serializability, deterministic authoring order, duplicate-state
+rejection in authoring, pairwise disjointness and fail-closed validation remain.
+The shared package validator explicitly checks container types and retains
+non-empty selected/not-selected domains. The Operator Console placeholder is
+`[]`; its actual initial value stays blank, valid JSON must be entered, and
+explicit human RM confirmation remains mandatory.
+
+Builder, loader, materializer and formulas are unchanged. Synthetic coverage
+checks empty and non-empty missing package paths, released-array preservation,
+loader roundtrip, materialization and canonical RM results. An observed third
+state not in selected/not-selected fails category-domain reconciliation when
+missing is `[]`; explicitly declaring that state in missing permits it.
+
+Package compatibility declaration remains `LEGACY`; productive execution remains
+`CANONICAL_V1`. This corrective changes no execution-mode contract, rollback,
+DUAL_RUN, option identity, denominator, PARENT_RM scope, completion policy,
+storage encoding, missing calculation policy, B1/B2/B3 or analytical capability.
+Only synthetic generic fixtures are used; no customer source data is committed.
+
+Corrective validation (synthetic fixtures, 2026-10-06):
+
+- Focused RM authoring/shared contract/downstream tests: 35 passed.
+- Focused Operator Console ER AppTest: 5 passed.
+- Gate47 package builder: 67 passed.
+- Gate51 authoring: 45 passed.
+- Canonical materialization: 51 passed.
+- Canonical runtime/default/rollback/DUAL_RUN/formula regression: 39 passed.
+- Full repository regression: 1293 passed, 0 failed, 0 skipped (1067.17 seconds).
+- Unexpected skips and numerical deltas: none.
+
+The total increases by 40 from the accepted 1253: 35 new RM tests and 5 new
+form tests, one additional Gate47 empty-missing path, and removal of one obsolete
+Gate51 expectation that empty ordinary missing must fail. Its new passing
+expectation is explicitly covered in the focused RM module.
+
+An initial Gate47 run hit Windows WinError 5 while renaming an unrelated runtime
+output directory in the synchronized workspace. Re-running with temporary
+artifacts outside that workspace passed all 67 cases; the complete regression
+used the same external temporary location and passed. No runtime code was
+changed to address that filesystem incident. Commit/push only; no PR or merge.
