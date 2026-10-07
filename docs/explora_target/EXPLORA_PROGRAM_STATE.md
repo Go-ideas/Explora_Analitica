@@ -244,3 +244,12 @@ QUESTIONNAIRE ORDER = deterministic source/presentation evidence;
 DETERMINISTIC PRESELECTION != HUMAN APPROVAL. Ambiguous/unmapped rows appear
 last in a technical block; stored types, review states and authority are not
 changed by ordering or rendering. No analytical capability is added.
+
+Gate51 / Gate47 RM explicit empty ordinary-missing: BOUNDED CONTRACT CORRECTIVE /
+CLARIFICATION, pending Human Review / Git Adoption on
+`fix/gate51-rm-empty-ordinary-missing` from main
+`2380cb79df36109ee4a3216834a96d27c6571be6`. Selected/not-selected remain explicit,
+required and non-empty; ordinary missing remains an explicit required list but
+may be empty, meaning no additional ordinary-missing physical state exists.
+Package compatibility remains LEGACY and productive execution CANONICAL_V1.
+No analytical capability or milestone is added or reopened.

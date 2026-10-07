@@ -264,7 +264,8 @@ def test_g47c_04_missing_internal_name_fails(authoring_input) -> None:
         validate_execution_release(project, release)
 
 
-def test_g47c_05_rm_non_empty_materialization(authoring_input, tmp_path: Path) -> None:
+@pytest.mark.parametrize("ordinary_missing", [[99], []])
+def test_g47c_05_rm_explicit_missing_materialization(authoring_input, tmp_path: Path, ordinary_missing) -> None:
     project, release, source = authoring_input
     project["questions"] = [{"question_id": "Q_RM", "question_type": "RM", "source_variables": ["rm_a", "rm_b"], "display_label": "RM", "universe_ref": "U_ELIGIBLE", "structure_ref": "STR_Q_RM", "categories": []}]
     project["output_requests"][0]["question_refs"] = ["Q_RM"]
@@ -272,7 +273,9 @@ def test_g47c_05_rm_non_empty_materialization(authoring_input, tmp_path: Path) -
     release["structures"] = [{"structure_id": "STR_Q_RM", "question_id": "Q_RM", "structure_type": "RM", "option_bindings": [{"option_id": "A", "variable_ref": "rm_a", "label": "A"}, {"option_id": "B", "variable_ref": "rm_b", "label": "B"}], "category_bindings": [], "applicability_refs": {"question": "U_ELIGIBLE"}, "selected_values": [1], "not_selected_values": [0], "ordinary_missing_values": [99], "completion_policy": "explicit_dichotomous_state_per_option", "duplicate_policy": "error", "exclusive_option_ids": [], "storage_encoding": "dichotomous_columns", "respondent_denominator_behavior": "ELIGIBLE_RESPONDENT", "mention_denominator_behavior": "SELECTED_MENTIONS", "mention_denominator_scope": {"schema_version": "M4_MENTION_SCOPE_IDENTITY_V1", "scope_type": "PARENT_RM", "scope_ref": "STR_Q_RM"}, "response_state_version": "M4_STRUCTURE_V1"}]
     release["metrics"] = [{"metric_id": "METRIC_RM", "metric_type": "RM_RESPONDENT_PROPORTION", "formula_id": "RM_RESPONDENT_PROPORTION", "question_ref": "Q_RM", "universe_ref": "U_ELIGIBLE", "denominator_policy": "RESPONDENT", "missing_behavior": "EXCLUDE", "weight_behavior": "unweighted", "significance": {"status": "none", "supported": False}, "parameters": {}}]
     release["requests"][0].update(question_ref="Q_RM", metric_refs=["METRIC_RM"]); refresh(project, release)
+    release["structures"][0]["ordinary_missing_values"] = ordinary_missing
     target = tmp_path / "rm.zip"; build_released_package(project, release, destination=target, source_path=source)
+    assert load_released_package(target).structures[0]["ordinary_missing_values"] == ordinary_missing
     assert materialize_project(source_path=source, package_path=target).manifest.materialization_state == "PASS"
 
 

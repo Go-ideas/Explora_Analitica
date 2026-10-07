@@ -52,9 +52,12 @@ def _weight_mode(project: Mapping[str, Any]) -> tuple[str, str | None, str]:
     return "unweighted", None, "EXPLICITLY_UNWEIGHTED"
 
 
-def _canonical_states(value: Any, path: str, errors: list[dict[str, str]]) -> list[Any] | None:
-    if not isinstance(value, (list, tuple)) or not value:
-        errors.append(_issue("RM_RESPONSE_STATE_REQUIRED", path, "An explicit non-empty response-state list is required."))
+def _canonical_states(
+    value: Any, path: str, errors: list[dict[str, str]], *, allow_empty: bool = False,
+) -> list[Any] | None:
+    if not isinstance(value, (list, tuple)) or (not value and not allow_empty):
+        requirement = "list" if allow_empty else "non-empty list"
+        errors.append(_issue("RM_RESPONSE_STATE_REQUIRED", path, f"An explicit response-state {requirement} is required."))
         return None
     states = list(value)
     try:
@@ -81,7 +84,13 @@ def _rm_authority(
     if set(configured) != required:
         errors.append(_issue("RM_RESPONSE_STATE_AUTHORITY_INVALID", f"rm_response_states.{qid}", "RM authority fields must be selected_values, not_selected_values, and ordinary_missing_values."))
         return None
-    states = {name: _canonical_states(configured.get(name), f"rm_response_states.{qid}.{name}", errors) for name in sorted(required)}
+    states = {
+        name: _canonical_states(
+            configured[name], f"rm_response_states.{qid}.{name}", errors,
+            allow_empty=name == "ordinary_missing_values",
+        )
+        for name in sorted(required)
+    }
     if any(value is None for value in states.values()):
         return None
     encoded = {name: {canonical_release_json({"value": item}) for item in values} for name, values in states.items()}

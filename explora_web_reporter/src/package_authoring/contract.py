@@ -185,14 +185,19 @@ def validate_execution_release(
                            "exclusive_option_ids"}
             if not rm_required.issubset(item) or not item.get("option_bindings"):
                 raise PackageAuthoringError("RM semantics and explicit option bindings are required")
+            state_fields = ("selected_values", "not_selected_values", "ordinary_missing_values")
+            if any(not isinstance(item[name], (list, tuple)) for name in state_fields):
+                raise PackageAuthoringError("RM response states must be explicit lists")
+            if not item["selected_values"] or not item["not_selected_values"]:
+                raise PackageAuthoringError("RM response states must be complete and disjoint")
             try:
                 states = [
                     {json.dumps(value, ensure_ascii=True, sort_keys=True, separators=(",", ":"), allow_nan=False) for value in item[name]}
-                    for name in ("selected_values", "not_selected_values", "ordinary_missing_values")
+                    for name in state_fields
                 ]
             except (KeyError, TypeError, ValueError):
                 raise PackageAuthoringError("RM response states must be canonically serializable") from None
-            if any(not state for state in states) or any(states[i] & states[j] for i in range(3) for j in range(i + 1, 3)):
+            if any(states[i] & states[j] for i in range(3) for j in range(i + 1, 3)):
                 raise PackageAuthoringError("RM response states must be complete and disjoint")
             scope = item["mention_denominator_scope"]
             if scope != {

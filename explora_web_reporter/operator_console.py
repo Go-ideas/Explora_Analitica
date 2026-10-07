@@ -524,7 +524,7 @@ def main() -> None:
                             rm_inputs[qid] = {
                                 "selected": c1.text_input("Selected value(s)", placeholder='[1]', key=f"rm_selected_{qid}"),
                                 "not_selected": c2.text_input("Not-selected value(s)", placeholder='[0]', key=f"rm_not_selected_{qid}"),
-                                "missing": c3.text_input("Ordinary missing value(s)", placeholder='[99]', key=f"rm_missing_{qid}"),
+                                "missing": c3.text_input("Ordinary missing value(s)", placeholder='[]', help="Usa [] cuando no exista un estado físico adicional de missing ordinario.", key=f"rm_missing_{qid}"),
                                 "confirmed": st.checkbox("Confirmo esta decisión explícita de estados físicos RM", key=f"rm_confirmed_{qid}"),
                             }
                         generate_release = st.form_submit_button("Generar Execution Release Draft", type="primary")
