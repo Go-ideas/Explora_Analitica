@@ -246,10 +246,16 @@ last in a technical block; stored types, review states and authority are not
 changed by ordering or rendering. No analytical capability is added.
 
 Gate51 / Gate47 RM explicit empty ordinary-missing: BOUNDED CONTRACT CORRECTIVE /
-CLARIFICATION, pending Human Review / Git Adoption on
-`fix/gate51-rm-empty-ordinary-missing` from main
+CLARIFICATION, ACCEPTED / MERGED through PR #28 (Human Review PASS) from
+`fix/gate51-rm-empty-ordinary-missing`, starting main
 `2380cb79df36109ee4a3216834a96d27c6571be6`. Selected/not-selected remain explicit,
 required and non-empty; ordinary missing remains an explicit required list but
 may be empty, meaning no additional ordinary-missing physical state exists.
 Package compatibility remains LEGACY and productive execution CANONICAL_V1.
 No analytical capability or milestone is added or reopened.
+
+RM corrective accepted feature head: `7ce6e78c69ba16d1553b310dc307755306ade129`.
+Adoption merge: `11aeffebc82275e50fde51cfcd830ef468f6ea02`.
+Post-merge clean-main validation: RM 35, Operator Console 5, Gate47 67, Gate51 45,
+Canonical Materialization 51, Canonical Runtime 39; full 1293 passed / 0 failed /
+0 skipped (506.31 seconds). No unexpected numerical deltas or customer data added.

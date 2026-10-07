@@ -91,8 +91,11 @@ ER cannot override those methodology fields.
 
 ## RM explicit empty ordinary-missing shared contract corrective (2026-10-06)
 
-Status: BOUNDED CONTRACT CORRECTIVE / CLARIFICATION, pending Human Review / Git
-Adoption. Starting main: `2380cb79df36109ee4a3216834a96d27c6571be6`.
+Status: BOUNDED CONTRACT CORRECTIVE / CLARIFICATION, ACCEPTED / MERGED.
+Human Review: PASS. Adopted through PR #28 on 2026-10-06.
+Accepted feature head: `7ce6e78c69ba16d1553b310dc307755306ade129`.
+Adoption merge: `11aeffebc82275e50fde51cfcd830ef468f6ea02`.
+Starting main: `2380cb79df36109ee4a3216834a96d27c6571be6`.
 Branch: `fix/gate51-rm-empty-ordinary-missing`.
 
 RM `selected_values` and `not_selected_values` are explicit required lists/tuples
@@ -120,3 +123,11 @@ Package compatibility declaration remains `LEGACY`; productive execution remains
 DUAL_RUN, option identity, denominator, PARENT_RM scope, completion policy,
 storage encoding, missing calculation policy, B1/B2/B3 or analytical capability.
 Only synthetic generic fixtures are used; no customer source data is committed.
+
+Post-merge validation on clean main at the adoption merge SHA:
+RM focused 35, Operator Console focused 5, Gate47 67, Gate51 45,
+Canonical Materialization 51, Canonical Runtime 39; full regression 1293 passed,
+0 failed, 0 skipped (506.31 seconds). All accepted counts are unchanged.
+No unexpected skips, numerical deltas or filesystem failures occurred in this
+post-merge run. No customer-specific hardcoding or customer source data was added.
+This documentation closure adds no analytical milestone or capability.
