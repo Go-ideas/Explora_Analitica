@@ -46,6 +46,7 @@ from src.reporter.tabulator import (
 from src.utils.filename import safe_filename
 from src.utils.question_order import resolve_datamap_paths
 from src.utils.text_utils import normalize_text
+from src.ui.paired_comparison import render_paired_comparison
 from src.web_canonical.adapter import CanonicalWebAdapterError
 from src.web_canonical.comparison import DualRunComparisonResult
 from src.web_canonical.export import (
@@ -167,6 +168,9 @@ def render() -> None:
             key_prefix="report",
             current_binding=current_binding,
         )
+
+    if execution_mode == ExecutionMode.LEGACY.value:
+        render_paired_comparison(db_path, questions)
 
     _render_factor_recommendations(
         db_path,
