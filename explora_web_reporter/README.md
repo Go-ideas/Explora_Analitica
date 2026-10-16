@@ -219,3 +219,52 @@ se aplican también a estas bases. Las bases SQLite anteriores deben regenerarse
 Una declaración explícita `formato_rm=menciones` mantiene su interpretación
 anterior: un código cero etiquetado puede ser una categoría real. No se elimina
 el cero de todas las RM ni se cambian los contratos canónicos de estados/missing.
+
+## Comparaciones de las mismas personas
+
+En el reporteador histórico (`LEGACY`), el panel **Comparar las mismas personas
+entre productos o tiempos** permite definir dos condiciones y un contraste
+explícito. Cada condición selecciona una pregunta y, opcionalmente, un filtro de
+producto, visita u otro atributo configurado. Los filtros de la tabla anterior
+no se heredan en este panel. Se pueden comparar una misma pregunta entre dos
+productos o dos ítems de una pregunta padre entre tiempos, fijando el producto.
+
+- **Media:** t de Student pareada bilateral sobre las diferencias por persona;
+  incluye el intervalo de confianza de esa diferencia.
+- **Top2Box, BottomBox o selección de una opción RM:** McNemar exacta bilateral
+  sobre los pares discordantes. Las cajas deben estar definidas; la RM requiere
+  una base observada explícita, incluyendo no seleccionados. Los valores
+  binarios se presentan como proporciones de 0 a 1; no se estima su intervalo
+  de diferencia en esta salida.
+
+La identidad se toma de `id_persona` y debe corresponder a un ID original válido
+del estudio, no a claves generadas por fila. Solo entran al test personas con
+respuestas válidas en ambas condiciones. Se muestran evaluaciones y personas
+disponibles, personas repetidas, pares completos y personas sin pareja. Los
+valores A/B y la diferencia se calculan sobre los mismos pares; pueden diferir
+de los descriptivos que usan toda la muestra de cada condición.
+
+Por defecto se exige una evaluación por persona y condición. Para medias, el
+usuario puede elegir explícitamente **Usar la media por persona en cada
+condición**, antes de realizar la t pareada; no se escoge la primera fila. Las
+comparaciones binarias no promedian ni eligen respuestas repetidas: se debe
+filtrar una sola evaluación. Un contraste de la misma pregunta debe usar
+condiciones sin evaluaciones solapadas. Para comparar ítems distintos se exige
+una pregunta padre común, códigos/etiquetas equivalentes y escalas compatibles.
+Las preguntas excluidas siguen excluidas.
+
+La confianza es configurable al 90%, 95% o 99%; el mínimo predeterminado es de 30
+pares completos. Si no hay suficientes pares, se informa **Base insuficiente** y
+no se genera un p-valor ni una conclusión de ausencia de diferencias. El Excel
+incluye condiciones, método, política de repeticiones y notas, con p-valores en
+notación científica.
+
+Este panel realiza un único contraste sin ponderación y sin corrección por
+comparaciones múltiples. No implementa un ranking inferencial de productos,
+NPS pareado, penalización JAR, modelos de medidas repetidas ni controles por
+orden/arrastre. La t pareada requiere independencia entre personas y un modelo
+adecuado para sus diferencias. Un contraste significativo no demuestra por sí
+solo causalidad ni superioridad comercial. No se añaden letras pareadas a la
+tabla general porque sus bases podrían ser distintas; no hay fallback
+independiente ni cambio automático de motor. La salida no sustituye una
+liberación `CANONICAL_V1`.
