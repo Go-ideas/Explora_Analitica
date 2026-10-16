@@ -11,6 +11,14 @@ from src.utils.text_utils import find_column, first_existing
 
 
 EXPORT_COLUMN_NAMES = {
+    "variable_id_persona": "Variable_ID_Persona",
+    "tipo_tabla_sugerida": "Tipo_Tabla_Sugerida",
+    "tipo_eje_fila": "Tipo_Eje_Fila",
+    "eje_fila_grid": "Eje_Fila_Grid",
+    "unidad_analisis": "Unidad_Analisis",
+    "escala_min": "Escala_Min",
+    "escala_max": "Escala_Max",
+    "item_repetido_separado": "Item_Repetido_Separado",
     "variable": "Variable",
     "label": "Variable_Label",
     "pregunta_id": "Pregunta_ID",

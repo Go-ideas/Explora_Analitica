@@ -719,7 +719,8 @@ def _write_report_heading(
     )
     context = "   |   ".join(
         [
-            f"Base válida: {config.get('Base válida', '—')}",
+            f"Base válida: {config.get('Base válida', '—')} {config.get('Unidad de base', '')}".rstrip(),
+            *([f"Personas únicas: {config['Personas únicas']}"] if 'Personas únicas' in config else []),
             f"Comparar por: {_config_value(config.get('Banners', 'Total'))}",
             f"Filtros: {config.get('Filtros aplicados', 'Sin filtros')}",
             f"Cálculos: {_config_value(config.get('Cálculos', '—'))}",

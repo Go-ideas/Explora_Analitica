@@ -140,3 +140,60 @@ El repositorio es público, por lo que un despliegue nuevo puede quedar público
 por defecto. Antes de subir datos reales de clientes, cambia la app a privada en
 **App Settings → Sharing → Only specific people can view this app**. No utilices
 la consola con datos de clientes mientras el acceso sea público.
+
+## Datamaps, escalas y evaluaciones repetidas
+
+La importación usa metadatos del estudio, sin reglas por nombre de archivo,
+cliente, producto o pregunta. Un tipo explícito en `tipo_pregunta` tiene prioridad;
+si falta, `tipo_tabla_sugerida` puede declarar Escala hedónica, Escala, JAR,
+Escala 1–5, RU, RM, NPS o Cruce. Una sugerencia desconocida no se interpreta como
+un tipo conocido. El texto libre de `metrica_sugerida` no define por sí solo los
+límites de una escala.
+
+| Campo del Datamap | Uso |
+| --- | --- |
+| `variable_id_persona` / `id_respondente` / `respondent_id_variable` | Nombre de la columna SPSS que identifica a la persona; no el valor de una persona. Debe existir y no contener IDs vacíos. |
+| `unidad_analisis` / `Base_Valida_Nivel` / `analysis_unit` | `Respondente` o `Persona` para contar una vez a cada persona; las evaluaciones repetidas se conservan para unidades como evaluación de producto. |
+| `tipo_eje_fila` / `Tipo_Eje_Fila` / `repetition_axis` | Eje declarado, por ejemplo Tiempo, Visita o Tienda. |
+| `eje_fila_grid` / `Eje_Fila_Grid` / `repetition_value` | Etiqueta de cada ítem repetido, por ejemplo «Antes» o «Después». No se deduce de sufijos como `.1`. |
+| `escala_min` / `scale_min`, `escala_max` / `scale_max` | Límites completos de la escala; tienen prioridad sobre los Value Labels. |
+
+Los ítems escalares con un mismo `pregunta_id` y eje declarado se ofrecen como
+preguntas separadas, con IDs `pregunta_padre::variable` y etiquetas del eje. Se
+conservan la variable física y la pregunta padre. Si no hay eje semántico, varias
+variables explícitamente escalares se separan por su nombre de variable; no se
+convierten automáticamente en opciones RM. Las opciones declaradas RM mantienen
+su agrupación. Los ejes incompletos, etiquetas duplicadas o IDs de pregunta en
+conflicto requieren corregir el Datamap. Un eje compuesto debe identificar cada
+ítem de forma única.
+
+SQLite conserva `id_persona`, `id_evaluacion` e `id_original`; la clave histórica
+`id_respondente` sigue siendo la clave de unión por fila. Al tabular una pregunta
+declarada por persona se comprueba que sus respuestas sean constantes entre
+evaluaciones y se cuenta una sola vez. Un banner o ponderador que cambie dentro de
+una persona requiere filtrar una evaluación o revisar la unidad; no se toma una
+fila arbitraria. La interfaz y el Excel indican si la base cuenta personas o
+evaluaciones y muestran las personas únicas.
+
+Las cajas se calculan con los límites declarados o los códigos numéricos
+consecutivos de los Value Labels completos, nunca con extremos observados en la
+muestra. Se usan los dos códigos superiores/inferiores de una escala con pasos
+unitarios; escalas con codificación u orientación diferente necesitan una
+recodificación explícita antes de ese cálculo. Sin una escala definida puede
+calcularse la media, pero se omiten las cajas con una advertencia. El cero no se
+elimina automáticamente y una escala de diez puntos no se convierte en NPS:
+NPS debe estar declarado. Valores fuera de los límites declarados requieren
+validación.
+
+Si la selección contiene varias evaluaciones de una misma persona, el reporteador
+no aplica pruebas de significancia para muestras independientes: informa que se
+necesita un método para muestras relacionadas y conserva los descriptivos. Este
+cambio no implementa tests pareados ni certifica por sí mismo una liberación
+canónica. Las exclusiones `usar_en_dashboard=No` se respetan también en escalas y
+multirrespuesta.
+
+Las bases SQLite construidas previamente deben regenerarse desde los originales
+y el Datamap para incorporar la identidad de persona, unidad y separación de
+ítems. El modo `CANONICAL_V1` sigue requiriendo su resultado canónico explícito;
+el análisis histórico de SQLite se selecciona conscientemente con `LEGACY` en
+«Modo de ejecución». No hay cambio automático de motor.

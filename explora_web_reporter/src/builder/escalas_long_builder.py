@@ -5,6 +5,7 @@ from typing import Any
 import pandas as pd
 
 from src.readers.spss_reader import get_value_labels
+from src.readers.scale_definition import scale_bounds
 from src.reporter.calculations import (
     bottom2box,
     nps_group,
@@ -12,6 +13,7 @@ from src.reporter.calculations import (
     weight_series,
 )
 from src.utils.text_utils import normalize_text
+from src.utils.text_utils import truthy
 
 
 ESCALAS_COLUMNS = [
@@ -46,20 +48,16 @@ def build_escalas_long(
         variable = item.get("variable")
         if variable not in df_spss.columns:
             continue
+        if "usar_en_dashboard" in item and not truthy(item["usar_en_dashboard"]):
+            continue
         labels = get_value_labels(meta_spss, variable)
         values = pd.to_numeric(df_spss[variable], errors="coerce")
         valid = values.dropna()
         if valid.empty:
             continue
-        scale_min = float(valid.min())
-        scale_max = float(valid.max())
-        if 0 in set(valid.unique()) and scale_max <= 5:
-            valid = valid[valid != 0]
-            scale_min = float(valid.min()) if not valid.empty else 1.0
-        if scale_max <= 5 and scale_min >= 1:
-            scale_min, scale_max = 1.0, 5.0
-        elif scale_max <= 10:
-            scale_min, scale_max = 0.0, 10.0
+        scale_min, scale_max = scale_bounds(item, labels)
+        if scale_min is not None and not valid.between(scale_min, scale_max).all():
+            raise ValueError(f"La variable {variable} contiene valores fuera de su escala declarada.")
 
         for idx, value in valid.items():
             label = labels.get(value, labels.get(str(value), ""))
@@ -73,9 +71,9 @@ def build_escalas_long(
                     "respuesta_label": label or str(value),
                     "escala_min": scale_min,
                     "escala_max": scale_max,
-                    "top2box": top2box(value, scale_min, scale_max),
-                    "bottombox": bottom2box(value, scale_min, scale_max),
-                    "nps_grupo": nps_group(value) if _is_nps_row(item) or scale_max == 10 else "",
+                    "top2box": top2box(value, scale_min, scale_max) if scale_min is not None else None,
+                    "bottombox": bottom2box(value, scale_min, scale_max) if scale_min is not None else None,
+                    "nps_grupo": nps_group(value) if _is_nps_row(item) else "",
                     "ponderador": weights.loc[idx],
                 }
             )

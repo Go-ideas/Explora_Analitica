@@ -19,6 +19,12 @@ PREGUNTA_COLUMNS = [
     "grupo_menu_reporteador",
     "mostrar_en_menu_reporteador",
     "prioridad_reporteador",
+    "pregunta_padre",
+    "tipo_eje_fila",
+    "eje_fila_grid",
+    "unidad_analisis",
+    "escala_min",
+    "escala_max",
 ]
 
 

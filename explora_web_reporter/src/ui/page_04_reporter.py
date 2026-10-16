@@ -657,7 +657,9 @@ def render_report(report: ReportResult, key_prefix: str) -> None:
         )
         st.markdown(f"### {report.title}")
         first_row = st.columns(4)
-        first_row[0].metric("Base válida", f"{report.base:,}")
+        first_row[0].metric(f"Base válida · {report.base_unit.lower()}", f"{report.base:,}")
+        if report.person_base is not None and report.base_unit == "Evaluaciones":
+            first_row[0].caption(f"Personas únicas: {report.person_base:,}")
         rm_kpis = _rm_summary_kpis(report)
         if rm_kpis:
             first_row[0].caption(
@@ -737,7 +739,7 @@ def render_report(report: ReportResult, key_prefix: str) -> None:
                 "displaylogo": False,
                 "toImageButtonOptions": {
                     "format": "png",
-                    "filename": f"{report.question_id}_grafico",
+                    "filename": safe_filename(report.question_id, "grafico"),
                     "scale": 2,
                 },
             },
@@ -841,10 +843,10 @@ def _render_methodology(report: ReportResult) -> None:
     with st.expander(
         "Base válida y filtros aplicados", expanded=False
     ):
-        st.write(f"Base válida: {report.base:,} casos.")
+        st.write(f"Base válida: {report.base:,} {report.base_unit.lower()}.")
         st.write(
             "Base antes de filtros: "
-            f"{(report.base_before_filters or report.base):,} casos."
+            f"{(report.base_before_filters or report.base):,} {report.base_unit.lower()}."
         )
         st.write(
             f"Filtros: {report.filter_summary or 'Sin filtros'}."

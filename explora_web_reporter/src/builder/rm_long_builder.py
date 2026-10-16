@@ -42,6 +42,8 @@ def build_rm_long(
         variable = item.get("variable")
         if variable not in df_spss.columns:
             continue
+        if "usar_en_dashboard" in item and not truthy(item["usar_en_dashboard"]):
+            continue
         labels = get_value_labels(meta_spss, variable)
         series = df_spss[variable].dropna()
         non_missing = series[~series.astype(str).str.strip().eq("")]
