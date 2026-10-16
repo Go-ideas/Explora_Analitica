@@ -147,11 +147,12 @@ def frequency_summary(data: pd.DataFrame) -> pd.DataFrame:
     return grouped
 
 
-def rm_summary(data: pd.DataFrame) -> pd.DataFrame:
+def rm_summary(data: pd.DataFrame, base_data: pd.DataFrame | None = None) -> pd.DataFrame:
     if data.empty:
         return pd.DataFrame()
-    bases = data.groupby("banner")["id_respondente"].nunique()
-    weighted_bases = data.drop_duplicates(
+    universe = base_data if base_data is not None and not base_data.empty else data
+    bases = universe.groupby("banner")["id_respondente"].nunique()
+    weighted_bases = universe.drop_duplicates(
         ["banner", "id_respondente"]
     ).groupby("banner")["_peso"].sum()
     result = (

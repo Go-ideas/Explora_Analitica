@@ -42,12 +42,29 @@ def build_rm_long(
         variable = item.get("variable")
         if variable not in df_spss.columns:
             continue
+        if "usar_en_dashboard" in item and not truthy(item["usar_en_dashboard"]):
+            continue
         labels = get_value_labels(meta_spss, variable)
         series = df_spss[variable].dropna()
         non_missing = series[~series.astype(str).str.strip().eq("")]
         unique_values = set(pd.to_numeric(non_missing, errors="coerce").dropna().unique().tolist())
         is_dichotomous = unique_values and unique_values.issubset({0, 1})
-        if len(labels) == 1:
+        if _coded_option_layout(item):
+            code, label = _coded_option(item, non_missing, labels)
+            for idx, value in non_missing.items():
+                if float(value) == code:
+                    rows.append({
+                        "id_respondente": respondentes.loc[idx, "id_respondente"],
+                        "pregunta_id": item.get("pregunta_id") or variable,
+                        "variable_origen": variable,
+                        "codigo_respuesta": code,
+                        "respuesta_label": label,
+                        "formato_rm": "codigo_por_opcion",
+                        "ponderador": weights.loc[idx],
+                    })
+        elif normalize_text(item.get("formato_rm")) in {"menciones", "mentions"}:
+            rows.extend(_build_mentions_rows(non_missing, item, variable, labels, respondentes, weights))
+        elif len(labels) == 1:
             rows.extend(
                 _build_unitary_label_rows(
                     non_missing,
@@ -71,6 +88,57 @@ def build_rm_long(
     result = deduplicate_rm(result)
     result = remove_exclusive_combinations(result, EXCLUSIVE_OPTION_HINTS)
     return result.reset_index(drop=True)
+
+
+def _coded_option_layout(item: pd.Series) -> bool:
+    declared = normalize_text(item.get("formato_rm"))
+    if declared:
+        return declared in {"codigo_por_opcion", "code_per_option"}
+    return normalize_text(item.get("tipo_eje_fila")) == "opcion_rm"
+
+
+def _coded_option(item: pd.Series, series: pd.Series, labels: dict) -> tuple[float, str]:
+    variable = item.get("variable")
+    code = pd.to_numeric(item.get("codigo_opcion_rm"), errors="coerce")
+    numeric = pd.to_numeric(series, errors="coerce")
+    if numeric.isna().any():
+        raise ValueError(f"La opción RM {variable} requiere códigos numéricos explícitos.")
+    observed = set(numeric[numeric.ne(0)].unique())
+    if pd.isna(code):
+        if len(observed) != 1:
+            raise ValueError(f"Declare codigo_opcion_rm para {variable}; no hay un código de selección único.")
+        code = next(iter(observed))
+    if code == 0 or not observed.issubset({code}):
+        raise ValueError(f"La opción RM {variable} contiene códigos incompatibles con su selección declarada.")
+    label = item.get("label_opcion_rm")
+    if label is None or pd.isna(label) or not str(label).strip():
+        label = next((value for key, value in labels.items()
+                      if pd.to_numeric(key, errors="coerce") == code), None)
+    if label is None or not str(label).strip():
+        raise ValueError(f"Falta la etiqueta del código de selección de {variable}.")
+    return float(code), str(label)
+
+
+def build_rm_bases(df_spss: pd.DataFrame, datamap: pd.DataFrame, respondents: pd.DataFrame) -> pd.DataFrame:
+    """Keep observed zero-selection evaluations in explicitly option-coded RM bases."""
+    rows = []
+    if datamap is None or datamap.empty or "pregunta_id" not in datamap:
+        return pd.DataFrame(columns=["id_respondente", "pregunta_id"])
+    for question, group in datamap.groupby("pregunta_id", sort=False):
+        items = group[group.apply(lambda row: _is_rm_row(row) and truthy(row.get("usar_en_dashboard", True)), axis=1)]
+        if items.empty or not items.apply(_coded_option_layout, axis=1).all():
+            continue
+        variables = [str(item.variable) for _, item in items.iterrows()
+                     if item.variable in df_spss and truthy(item.get("usar_en_dashboard", True))]
+        if not variables:
+            continue
+        observed = df_spss[variables].notna() & df_spss[variables].astype(str).apply(
+            lambda column: column.str.strip().ne("")
+        )
+        eligible = observed.any(axis=1)
+        rows.extend({"id_respondente": respondents.loc[index, "id_respondente"], "pregunta_id": question}
+                    for index in df_spss.index[eligible])
+    return pd.DataFrame(rows, columns=["id_respondente", "pregunta_id"])
 
 
 def _is_rm_row(row: pd.Series) -> bool:

@@ -93,6 +93,7 @@ def detect_grid_loop_structures(
     evidences = [
         _variable_evidence(variable, df_spss, meta_spss, datamap_lookup)
         for variable in df_spss.columns
+        if _needs_structure_detection(datamap_lookup.get(variable, {}))
     ]
     groups: dict[str, list[VariableEvidence]] = {}
     for evidence in evidences:
@@ -114,6 +115,20 @@ def detect_grid_loop_structures(
     children = pd.DataFrame(child_rows, columns=CHILD_COLUMNS)
     structures.attrs["grid_loop_children"] = children
     return structures
+
+
+def _needs_structure_detection(row: dict) -> bool:
+    if truthy(row.get("item_repetido_separado")):
+        return False
+    if "usar_en_dashboard" in row and not truthy(row["usar_en_dashboard"]):
+        return False
+    scalar_or_rm = normalize_text(row.get("tipo_pregunta")) in {
+        "ru", "rm", "rm_codificada", "escala", "escala_jar", "nps", "numerica",
+    }
+    declared_grid = truthy(row.get("es_grid")) or truthy(row.get("es_item_grid"))
+    # Names and question prose are weaker evidence than an explicit type. For
+    # example, the word "cuáles" does not make a declared RM item open-ended.
+    return not scalar_or_rm or declared_grid
 
 
 def enrich_datamap_with_spss_structure(

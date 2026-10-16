@@ -13,18 +13,19 @@ from src.export.report_exporter import (
     reports_to_excel_bytes,
 )
 from src.reporter.tabulator import ReportResult
+from src.utils.filename import safe_filename
 
 
 def executive_export_bytes(report: ReportResult) -> bytes:
     output = BytesIO()
     with ZipFile(output, "w", ZIP_DEFLATED) as archive:
         archive.writestr(
-            f"{report.question_id}_Analisis_Explora.xlsx",
+            safe_filename(report.question_id, "Analisis_Explora.xlsx"),
             report_to_excel_bytes(report),
         )
         if report.figure is not None:
             archive.writestr(
-                f"{report.question_id}_Grafico.html",
+                safe_filename(report.question_id, "Grafico.html"),
                 report.figure.to_html(
                     full_html=True,
                     include_plotlyjs=True,

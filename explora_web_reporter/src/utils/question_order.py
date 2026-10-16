@@ -61,9 +61,10 @@ def order_question_catalog(
     rows = []
     for _, row in work.iterrows():
         question_id = str(row.get("pregunta_id", "")).strip()
-        info = metadata.get(question_id, {})
+        parent_id = _clean_value(row.get("pregunta_padre"))
+        info = {**metadata.get(parent_id, {}), **metadata.get(question_id, {})}
         documented_question = (
-            question_id in documented if documented else True
+            (question_id in documented or parent_id in documented) if documented else True
         )
         additional = not documented_question
         if _explicit_no(
@@ -95,7 +96,8 @@ def order_question_catalog(
             or question_id
         )
         text = (
-            info.get("texto")
+            (_clean_value(row.get("texto_pregunta")) if parent_id and parent_id != question_id else "")
+            or info.get("texto")
             or _clean_value(row.get("texto_pregunta"))
             or question_id
         )

@@ -20,11 +20,30 @@ def detect_id_column(df_spss: pd.DataFrame) -> str | None:
 
 def build_respondentes(df_spss: pd.DataFrame, datamap_df: pd.DataFrame) -> pd.DataFrame:
     id_col = detect_id_column(df_spss)
+    if datamap_df is not None and "variable_id_persona" in datamap_df:
+        declared = datamap_df["variable_id_persona"].dropna().astype(str).str.strip()
+        declared = declared[declared.ne("")].unique()
+        if len(declared) > 1:
+            raise ValueError("El Datamap declara más de una variable de identificación de persona.")
+        if len(declared):
+            id_col = declared[0]
+            if id_col not in df_spss:
+                raise ValueError(f"La variable de identificación de persona no existe: {id_col}")
+            values = df_spss[id_col]
+            if values.isna().any() or values.astype(str).str.strip().str.casefold().isin({"", "nan", "none", "null"}).any():
+                raise ValueError(f"La identificación de persona contiene valores vacíos: {id_col}")
     result = pd.DataFrame(index=df_spss.index)
     original_id = _original_id_series(df_spss, id_col)
     result["id_respondente"] = _internal_id_series(df_spss, id_col)
     result["id_original"] = original_id.fillna("").astype(str)
     result["row_index"] = range(len(df_spss))
+    # Keep the historical row join key, but never conflate it with the person.
+    # A repeated person can contribute several evaluations without losing linkage.
+    result["id_evaluacion"] = result["id_respondente"]
+    if id_col and df_spss[id_col].notna().all() and not df_spss[id_col].astype(str).str.strip().str.casefold().isin({"", "nan", "none", "null"}).any():
+        result["id_persona"] = df_spss[id_col].astype(str).str.strip()
+    else:
+        result["id_persona"] = result["id_respondente"]
 
     if datamap_df is not None and not datamap_df.empty:
         mask = datamap_df["clasificacion_analitica"].isin(RESPONDENT_CLASSIFICATIONS)

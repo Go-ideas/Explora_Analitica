@@ -8,6 +8,8 @@ from typing import Any
 import pandas as pd
 
 from src.database.db_reader import read_sql, read_table
+from src.readers.scale_definition import scale_bounds
+from src.reporter.analysis_unit import is_person_unit, person_unit_data
 from src.reporter.banners import (
     banner_comparison_groups,
     banner_order,
@@ -81,6 +83,8 @@ class ReportResult:
     )
     base_before_filters: int | None = None
     banner_mode: str = "nested"
+    person_base: int | None = None
+    base_unit: str = "Respondentes"
     identity_rows: pd.DataFrame = field(default_factory=pd.DataFrame)
 
 
@@ -422,6 +426,7 @@ def generate_report(
     rm_raw = _read_question_table(
         db_path, "multirrespuesta_long", question_id
     )
+    rm_base_raw = _read_question_table(db_path, "bases_multirrespuesta", question_id)
     grid_loop_raw = _read_question_table(
         db_path, "respuestas_grid_loop", question_id
     )
@@ -431,6 +436,14 @@ def generate_report(
     open_raw = _read_question_table(
         db_path, "abiertas", question_id
     )
+    if is_person_unit(question_row.get("unidad_analisis")):
+        respondentes, selected_respondents, sources = person_unit_data(
+            respondentes,
+            selected_respondents,
+            [response_raw, rm_raw, grid_loop_raw, native_scale, open_raw, rm_base_raw],
+            [*banners, *([ponderador] if ponderador else [])],
+        )
+        response_raw, rm_raw, grid_loop_raw, native_scale, open_raw, rm_base_raw = sources
     multi_ids = set()
     if {
         "pregunta_id",
@@ -470,7 +483,7 @@ def generate_report(
     )
     scale_raw = native_scale
     if scale_raw.empty and metadata_is_scale:
-        scale_raw = _scale_fallback(response_raw)
+        scale_raw = _scale_fallback(response_raw, question_row, opciones)
 
     question_type = metadata_text
     if question_type_display == "RM":
@@ -491,6 +504,12 @@ def generate_report(
     valid_calculations, warnings = validate_calculations_for_question(
         question_type, requested
     )
+    for metric, column in (("Top2Box", "top2box"), ("BottomBox", "bottombox")):
+        if metric in valid_calculations and (
+            column not in scale_raw or scale_raw[column].isna().all()
+        ):
+            valid_calculations.remove(metric)
+            warnings.append(f"{metric} requiere límites de escala declarados o Value Labels completos.")
     if not ponderador:
         weighted = {
             "n ponderado",
@@ -536,6 +555,10 @@ def generate_report(
         response_column="respuesta_label",
         banner_mode=banner_mode,
     )
+    rm_base_data = _prepare_data(
+        rm_base_raw, valid_ids, selected_respondents, opciones,
+        banners, ponderador, banner_mode=banner_mode,
+    )
     grid_loop_data = _prepare_data(
         grid_loop_raw,
         valid_ids,
@@ -572,7 +595,7 @@ def generate_report(
             response_data["valor"].astype(str),
         )
 
-    base_sources = [response_raw, rm_raw, scale_raw]
+    base_sources = [response_raw, rm_raw, scale_raw, rm_base_raw]
     source_ids = set()
     for source in base_sources:
         if not source.empty and "id_respondente" in source:
@@ -593,6 +616,14 @@ def generate_report(
             source_ids
         )
     )
+    valid_people = selected_respondents[
+        selected_respondents["id_respondente"].astype(str).isin(source_ids)
+    ]
+    person_column = "id_persona" if "id_persona" in respondentes else "id_respondente"
+    person_base = valid_people[person_column].nunique()
+    repeated_people = valid_people[person_column].duplicated().any()
+    repeated_design = respondentes[person_column].duplicated().any()
+    base_unit = "Evaluaciones" if repeated_design else "Respondentes"
 
     summaries = {
         "frequency": (
@@ -607,7 +638,7 @@ def generate_report(
             _grid_loop_rm_summary(grid_loop_data)
             if question_type_display == "GRID_RM/LOOP_RM"
             and not grid_loop_data.empty
-            else rm_summary(rm_data)
+            else rm_summary(rm_data, rm_base_data)
             if not rm_data.empty
             else pd.DataFrame()
         ),
@@ -633,6 +664,12 @@ def generate_report(
     significance_display = _normalize_significance_display(
         significance_display, include_significance
     )
+    if significance_display != "none" and banners and repeated_people:
+        significance_display = "none"
+        warnings.append(
+            "Significancia no calculada: hay evaluaciones repetidas de las mismas personas. "
+            "Se requiere un método para muestras relacionadas; no se aplican tests independientes."
+        )
     significance = pd.DataFrame()
     legend = pd.DataFrame()
     summary_for_legend = _primary_summary(
@@ -701,6 +738,11 @@ def generate_report(
         primary_summary,
         banner_mode,
     )
+    if repeated_design:
+        notes.append(
+            f"Base: {base:,} evaluaciones de {person_base:,} personas únicas. "
+            "Una evaluación no equivale a una persona independiente."
+        )
     if question_type_display == "GRID_RM/LOOP_RM":
         notes.append(
             "Esta pregunta es GRID_RM/LOOP_RM: matriz multirrespuesta "
@@ -750,6 +792,8 @@ def generate_report(
         recommendation_details=recommendation_details or {},
         base_before_filters=base_before_filters,
         banner_mode=banner_mode,
+        person_base=int(person_base),
+        base_unit=base_unit,
         identity_rows=_report_identity_rows(response_data, rm_data, selected_respondents, banners),
     )
 
@@ -1015,7 +1059,7 @@ def _first_metric_column(
     return None
 
 
-def _scale_fallback(data: pd.DataFrame) -> pd.DataFrame:
+def _scale_fallback(data: pd.DataFrame, question: pd.Series, options: pd.DataFrame) -> pd.DataFrame:
     if data.empty:
         return data.copy()
     result = data.copy()
@@ -1025,20 +1069,21 @@ def _scale_fallback(data: pd.DataFrame) -> pd.DataFrame:
     result = result[result["valor"].notna()].copy()
     if result.empty:
         return result
-    scale_min = float(result["valor"].min())
-    scale_max = float(result["valor"].max())
-    if scale_max <= 5 and scale_min >= 0:
-        result = result[result["valor"] != 0].copy()
-        scale_min, scale_max = 1.0, 5.0
-    elif scale_max <= 10 and scale_min >= 0:
-        scale_min, scale_max = 0.0, 10.0
+    labels = {}
+    if {"pregunta_id", "codigo", "label"}.issubset(options.columns):
+        selected = options[options["pregunta_id"].astype(str).eq(str(question.get("pregunta_id")))]
+        labels = dict(zip(selected["codigo"], selected["label"]))
+    scale_min, scale_max = scale_bounds(question, labels)
+    if scale_min is not None and not result["valor"].between(scale_min, scale_max).all():
+        raise ValueError("Hay valores fuera de la escala declarada de la pregunta.")
     result["top2box"] = result["valor"].apply(
-        lambda value: top2box(value, scale_min, scale_max)
+        lambda value: top2box(value, scale_min, scale_max) if scale_min is not None else None
     )
     result["bottombox"] = result["valor"].apply(
-        lambda value: bottom2box(value, scale_min, scale_max)
+        lambda value: bottom2box(value, scale_min, scale_max) if scale_min is not None else None
     )
-    result["nps_grupo"] = result["valor"].apply(nps_group)
+    is_nps = "nps" in f"{question.get('tipo_pregunta', '')} {question.get('tipo_calculo', '')}".lower()
+    result["nps_grupo"] = result["valor"].apply(nps_group) if is_nps else ""
     return result
 
 

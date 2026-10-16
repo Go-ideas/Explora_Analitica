@@ -17,6 +17,14 @@ from src.utils.text_utils import find_column, normalize_text, truthy
 
 
 COLUMN_ALIASES = {
+    "variable_id_persona": ["variable_id_persona", "respondent_id_variable", "id_respondente"],
+    "tipo_tabla_sugerida": ["tipo_tabla_sugerida", "suggested_table_type"],
+    "eje_fila_grid": ["eje_fila_grid", "repetition_value"],
+    "tipo_eje_fila": ["tipo_eje_fila", "repetition_axis"],
+    "unidad_analisis": ["unidad_analisis", "Base_Valida_Nivel", "analysis_unit"],
+    "escala_min": ["escala_min", "scale_min"],
+    "escala_max": ["escala_max", "scale_max"],
+    "item_repetido_separado": ["item_repetido_separado"],
     "variable": [
         "variable",
         "Variable",
@@ -798,6 +806,7 @@ def normalize_review_datamap(df: pd.DataFrame, spss_columns: list[str] | None = 
         else:
             empty = _empty_mask(base[col])
             if empty.any():
+                base[col] = base[col].astype(object)
                 base.loc[empty, col] = default
     for col in REVIEW_COLUMNS:
         if col not in base.columns:
@@ -840,6 +849,7 @@ def normalize_review_datamap(df: pd.DataFrame, spss_columns: list[str] | None = 
         "clasificacion_analitica"
     ].apply(normalize_classification)
     base["tipo_calculo"] = base["tipo_calculo"].apply(normalize_calculation)
+    base = _suggested_question_types(base)
     base = _normalize_question_roles(base, raw_classification)
     base = _normalize_grid_loop_roles(base)
     base = _infer_weight_variables(base)
@@ -867,7 +877,91 @@ def normalize_review_datamap(df: pd.DataFrame, spss_columns: list[str] | None = 
         ),
         axis=1,
     )
+    base = separate_repeated_questions(base)
     return base[REVIEW_COLUMNS + [col for col in base.columns if col not in REVIEW_COLUMNS]]
+
+
+def _suggested_question_types(base: pd.DataFrame) -> pd.DataFrame:
+    """Use explicit table suggestions only when the canonical type is absent.
+
+    Free-form metric prose is not a scale definition. In particular, neither a
+    numeric column nor a mention of a mean proves that a question is an NPS.
+    """
+    result = base.copy()
+    mapping = {
+        "escala_hedonica": "Escala", "escala": "Escala", "scale": "Escala",
+        "jar": "Escala JAR", "ru": "RU", "frecuencia": "RU",
+        "cruce": "RU", "frecuencia_porcentaje": "RU",
+        "distribucion_estadisticos": "Numérica", "numerica": "Numérica",
+        "rm": "RM", "rm_respondentes": "RM",
+        "nps": "NPS", "abierta": "Abierta",
+    }
+    for index, row in result.iterrows():
+        if normalize_text(row.get("tipo_pregunta")) not in {"", "sin_clasificar"}:
+            continue
+        suggestion = normalize_text(row.get("tipo_tabla_sugerida"))
+        kind = mapping.get(suggestion)
+        if suggestion.startswith("cruce_"):
+            kind = "RU"
+        if not kind and re.fullmatch(r"escala_\d+_\d+", suggestion):
+            kind = "Escala"
+        if kind:
+            result.at[index, "tipo_pregunta"] = kind
+    return result
+
+
+def separate_repeated_questions(base: pd.DataFrame) -> pd.DataFrame:
+    """Expose explicitly declared repeated items as separate report questions.
+
+    A suffix in a variable name is never interpreted as a time or a product.
+    Keep the parent and physical variable for traceability, and use the declared
+    axis labels for display. RM option grids retain their existing grouping.
+    """
+    result = base.copy()
+    if not {"tipo_eje_fila", "eje_fila_grid"}.issubset(result.columns):
+        return result
+    for parent, group in result.groupby("pregunta_id", sort=False):
+        if group["variable"].nunique() < 2:
+            continue
+        types = group["tipo_pregunta"].fillna("").map(normalize_text)
+        if types.str.contains(r"(?:^rm|multirrespuesta|grid_rm|loop_rm)", regex=True).any():
+            continue
+        axes = group["tipo_eje_fila"].fillna("").astype(str).str.strip()
+        values = group["eje_fila_grid"].fillna("").astype(str).str.strip()
+        if not axes.ne("").any():
+            # Shared questionnaire IDs do not make scalar variables RM options
+            # (e.g. age and age band). Without a semantic axis use variable names.
+            scalar = types.isin({"ru", "escala", "escala_jar", "nps", "numerica"}).all()
+            declared_grid = group["es_grid"].apply(truthy).any() or group["es_item_grid"].apply(truthy).any()
+            if not scalar or declared_grid:
+                continue
+            axes = pd.Series("Variable", index=group.index)
+            values = group["variable"].astype(str)
+        if axes.eq("").any() or values.eq("").any() or axes.nunique() != 1:
+            raise ValueError(f"La pregunta {parent} requiere un eje de repetición y una etiqueta por variable.")
+        if values.duplicated().any():
+            raise ValueError(f"La pregunta {parent} tiene etiquetas de repetición duplicadas; declare un eje compuesto único.")
+        for index, row in group.iterrows():
+            question_id = f"{parent}::{row['variable']}"
+            if question_id in set(result["pregunta_id"]):
+                raise ValueError(f"ID de pregunta repetida en conflicto: {question_id}")
+            result.at[index, "pregunta_padre"] = parent
+            result.at[index, "pregunta_id"] = question_id
+            result.at[index, "item_repetido_separado"] = True
+            result.at[index, "texto_pregunta"] = (
+                f"{row['texto_pregunta']} [{axes.loc[index]}: {values.loc[index]}]"
+            )
+            # The repeated item is now scalar; it must not be re-merged by the
+            # legacy grid catalogue on its next read or on a final-datamap reload.
+            result.at[index, "grid_id"] = ""
+            result.at[index, "es_grid"] = False
+            result.at[index, "es_item_grid"] = False
+            result.at[index, "tipo_estructura_grid"] = ""
+            if normalize_text(row["tipo_pregunta"]) in {"grid_escala", "loop_numerico"}:
+                result.at[index, "tipo_pregunta"] = "Escala"
+            elif normalize_text(row["tipo_pregunta"]) == "loop_ru":
+                result.at[index, "tipo_pregunta"] = "RU"
+    return result
 
 
 def _dashboard_default(row: pd.Series) -> bool:
@@ -1197,7 +1291,7 @@ def _normalize_question_roles(
     ] = "NPS"
     result.loc[
         calculation_missing
-        & question_type.str.contains("escala|grid"),
+        & question_type.str.contains("escala|grid|numerica"),
         "tipo_calculo",
     ] = "Media"
     result.loc[

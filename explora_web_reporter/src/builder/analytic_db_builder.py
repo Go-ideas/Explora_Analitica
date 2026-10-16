@@ -21,7 +21,7 @@ from src.builder.recommendations_builder import (
 )
 from src.builder.respondentes_builder import build_respondentes
 from src.builder.respuestas_long_builder import build_respuestas_long
-from src.builder.rm_long_builder import build_rm_long
+from src.builder.rm_long_builder import build_rm_long, build_rm_bases
 from src.builder.variables_builder import build_variables
 from src.utils.constants import DB_DIR, EXPORTS_DIR, REVISION_EXCEL_FILENAME, SQLITE_FILENAME
 from src.utils.text_utils import find_column, truthy
@@ -106,6 +106,7 @@ def build_analytic_database(
         "opciones": opciones,
         "respuestas_long": respuestas_long,
         "multirrespuesta_long": rm_long,
+        "bases_multirrespuesta": build_rm_bases(df_spss, datamap_df, respondentes),
         "respuestas_grid_loop": grid_loop_long,
         "escalas_long": escalas_long,
         "abiertas": abiertas,

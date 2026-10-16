@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from hashlib import sha256
 from io import BytesIO
 
 import pandas as pd
@@ -47,6 +48,8 @@ def _report_config(
         "Orden": report.question_order,
         "Tipo de pregunta": report.question_type,
         "Base válida": report.base,
+        "Unidad de base": report.base_unit,
+        "Personas únicas": report.person_base if report.person_base is not None else report.base,
         "Base antes de filtros": (
             report.base_before_filters or report.base
         ),
@@ -187,7 +190,9 @@ def _write_report_sheet(
 def _safe_sheet_name(value: str) -> str:
     invalid = set("[]:*?/\\")
     cleaned = "".join("_" if char in invalid else char for char in value)
-    return cleaned[:31] or "Reporte"
+    if len(cleaned) > 31:
+        return f"{cleaned[:22]}_{sha256(value.encode()).hexdigest()[:8]}"
+    return cleaned or "Reporte"
 
 
 def _write_or_merge_range(
