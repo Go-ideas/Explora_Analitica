@@ -579,11 +579,14 @@ def _merge_source_by_variable(
         target = _find_exact_column(result.columns, [column]) or column
         mapped = keys.map(metadata_work[column].to_dict())
         if target not in result:
-            result[target] = mapped.fillna("")
+            result[target] = mapped.astype(object).fillna("")
             continue
         empty = _empty_mask(result[target])
         fillable = empty & ~_empty_mask(mapped)
         if fillable.any():
+            # Excel metadata can mix text, booleans and numeric codes. Preserve
+            # their values rather than assigning them into a strict string array.
+            result[target] = result[target].astype(object)
             result.loc[fillable, target] = mapped.loc[fillable]
     missing = metadata_work[~metadata_work.index.isin(set(keys))]
     if not missing.empty:
