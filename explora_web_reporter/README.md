@@ -197,3 +197,25 @@ y el Datamap para incorporar la identidad de persona, unidad y separación de
 ítems. El modo `CANONICAL_V1` sigue requiriendo su resultado canónico explícito;
 el análisis histórico de SQLite se selecciona conscientemente con `LEGACY` en
 «Modo de ejecución». No hay cambio automático de motor.
+
+### RM con código de opción y cero como no seleccionado
+
+Para columnas donde cada opción contiene `0` o su propio código de selección
+(por ejemplo, una columna con `0/12` y otra con `0/25`), declare
+`formato_rm=codigo_por_opcion` o `code_per_option`. También se admite la declaración
+`Tipo_Eje_Fila=Opción RM`. El código y etiqueta se obtienen de
+`codigo_opcion_rm`/`label_opcion_rm` o de un único código observado no cero con su
+Value Label. Los nombres o sufijos de las columnas no determinan la selección.
+Si nunca se observa una selección, el código debe declararse explícitamente.
+Los estados no numéricos o distintos de cero y del código declarado requieren
+validación.
+
+En este formato, cero no genera menciones pero sí conserva la evaluación en la
+base. La tabla `bases_multirrespuesta` mantiene las evaluaciones con al menos una
+opción observada, incluyendo todas las opciones en cero; una evaluación con todas
+las opciones ausentes no entra en esa base. Los filtros, banners y ponderadores
+se aplican también a estas bases. Las bases SQLite anteriores deben regenerarse.
+
+Una declaración explícita `formato_rm=menciones` mantiene su interpretación
+anterior: un código cero etiquetado puede ser una categoría real. No se elimina
+el cero de todas las RM ni se cambian los contratos canónicos de estados/missing.
