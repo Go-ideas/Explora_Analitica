@@ -401,6 +401,28 @@ def _report_controls(
             execution_modes,
             index=execution_modes.index(resolve_execution_mode().value),
             key=f"{key_prefix}_execution_mode",
+            help=(
+                "Elige cómo se ejecutará el análisis. Para una base creada "
+                "desde SAV y Datamap en esta aplicación, utiliza LEGACY."
+            ),
+        )
+        st.markdown(
+            "**¿Qué significa cada modo?**\n\n"
+            "- **LEGACY — Análisis de la base cargada.** Usa el motor original "
+            "para generar tablas desde la base analítica creada con SAV y "
+            "Datamap. Selecciona este modo para ese flujo; incluye las "
+            "comparaciones de las mismas personas entre productos o tiempos.\n"
+            "- **CORE_WRAPPER — Motor original mediante una capa común.** "
+            "Ejecuta el análisis original a través de una interfaz compartida; "
+            "se utiliza para comprobar la integración técnica.\n"
+            "- **CANONICAL_V1 — Resultados del flujo canónico.** Requiere un "
+            "resultado canónico generado y vinculado a la pregunta. Cargar "
+            "solo SAV y Datamap no lo proporciona; si falta, el análisis "
+            "se detiene.\n"
+            "- **DUAL_RUN — Comparación técnica de ambos motores.** Ejecuta "
+            "el análisis original y utiliza el resultado canónico para "
+            "revisarlos por separado. También requiere un resultado canónico; "
+            "no combina ni promedia los resultados."
         )
 
     recommendation_details = _selected_recommendation_details(
