@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import unicodedata
+from numbers import Real
 from typing import Iterable
 
 import pandas as pd
@@ -33,6 +34,10 @@ def find_column(columns: Iterable[str], candidates: Iterable[str]) -> str | None
 def truthy(value: object) -> bool:
     if isinstance(value, bool):
         return value
+    # Excel boolean columns with blank cells can be read as numeric 1.0/0.0.
+    # Only one denotes true; arbitrary nonzero codes are not selections.
+    if isinstance(value, Real):
+        return bool(value == 1)
     text = normalize_text(value)
     return text in {
         "1",

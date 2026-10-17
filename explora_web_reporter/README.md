@@ -86,6 +86,32 @@ guardados y configuraciones no afecten a otros usuarios.
 
 ## Archivos generados
 
+### Guardar y retomar un proyecto
+
+En la barra lateral de `app.py`, **Guardar o recuperar proyecto** prepara un
+ZIP con una copia consistente de SQLite, las selecciones del reporteador y
+las tablas/gráficos guardados. Puedes incluir el SAV y el Datamap disponibles
+para retomar también la construcción. Sin esos archivos podrás continuar el
+análisis de la base recuperada, pero no reconstruir las fuentes.
+
+Pulsa **Preparar archivo de proyecto** y luego **Descargar proyecto para
+retomarlo**. El archivo es una instantánea: prepáralo de nuevo después de hacer
+cambios. En una sesión nueva, súbelo y pulsa **Recuperar proyecto**. Se conservan
+las selecciones; pulsa **Generar tabla** para recalcular el análisis actual.
+Las vinculaciones y aprobaciones del flujo canónico no se restauran.
+
+El formato usa SQLite y JSON tipado, sin pickle ni código ejecutable. Comprueba
+versión, integridad y tamaño, y rechaza miembros ZIP inesperados o duplicados.
+El paquete contiene datos del estudio y debe almacenarse con acceso restringido.
+
+### Revisión previa
+
+El reporteador ofrece **Revisión antes de analizar** con comprobaciones de
+estructura, identificación de personas, unidades, escalas y ponderadores.
+Describe la base completa antes de filtros y mantiene explícita la revisión
+pendiente de saltos, exclusiones y decisiones metodológicas. No constituye una
+certificación ni convierte reglas de texto en condiciones ejecutadas.
+
 - `data/processed/Datamap_Final.xlsx`
 - `data/db/BD_Analitica_Explora.db`
 - `data/exports/BD_Analitica_Revision.xlsx`

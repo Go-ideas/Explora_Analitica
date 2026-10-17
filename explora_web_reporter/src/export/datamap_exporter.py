@@ -204,6 +204,7 @@ def _merge_review_into_source(
             review_values[canonical].to_dict()
         )
         found = source_keys.isin(review_values.index)
+        result[target] = result[target].astype(object)
         result.loc[found, target] = mapped.loc[found]
 
     existing_keys = set(source_keys)

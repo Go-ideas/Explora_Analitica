@@ -94,6 +94,9 @@ def render() -> None:
 
 
 def _reset_project_state() -> None:
+    for key in list(st.session_state):
+        if key.startswith(('report_', 'paired_', 'current_', 'canonical_')):
+            del st.session_state[key]
     for key in [
         "db_path",
         "revision_excel_path",
@@ -111,6 +114,11 @@ def _reset_project_state() -> None:
         "spss_path",
         "datamap_path",
         "datamap_review_saved",
+        "project_download",
+        "project_restored_message",
+        "failed_analysis_binding",
+        "pending_analysis_binding",
+        "last_execution_error",
     ]:
         st.session_state.pop(key, None)
 

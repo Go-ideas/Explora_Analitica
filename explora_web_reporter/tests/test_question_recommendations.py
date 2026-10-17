@@ -27,6 +27,10 @@ def database(tmp_path, kind, *, bounds=True, unit='evaluacion', repeated=True):
     ('Numérica', ('Media', 'Desviación estándar')),
     ('RM', ('n', 'RM % Respondentes', 'RM % Menciones')),
     ('GRID_RM', ('% respondentes', 'Menciones')),
+    ('RU / escala', ('Media', 'Desviación estándar', 'Top2Box', 'BottomBox')),
+    ('Escala hedónica', ('Media', 'Desviación estándar', 'Top2Box', 'BottomBox')),
+    ('Respuesta única', ('n', '%')),
+    ('Respuesta múltiple', ('n', 'RM % Respondentes', 'RM % Menciones')),
 ])
 def test_declared_type_drives_suggestion(tmp_path, kind, expected):
     result = recommend_question(database(tmp_path, kind), 'arbitrary')
