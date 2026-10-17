@@ -563,9 +563,13 @@ def _merge_source_by_variable(
         .str.strip()
         .str.casefold()
     )
-    metadata_work = metadata_work.drop_duplicates(
-        "_merge_variable", keep="first"
-    ).set_index("_merge_variable")
+    # A value-label sheet can contain several codes for one variable. Such
+    # codes are not a single option declaration: retain only unambiguous fields.
+    def unique_metadata(values):
+        present = values[~_empty_mask(values)].drop_duplicates()
+        return present.iloc[0] if len(present) == 1 else ""
+
+    metadata_work = metadata_work.groupby("_merge_variable", sort=False).agg(unique_metadata)
     keys = (
         result[source_variable]
         .fillna("")
@@ -657,7 +661,8 @@ def _variable_tokens(value: object) -> list[str]:
     if value is None or pd.isna(value):
         return []
     text = str(value)
-    tokens = re.findall(r"[A-Za-z@#$][A-Za-z0-9_@#$]*", text)
+    # Dots are legal inside SPSS names; splitting them silently loses items.
+    tokens = re.findall(r"[A-Za-z@#$][A-Za-z0-9_@#$]*(?:\.[A-Za-z0-9_@#$]+)*", text)
     return list(dict.fromkeys(token.strip() for token in tokens if token.strip()))
 
 
@@ -853,6 +858,7 @@ def normalize_review_datamap(df: pd.DataFrame, spss_columns: list[str] | None = 
     ].apply(normalize_classification)
     base["tipo_calculo"] = base["tipo_calculo"].apply(normalize_calculation)
     base = _suggested_question_types(base)
+    base = _normalize_annotated_types(base)
     base = _normalize_question_roles(base, raw_classification)
     base = _normalize_grid_loop_roles(base)
     base = _infer_weight_variables(base)
@@ -882,6 +888,34 @@ def normalize_review_datamap(df: pd.DataFrame, spss_columns: list[str] | None = 
     )
     base = separate_repeated_questions(base)
     return base[REVIEW_COLUMNS + [col for col in base.columns if col not in REVIEW_COLUMNS]]
+
+
+def _normalize_annotated_types(base: pd.DataFrame) -> pd.DataFrame:
+    """Recognize explicit RM/simple and RU/loop declarations with annotations.
+
+    A repeated RU item remains scalar; its variable name identifies the item
+    when the Datamap supplies no individual repetition labels. Scale suggestions
+    are used only for a declared RU loop, never inferred from observed numbers.
+    """
+    result = base.copy()
+    for index, row in result.iterrows():
+        kind = normalize_text(row.get("tipo_pregunta"))
+        if kind == "rm_simple" or kind.startswith("rm_simple_"):
+            result.at[index, "tipo_pregunta"] = "RM"
+            if kind == "rm_simple_0_codigo" and not str(row.get("formato_rm") or "").strip():
+                result.at[index, "formato_rm"] = "codigo_por_opcion"
+        elif kind == "loop_ru" or kind.startswith("loop_ru_"):
+            suggestion = normalize_text(row.get("tipo_tabla_sugerida"))
+            result.at[index, "tipo_pregunta"] = (
+                "Escala JAR" if suggestion == "jar" else
+                "Escala" if suggestion in {"escala", "escala_hedonica"} else "RU"
+            )
+    for _, group in result.groupby("pregunta_id", sort=False):
+        formats = group["formato_rm"].fillna("").map(normalize_text)
+        if (group["tipo_pregunta"].eq("RM").all()
+                and set(formats) == {"", "codigo_por_opcion"}):
+            result.loc[group.index[formats.eq("")], "formato_rm"] = "codigo_por_opcion"
+    return result
 
 
 def _suggested_question_types(base: pd.DataFrame) -> pd.DataFrame:

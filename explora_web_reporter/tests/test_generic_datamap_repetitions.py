@@ -23,6 +23,68 @@ def metadata(labels):
     return SimpleNamespace(variable_value_labels=labels, column_names_to_labels={})
 
 
+def test_variable_lists_preserve_dotted_spss_names():
+    sheets = {'10_Datamap_Corregido': pd.DataFrame([
+        {'variables_spss_asociadas': 'score.1; score.2; score.10',
+         'pregunta_id': 'SCORE', 'tipo_final': 'LOOP_RU por tiempo'},
+    ])}
+    _, source = get_review_source_sheet(sheets)
+    review = normalize_review_datamap(source)
+    assert set(review.variable) == {'score.1', 'score.2', 'score.10'}
+    assert set(review.pregunta_id) == {'SCORE::score.1', 'SCORE::score.2', 'SCORE::score.10'}
+    assert review.tipo_pregunta.eq('RU').all()
+
+
+def test_value_label_codes_are_not_inherited_as_a_single_rm_selection():
+    sheets = {
+        '10_Datamap_Corregido': pd.DataFrame([
+            {'variable': 'choice_a', 'pregunta_id': 'CHOICES', 'tipo_pregunta': 'RM_SIMPLE (0/código)'},
+            {'variable': 'choice_b', 'pregunta_id': 'CHOICES', 'tipo_tabla_sugerida': 'RM % respondentes'},
+        ]),
+        '03_Check_ValueLabels': pd.DataFrame([
+            {'variable': variable, 'Codigo': code, 'Etiqueta': str(code)}
+            for variable in ['choice_a', 'choice_b'] for code in [0, 12, 37]
+        ]),
+    }
+    _, source = get_review_source_sheet(sheets)
+    review = normalize_review_datamap(source)
+    assert review.tipo_pregunta.eq('RM').all()
+    assert review.formato_rm.eq('codigo_por_opcion').all()
+    assert review.codigo_opcion_rm.eq('').all()
+
+
+def test_annotated_rm_and_repetitions_survive_structure_detection(tmp_path):
+    from src.structure.grid_loop_detector import enrich_datamap_with_spss_structure
+    frame = pd.DataFrame({'case_key': ['a', 'b', 'c'],
+                          'score.1': [1, 2, 3], 'score.2': [3, 2, 1],
+                          'choice_a': [0, 12, 12], 'choice_b': [37, 0, 37]})
+    raw = pd.DataFrame([
+        {'variable': 'score.1', 'pregunta_id': 'SCORE', 'tipo_pregunta': 'LOOP_RU por tiempo',
+         'tipo_tabla_sugerida': 'Escala hedónica', 'escala_min': 1, 'escala_max': 3},
+        {'variable': 'score.2', 'pregunta_id': 'SCORE', 'tipo_pregunta': 'Escala',
+         'escala_min': 1, 'escala_max': 3},
+        {'variable': 'choice_a', 'pregunta_id': 'CHOICES', 'tipo_pregunta': 'RM_SIMPLE (0/código)'},
+        {'variable': 'choice_b', 'pregunta_id': 'CHOICES', 'tipo_pregunta': 'RM'},
+    ])
+    raw['usar_en_dashboard'] = True
+    raw['variable_id_persona'] = 'case_key'
+    meta = metadata({'score.1': {1: 'Low', 2: 'Mid', 3: 'High'},
+                     'score.2': {1: 'Low', 2: 'Mid', 3: 'High'},
+                     'choice_a': {12: 'Alpha'}, 'choice_b': {37: 'Beta'}})
+    review = enrich_datamap_with_spss_structure(normalize_review_datamap(raw, list(frame)), frame, meta)
+    db = tmp_path / 'annotated.db'
+    build_analytic_database(frame, meta, review, {'08_Clasificacion_Analitica': raw},
+                            db_path=db, export_revision=False)
+    questions = available_questions(db).set_index('pregunta_id')
+    assert questions.at['CHOICES', 'tipo_pregunta'] == 'RM'
+    first = generate_report(db, 'SCORE::score.1', calculations=['Media'])
+    assert first.base == 3
+    rm = generate_report(db, 'CHOICES', calculations=['Menciones'])
+    assert rm.base == 3
+    assert set(rm.summaries['rm'].respuesta) == {'Alpha', 'Beta'}
+    assert rm.summaries['rm'].menciones.sum() == 4
+
+
 def test_suggested_types_fill_only_missing_canonical_type():
     raw = pd.DataFrame([
         {'variable': 'satisfaction', 'tipo_tabla_sugerida': 'Escala hedónica',

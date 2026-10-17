@@ -218,6 +218,14 @@ Escala 1–5, RU, RM, NPS o Cruce. Una sugerencia desconocida no se interpreta c
 un tipo conocido. El texto libre de `metrica_sugerida` no define por sí solo los
 límites de una escala.
 
+Las listas de variables conservan nombres SPSS con puntos. Se reconocen las
+declaraciones anotadas `RM_SIMPLE (0/código)` y `LOOP_RU por tiempo`: la primera
+declara cero como no selección; la segunda conserva cada variable como ítem
+separado, usando su nombre cuando no hay etiquetas individuales de repetición.
+No se asignan minutos a partir de sufijos. Las hojas con varios códigos por
+variable aportan solo metadatos consistentes; su primer código no se usa como
+una declaración de selección para toda la pregunta.
+
 | Campo del Datamap | Uso |
 | --- | --- |
 | `variable_id_persona` / `id_respondente` / `respondent_id_variable` | Nombre de la columna SPSS que identifica a la persona; no el valor de una persona. Debe existir y no contener IDs vacíos. |
