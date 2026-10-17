@@ -76,6 +76,7 @@ def render() -> None:
                     review.attrs.get("grid_loop_structures")
                 )
                 st.success("Archivos procesados correctamente.")
+                st.info("Siguiente paso: abre 2. Revisar Datamap y revisa las preguntas, identificadores y exclusiones.")
                 if (
                     st.session_state.grid_loop_structures is not None
                     and not st.session_state.grid_loop_structures.empty
@@ -109,6 +110,7 @@ def _reset_project_state() -> None:
         "spss_summary",
         "spss_path",
         "datamap_path",
+        "datamap_review_saved",
     ]:
         st.session_state.pop(key, None)
 
@@ -122,11 +124,19 @@ def _render_summary() -> None:
 
     st.markdown("**Resumen de carga**")
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Casos", f"{len(df_spss):,}")
+    c1.metric("Filas / evaluaciones", f"{len(df_spss):,}")
     c2.metric("Variables", f"{len(df_spss.columns):,}")
     summary = datamap_summary(sheets)
     c3.metric("Hojas Datamap", len(sheets))
-    c4.metric("QA", summary.get("qa_status") or "Sin estatus")
+    c4.metric("QA del archivo", summary.get("qa_status") or "No informado")
+    _render_person_summary(df_spss, review)
+    st.caption(
+        "Revisión del Datamap: "
+        + ("guardada; no implica certificación metodológica." if st.session_state.get("datamap_review_saved")
+           else "pendiente de guardar en 2. Revisar Datamap.")
+    )
+    if not summary.get("qa_status"):
+        st.info("El archivo no informa un estatus QA. Cero riesgos registrados no equivale a una validación completa.")
 
     if isinstance(review, pd.DataFrame) and not review.empty:
         categories = {
@@ -165,3 +175,22 @@ def _render_summary() -> None:
     r2.metric("Riesgos altos", risks.get("altos", 0))
     r3.metric("Riesgos medios", risks.get("medios", 0))
     r4.metric("Riesgos bajos", risks.get("bajos", 0))
+
+
+def _render_person_summary(df: pd.DataFrame, review: pd.DataFrame | None) -> None:
+    """Count people only from an explicitly declared, complete identifier."""
+    if review is None or "variable_id_persona" not in review:
+        st.caption("Personas únicas: sin identificador de persona declarado en el Datamap; no se infieren a partir del número de filas.")
+        return
+    declared = review["variable_id_persona"].dropna().astype(str).str.strip()
+    declared = declared[declared.ne("")].unique()
+    if len(declared) != 1 or declared[0] not in df:
+        st.warning("No se puede confirmar el número de personas: revisa variable_id_persona en el Datamap.")
+        return
+    values = df[declared[0]]
+    normalized = values.astype(str).str.strip()
+    if values.isna().any() or normalized.str.casefold().isin({"", "nan", "none", "null"}).any():
+        st.warning("El identificador de persona contiene valores vacíos; revisa el Datamap antes de contar personas.")
+        return
+    st.metric("Personas únicas", f"{normalized.nunique():,}")
+    st.caption(f"Identificador declarado: {declared[0]}. Una persona puede aportar varias evaluaciones; cada tabla indica su unidad y base válida.")

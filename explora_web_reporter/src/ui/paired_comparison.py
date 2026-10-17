@@ -13,6 +13,7 @@ from src.reporter.paired_comparison import PairedCondition, compare_paired
 
 def render_paired_comparison(db_path: Path, questions: pd.DataFrame) -> None:
     with st.expander('Comparar las mismas personas entre productos o tiempos'):
+        st.info('Usa este panel cuando las mismas personas respondieron en ambas condiciones. Solo se comparan personas con ambas respuestas válidas. Si son grupos distintos, esta comparación no corresponde.')
         st.caption('Comparación histórica sin ponderación. Define aquí las dos condiciones; los filtros de la tabla anterior no se aplican a este panel.')
         candidates = questions[questions.tipo_pregunta_reporter.isin(['Escala','NPS','RM'])]
         if candidates.empty:
@@ -52,6 +53,7 @@ def render_paired_comparison(db_path: Path, questions: pd.DataFrame) -> None:
         policy=st.selectbox('Si una persona tiene varias evaluaciones en una condición',
             ['reject','person_mean'] if metric=='Media' else ['reject'],
             format_func=lambda value:'Pedir que se filtre una sola evaluación' if value=='reject' else 'Usar la media por persona en cada condición',key=f'paired_policy_{metric}')
+        st.caption('No se elige una evaluación al azar: filtra una por persona o, para Media, selecciona explícitamente la media por persona. La tabla final informa cuántos pares completos se pudieron comparar.')
         settings=st.columns(2)
         confidence=settings[0].selectbox('Confianza de la comparación pareada',[.90,.95,.99],index=1,format_func=lambda value:f'{value:.0%}',key='paired_confidence')
         minimum=int(settings[1].number_input('Mínimo de personas con ambas respuestas',min_value=2,value=30,step=1,key='paired_minimum'))
