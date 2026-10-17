@@ -112,6 +112,35 @@ Describe la base completa antes de filtros y mantiene explícita la revisión
 pendiente de saltos, exclusiones y decisiones metodológicas. No constituye una
 certificación ni convierte reglas de texto en condiciones ejecutadas.
 
+### Caducidad y limpieza de sesiones
+
+En `app.py` y `streamlit_app.py`, las descargas del servidor caducan como máximo
+a los **5 minutos** de emitirse. Cada enlace utiliza un identificador aleatorio
+propio; recalcular o volver a emitir uno no reactiva los enlaces anteriores.
+**Renovar enlaces de descarga** revoca los vigentes y prepara otros para los
+botones visibles. Un enlace vencido devuelve HTTP 404 aun sin recargar la página.
+
+**Limpiar sesión** y **Quitar base** borran los archivos de la carpeta de esa
+sesión, revocan sus descargas y eliminan sus datos de sesión, cargas en memoria
+y entradas de caché registradas. No borran los archivos originales del equipo
+del usuario ni los de otras sesiones. Las sesiones sin acciones durante
+**30 minutos** se limpian con un barrido cada **15 segundos**, cerrando también
+su sesión de ejecución. Los trabajos en ejecución están protegidos del barrido;
+el plazo vuelve a contarse al terminar. Los directorios caducados tras una
+parada se limpian en el siguiente arranque mientras el servidor esté activo.
+
+Descarga el proyecto antes de que caduque la sesión si necesitas retomarlo.
+Esto es eliminación de archivos y revocación del acceso en el servidor, no
+borrado forense ni eliminación de copias ya descargadas o transferencias ya
+iniciadas. Mientras un enlace siga vigente, quien lo tenga podría utilizarlo:
+estas medidas no añaden autenticación individual por usuario.
+
+El adaptador de descargas usa la API de almacenamiento de medios de la versión
+fijada **Streamlit 1.66.0**, interceptando las lecturas en el servidor. Ante otra
+versión o backend incompatible, la aplicación se detiene sin habilitar enlaces
+permanentes como alternativa. Antes de actualizar Streamlit hay que adaptar y
+volver a probar este control, incluida la caducidad por HTTP.
+
 - `data/processed/Datamap_Final.xlsx`
 - `data/db/BD_Analitica_Explora.db`
 - `data/exports/BD_Analitica_Revision.xlsx`

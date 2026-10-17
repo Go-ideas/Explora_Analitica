@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pandas as pd
 import streamlit as st
+from src.utils.privacy import download_button, private_cache_data
 
 from src.analytics_core.runner import (
     CanonicalResultRequiredError,
@@ -698,7 +699,7 @@ def render_canonical_projection(
                 hide_index=True,
                 width="stretch",
             )
-    st.download_button(
+    download_button(
         (
             "Exportar resultado oficial canónico CSV"
             if projection.release.get("releasable")
@@ -820,7 +821,7 @@ def render_report(report: ReportResult, key_prefix: str) -> None:
     else:
         st.info("No hay gráfico disponible para esta selección.")
 
-    st.download_button(
+    download_button(
         "Exportar análisis ejecutivo",
         data=report_to_excel_bytes(report),
         file_name=safe_filename(report.question_id, "Reporte_Explora.xlsx"),
@@ -1018,12 +1019,12 @@ def _variable_labels(
     return labels
 
 
-@st.cache_data(show_spinner=False)
+@private_cache_data(show_spinner=False)
 def _cached_analysis_readiness(db_path: str, db_token: tuple):
     return analysis_readiness(Path(db_path))
 
 
-@st.cache_data(show_spinner=False)
+@private_cache_data(show_spinner=False)
 def _cached_question_recommendation(db_path: str, db_token: tuple, question_id: str):
     return recommend_question(Path(db_path), question_id)
 
@@ -1049,7 +1050,7 @@ def _paths_from_token(
     return [Path(path) for path, _, _ in token]
 
 
-@st.cache_data(show_spinner=False)
+@private_cache_data(show_spinner=False)
 def _cached_available_questions(
     db_path: str,
     db_token: tuple[int, int],
@@ -1060,7 +1061,7 @@ def _cached_available_questions(
     )
 
 
-@st.cache_data(show_spinner=False)
+@private_cache_data(show_spinner=False)
 def _cached_config_entries(
     db_path: str,
     db_token: tuple[int, int],
@@ -1072,7 +1073,7 @@ def _cached_config_entries(
     )
 
 
-@st.cache_data(show_spinner=False)
+@private_cache_data(show_spinner=False)
 def _cached_filter_choices(
     db_path: str,
     db_token: tuple[int, int],
@@ -1081,14 +1082,14 @@ def _cached_filter_choices(
     return filter_choices(Path(db_path), variable)
 
 
-@st.cache_data(show_spinner=False)
+@private_cache_data(show_spinner=False)
 def _cached_factor_recommendations(
     datamap_token: tuple[tuple[str, int, int], ...],
 ) -> pd.DataFrame:
     return load_factor_recommendations(_paths_from_token(datamap_token))
 
 
-@st.cache_data(show_spinner=False)
+@private_cache_data(show_spinner=False)
 def _cached_factor_configurations(
     db_path: str,
     db_token: tuple[int, int],
@@ -1096,7 +1097,7 @@ def _cached_factor_configurations(
     return load_factor_configurations(Path(db_path))
 
 
-@st.cache_data(show_spinner=False)
+@private_cache_data(show_spinner=False)
 def _cached_factor_decisions(
     db_path: str,
     db_token: tuple[int, int],

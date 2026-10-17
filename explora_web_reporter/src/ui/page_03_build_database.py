@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 import streamlit as st
+from src.utils.privacy import download_button
 
 from src.builder.analytic_db_builder import build_analytic_database
 from src.builder.variables_builder import build_variables
@@ -120,7 +121,7 @@ def render() -> None:
 
     if db_path is not None and Path(db_path).exists():
         current_db_path = Path(db_path)
-        st.download_button(
+        download_button(
             "Descargar base analítica completa",
             data=file_bytes(current_db_path),
             file_name=current_db_path.name,
@@ -311,7 +312,7 @@ def _render_revision_excel_export(
     revision_path = st.session_state.get("revision_excel_path")
     current_path = Path(revision_path) if revision_path else None
     if current_path is not None and current_path.exists():
-        st.download_button(
+        download_button(
             "Descargar Excel técnico de revisión",
             data=file_bytes(current_path),
             file_name=current_path.name,

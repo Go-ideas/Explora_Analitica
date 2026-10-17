@@ -2,6 +2,7 @@ from pathlib import Path
 from uuid import uuid4
 
 import streamlit as st
+from src.utils.privacy import download_button
 
 from src.export.project_archive import create_project_archive, restore_project_archive
 from src.readers.datamap_reader import read_datamap, get_review_source_sheet, normalize_review_datamap
@@ -30,7 +31,7 @@ def render_project_session() -> None:
                 st.session_state.pop('project_download', None)
                 st.error(f'No se pudo preparar el proyecto: {exc}')
         if st.session_state.get('project_download'):
-            st.download_button('Descargar proyecto para retomarlo', st.session_state['project_download'],
+            download_button('Descargar proyecto para retomarlo', st.session_state['project_download'],
                                file_name='Explora_Proyecto.zip', mime='application/zip', key='project_download_button', on_click='ignore')
             st.caption('Es una copia del momento en que pulsaste Preparar. Si cambias la configuración o guardas otra tabla, prepara un archivo nuevo. Los resultados canónicos deben vincularse de nuevo; no se restaura su estado de aprobación.')
         uploaded = st.file_uploader('Recuperar proyecto de EXPLORA (.zip)', type=['zip'], key='project_restore_upload')

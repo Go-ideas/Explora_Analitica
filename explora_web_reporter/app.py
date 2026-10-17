@@ -12,6 +12,7 @@ from src.ui import (
 from src.utils.file_utils import ensure_data_dirs
 from src.ui.project_session import render_project_session
 from src.export.project_archive import CONTROL
+from src.utils.privacy import privacy_run, privacy_controls, clear_private_session
 
 
 st.set_page_config(
@@ -43,6 +44,7 @@ def main() -> None:
     with st.sidebar:
         st.markdown("## EXPLORA")
         st.caption("WEB REPORTER")
+        privacy_controls()
         render_project_session()
         db_ready = bool(st.session_state.get("db_path"))
         page = st.radio(
@@ -59,7 +61,11 @@ def main() -> None:
             else "Base analítica pendiente"
         )
         if st.button("Limpiar sesión", width="stretch"):
-            _clear_session()
+            try:
+                _clear_session()
+            except Exception:
+                st.error('No se completó el borrado de archivos. Reintenta limpiar la sesión.')
+                st.stop()
             st.rerun()
 
     st.title("EXPLORA WEB REPORTER")
@@ -113,9 +119,9 @@ def _apply_styles() -> None:
 
 
 def _clear_session() -> None:
-    for key in list(st.session_state):
-        del st.session_state[key]
+    clear_private_session()
 
 
 if __name__ == "__main__":
-    main()
+    with privacy_run():
+        main()
