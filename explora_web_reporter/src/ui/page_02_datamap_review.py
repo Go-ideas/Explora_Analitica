@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 import streamlit as st
+from src.utils.privacy import download_button
 
 from src.builder.analytic_db_builder import build_riesgos
 from src.database.db_reader import read_table
@@ -525,23 +526,25 @@ def _render_detected_structures() -> None:
         height=430,
     )
     download_cols = st.columns(2)
-    download_cols[0].download_button(
-        "Descargar CSV",
-        data=filtered.to_csv(index=False).encode("utf-8-sig"),
-        file_name="Estructuras_Detectadas.csv",
-        mime="text/csv",
-        key="download_detected_structures_csv",
-    )
-    download_cols[1].download_button(
-        "Descargar Excel",
-        data=_structures_excel_bytes(filtered),
-        file_name="Estructuras_Detectadas.xlsx",
-        mime=(
-            "application/vnd.openxmlformats-officedocument."
-            "spreadsheetml.sheet"
-        ),
-        key="download_detected_structures_xlsx",
-    )
+    with download_cols[0]:
+        download_button(
+            "Descargar CSV",
+            data=filtered.to_csv(index=False).encode("utf-8-sig"),
+            file_name="Estructuras_Detectadas.csv",
+            mime="text/csv",
+            key="download_detected_structures_csv",
+        )
+    with download_cols[1]:
+        download_button(
+            "Descargar Excel",
+            data=_structures_excel_bytes(filtered),
+            file_name="Estructuras_Detectadas.xlsx",
+            mime=(
+                "application/vnd.openxmlformats-officedocument."
+                "spreadsheetml.sheet"
+            ),
+            key="download_detected_structures_xlsx",
+        )
     warnings = []
     for _, row in structures.iterrows():
         parent = str(row.get("pregunta_padre") or "").strip()

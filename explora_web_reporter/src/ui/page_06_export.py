@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 import streamlit as st
+from src.utils.privacy import download_button
 
 from src.export.report_exporter import report_to_excel_bytes
 from src.export.project_exporter import (
@@ -49,7 +50,7 @@ def render() -> None:
             is_releasable = bool(
                 canonical_projection.release.get("releasable")
             )
-            st.download_button(
+            download_button(
                 (
                     "Descargar resultado oficial canónico"
                     if is_releasable
@@ -82,7 +83,7 @@ def render() -> None:
                     "exportación disponible es sólo QA interna."
                 )
         elif current is not None:
-            st.download_button(
+            download_button(
                 "Descargar análisis ejecutivo",
                 data=executive_export_bytes(current),
                 file_name=(
@@ -98,7 +99,7 @@ def render() -> None:
                 "Incluye tabla, configuración, notas y el gráfico "
                 "interactivo cuando está disponible."
             )
-            st.download_button(
+            download_button(
                 "Descargar solo la tabla en Excel",
                 data=report_to_excel_bytes(current),
                 file_name=(
@@ -120,7 +121,7 @@ def render() -> None:
         st.divider()
         st.markdown("### Análisis guardados")
         if saved_reports:
-            st.download_button(
+            download_button(
                 "Exportar todas las tablas y gráficos guardados",
                 data=saved_reports_export_bytes(saved_reports),
                 file_name="Analisis_Guardados_Explora.zip",
@@ -205,7 +206,7 @@ def render() -> None:
                 for entry in saved_reports
                 if str(entry.get("id")) == selected_id
             )
-            st.download_button(
+            download_button(
                 "Descargar análisis seleccionado",
                 data=executive_export_bytes(
                     selected_entry["report"]
@@ -248,7 +249,7 @@ def render() -> None:
             (name, path) for name, path, _ in files if path.exists()
         ]
         if available:
-            st.download_button(
+            download_button(
                 "Descargar paquete técnico completo",
                 data=technical_export_bytes(
                     available,
@@ -264,7 +265,7 @@ def render() -> None:
             )
         for name, path, mime in files:
             if path.exists():
-                st.download_button(
+                download_button(
                     name,
                     data=file_bytes(path),
                     file_name=path.name,

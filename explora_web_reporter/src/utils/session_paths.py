@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from uuid import uuid4
+import re
 
 import streamlit as st
 
@@ -13,6 +14,8 @@ def session_root() -> Path:
     if not session_id:
         session_id = uuid4().hex
         st.session_state.explora_session_id = session_id
+    if not isinstance(session_id, str) or not re.fullmatch(r'[0-9a-f]{32}', session_id):
+        raise ValueError('Identificador de sesión inválido.')
     root = DATA_DIR / "sessions" / str(session_id)
     root.mkdir(parents=True, exist_ok=True)
     return root

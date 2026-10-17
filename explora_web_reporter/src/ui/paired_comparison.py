@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 import streamlit as st
+from src.utils.privacy import download_button
 
 from src.database.db_reader import read_table
 from src.reporter.filters import config_entries, filter_choices
@@ -70,6 +71,6 @@ def render_paired_comparison(db_path: Path, questions: pd.DataFrame) -> None:
             result=saved[1]
             st.dataframe(result.table,hide_index=True)
             st.write(f"Método: {result.config['Método']}. Valores binarios expresados como proporciones de 0 a 1.")
-            st.download_button('Descargar comparación pareada',result.excel_bytes(),file_name='Comparacion_Pareada.xlsx',mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',key='paired_download',on_click='ignore')
+            download_button('Descargar comparación pareada',result.excel_bytes(),file_name='Comparacion_Pareada.xlsx',mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',key='paired_download',on_click='ignore')
             for note in result.notes:
                 st.caption(note)

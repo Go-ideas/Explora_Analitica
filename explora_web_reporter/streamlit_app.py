@@ -10,6 +10,8 @@ from src.database.validation import validate_reporter_database
 from src.ui import page_04_reporter, page_06_export
 from src.utils.constants import DATA_DIR
 from src.utils.file_utils import ensure_data_dirs, safe_filename
+from src.utils.session_paths import session_file
+from src.utils.privacy import privacy_run, privacy_controls, clear_private_session
 
 
 SESSION_DB_DIR = DATA_DIR / "sessions"
@@ -30,6 +32,7 @@ def main() -> None:
     with st.sidebar:
         st.markdown("## EXPLORA")
         st.caption("REPORTER")
+        privacy_controls()
         uploaded_db = st.file_uploader(
             "Base analítica SQLite",
             type=["db", "sqlite", "sqlite3"],
@@ -74,7 +77,7 @@ def _activate_uploaded_database(uploaded_db) -> None:
 
     _discard_session_database()
     file_stem = Path(safe_filename(uploaded_db.name)).stem or "base"
-    db_path = SESSION_DB_DIR / f"{file_stem}_{uuid4().hex}.db"
+    db_path = session_file('db', f"{file_stem}_{uuid4().hex}.db")
     db_path.write_bytes(content)
 
     validation = validate_reporter_database(db_path)
@@ -103,7 +106,7 @@ def _current_db_path() -> Path | None:
 
 def _discard_session_database() -> None:
     path = _current_db_path()
-    if path is not None and path.parent == SESSION_DB_DIR:
+    if path is not None and path.is_relative_to(SESSION_DB_DIR):
         path.unlink(missing_ok=True)
 
 
@@ -139,6 +142,11 @@ def _render_database_status() -> None:
     else:
         st.warning("Base no compatible")
     if st.button("Quitar base", width="stretch"):
+        try:
+            clear_private_session()
+        except Exception:
+            st.error('No se completó el borrado de archivos. Reintenta quitar la base.')
+            st.stop()
         _discard_session_database()
         _reset_analysis_state()
         for key in [
@@ -205,4 +213,5 @@ def _apply_styles() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    with privacy_run():
+        main()
