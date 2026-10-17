@@ -31,6 +31,13 @@ def recommend_question(db_path: Path, question_id: str) -> QuestionRecommendatio
                                       'Requiere revisión del Datamap.', ('Revisa el tipo y la unidad de análisis.',))
     row = questions.iloc[0]
     kind = normalize_text(row.get('tipo_pregunta', ''))
+    kind = {
+        'ru_escala': 'escala',
+        'escala_hedonica': 'escala',
+        'ru_escala_hedonica': 'escala',
+        'respuesta_unica': 'ru',
+        'respuesta_multiple': 'rm',
+    }.get(kind, kind)
     warnings = []
     person = is_person_unit(row.get('unidad_analisis', ''))
     unit = 'personas' if person else 'evaluaciones'

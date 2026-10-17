@@ -10,6 +10,8 @@ from src.ui import (
     page_06_export,
 )
 from src.utils.file_utils import ensure_data_dirs
+from src.ui.project_session import render_project_session
+from src.export.project_archive import CONTROL
 
 
 st.set_page_config(
@@ -34,15 +36,21 @@ def main() -> None:
     # This entrypoint builds the historical analytic database from SAV/Datamap.
     # Keep the global canonical default for the other entrypoints.
     st.session_state["sav_datamap_workflow"] = True
+    # Preserve reporter choices when its widgets are absent on another page.
+    for key in list(st.session_state):
+        if CONTROL.fullmatch(key):
+            st.session_state[key] = st.session_state[key]
     with st.sidebar:
         st.markdown("## EXPLORA")
         st.caption("WEB REPORTER")
+        render_project_session()
         db_ready = bool(st.session_state.get("db_path"))
         page = st.radio(
             "Navegación",
             list(PAGES),
             index=3 if db_ready else 0,
             label_visibility="collapsed",
+            key="project_navigation",
         )
         st.divider()
         st.caption(

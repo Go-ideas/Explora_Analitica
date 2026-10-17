@@ -48,6 +48,7 @@ from src.utils.question_order import resolve_datamap_paths
 from src.utils.text_utils import normalize_text
 from src.ui.paired_comparison import render_paired_comparison
 from src.reporter.question_recommendations import recommend_question
+from src.reporter.readiness import analysis_readiness
 from src.web_canonical.adapter import CanonicalWebAdapterError
 from src.web_canonical.comparison import DualRunComparisonResult
 from src.web_canonical.export import (
@@ -95,6 +96,9 @@ def render() -> None:
     datamap_paths = _reporter_datamap_paths()
     db_token = _db_cache_token(db_path)
     datamap_token = _datamap_cache_token(datamap_paths)
+    with st.expander("Revisión antes de analizar", expanded=False):
+        st.dataframe(_cached_analysis_readiness(str(db_path), db_token), hide_index=True)
+        st.caption("Revisión automática de la base completa, antes de filtros. Las observaciones indican qué comprobar; no sustituyen la revisión del cuestionario y del Datamap.")
     questions = _cached_available_questions(
         str(db_path), db_token, datamap_token
     )
@@ -1012,6 +1016,11 @@ def _variable_labels(
             display = f"{display} · {' · '.join(markers)}"
         labels[variable] = display
     return labels
+
+
+@st.cache_data(show_spinner=False)
+def _cached_analysis_readiness(db_path: str, db_token: tuple):
+    return analysis_readiness(Path(db_path))
 
 
 @st.cache_data(show_spinner=False)

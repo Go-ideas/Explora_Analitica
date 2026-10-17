@@ -494,7 +494,13 @@ def _validate_datamap_for_build(
             "Pregunta padre grid",
             "No usar en dashboard",
         }
+        selected_for_use = pd.Series(False, index=missing_rows.index)
+        for flag in ('usar_en_dashboard', 'es_banner', 'es_filtro', 'es_ponderador'):
+            if flag in missing_rows:
+                selected_for_use |= missing_rows[flag].apply(truthy)
         blocking_rows = missing_rows[
+            selected_for_use
+            &
             ~missing_rows["clasificacion_analitica"].astype(str).isin(allowed)
             & ~missing_rows.get("es_grid", pd.Series(False, index=missing_rows.index)).apply(truthy)
         ]
