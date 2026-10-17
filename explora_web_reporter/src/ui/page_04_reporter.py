@@ -47,6 +47,7 @@ from src.utils.filename import safe_filename
 from src.utils.question_order import resolve_datamap_paths
 from src.utils.text_utils import normalize_text
 from src.ui.paired_comparison import render_paired_comparison
+from src.reporter.question_recommendations import recommend_question
 from src.web_canonical.adapter import CanonicalWebAdapterError
 from src.web_canonical.comparison import DualRunComparisonResult
 from src.web_canonical.export import (
@@ -229,6 +230,32 @@ def _report_controls(
         base_calculations=default_calculations,
     )
 
+    recommendation = _cached_question_recommendation(
+        str(db_path), _db_cache_token(db_path), str(question_id)
+    )
+    with st.expander("Cómo analizar esta pregunta · recomendación", expanded=True):
+        st.write(recommendation.reason)
+        st.write(recommendation.base)
+        if recommendation.calculations:
+            st.markdown("**Cálculos sugeridos:** " + ", ".join(recommendation.calculations))
+        for warning in recommendation.warnings:
+            st.warning(warning)
+        st.caption(
+            "Sugerencia basada en el tipo declarado y la base almacenada, antes de aplicar filtros. "
+            "No certifica el Datamap ni selecciona productos, ponderadores o pruebas de significancia. "
+            "Solo cambia los cálculos si pulsas Aplicar cálculos sugeridos."
+        )
+        supported = _calculation_options_for_question(str(selected.get("tipo_pregunta_reporter") or ""))
+        suggested = [value for value in recommendation.calculations if value in supported]
+        if set(recommendation.calculations) - set(suggested):
+            st.caption("Solo se aplicarán los cálculos compatibles con las opciones disponibles para esta pregunta.")
+        if st.button(
+            "Aplicar cálculos sugeridos", key=f"{key_prefix}_apply_suggestion_{question_id}",
+            disabled=not suggested,
+        ):
+            st.session_state[f"{key_prefix}_calculations_{question_id}_v2"] = suggested
+            st.success("Cálculos aplicados. Revisa los filtros y pulsa Generar tabla.")
+
     db_token = _db_cache_token(db_path)
     datamap_token = _datamap_cache_token(datamap_paths)
     banner_entries = _cached_config_entries(
@@ -338,7 +365,7 @@ def _report_controls(
         calculations = st.multiselect(
             "Cálculos",
             calculation_options,
-            default=[
+            default=None if f"{key_prefix}_calculations_{question_id}_v2" in st.session_state else [
                 item
                 for item in default_calculations
                 if item in calculation_options
@@ -985,6 +1012,11 @@ def _variable_labels(
             display = f"{display} · {' · '.join(markers)}"
         labels[variable] = display
     return labels
+
+
+@st.cache_data(show_spinner=False)
+def _cached_question_recommendation(db_path: str, db_token: tuple, question_id: str):
+    return recommend_question(Path(db_path), question_id)
 
 
 def _db_cache_token(db_path: Path) -> tuple[int, int]:
