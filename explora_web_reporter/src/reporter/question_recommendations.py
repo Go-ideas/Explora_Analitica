@@ -1,6 +1,7 @@
 """Explain analysis choices from stored metadata, never from question names."""
 from dataclasses import dataclass
 from pathlib import Path
+import math
 
 import pandas as pd
 
@@ -37,6 +38,8 @@ def recommend_question(db_path: Path, question_id: str) -> QuestionRecommendatio
     raw_unit = row.get('unidad_analisis')
     if pd.isna(raw_unit) or not str(raw_unit).strip():
         warnings.append('La unidad no está declarada: el motor usa evaluaciones. Confirma si corresponde analizar por persona.')
+    elif not person and normalize_text(raw_unit) not in {'evaluacion', 'evaluaciones', 'evaluation', 'evaluations'}:
+        warnings.append(f'Unidad de análisis no reconocida: {raw_unit}. El motor usa evaluaciones; confirma o corrige la declaración antes de interpretar la base.')
     rule = row.get('base_valida', '')
     if pd.notna(rule) and str(rule).strip():
         warnings.append(f'Base válida declarada: {rule}. Revisa su implementación y los faltantes; mostrar esta regla no implica que se haya ejecutado una condición adicional.')
@@ -67,12 +70,21 @@ def recommend_question(db_path: Path, question_id: str) -> QuestionRecommendatio
         if {'escala_min', 'escala_max'}.issubset(scale.columns) and not scale.empty:
             lows = pd.to_numeric(scale.escala_min, errors='coerce')
             highs = pd.to_numeric(scale.escala_max, errors='coerce')
-            bounded = bool(lows.notna().all() and highs.notna().all() and (highs > lows).all())
+            bounded = bool(lows.map(math.isfinite).all() and highs.map(math.isfinite).all() and (highs > lows).all())
+            # A physical item cannot have contradictory scale definitions.
+            # Different explicitly defined grid items may use different bounds.
+            definitions = pd.DataFrame({'low': lows, 'high': highs})
+            if 'variable' in scale:
+                definitions['variable'] = scale['variable']
+                consistent = definitions.groupby('variable', dropna=False)[['low', 'high']].nunique(dropna=False).le(1).all().all()
+            else:
+                consistent = definitions.nunique(dropna=False).le(1).all()
+            bounded = bounded and bool(consistent)
         if kind not in {'numerica', 'numerico', 'loop_numerico'} and bounded:
             calculations += ('Top2Box', 'BottomBox')
             warnings.append('Top2Box y BottomBox usan los extremos de la escala definida. Confirma que esos extremos tienen sentido comercial; no equivalen automáticamente a agrado o desagrado.')
         elif kind not in {'numerica', 'numerico', 'loop_numerico'}:
-            warnings.append('No hay límites completos de escala almacenados: no se sugieren Top2Box ni BottomBox a partir de mínimos o máximos observados.')
+            warnings.append('Los límites de escala faltan, son inválidos o contradictorios: no se sugieren Top2Box ni BottomBox a partir de mínimos o máximos observados.')
     elif kind in {'ru', 'categorica', 'categorical'}:
         calculations = ('n', '%')
         reason = 'Respuesta única categórica declarada: muestra conteos y porcentajes; los códigos no se tratan como cantidades.'
@@ -101,4 +113,6 @@ def recommend_question(db_path: Path, question_id: str) -> QuestionRecommendatio
                 warnings.append('No hay un identificador de persona verificable para recomendar comparaciones pareadas.')
         else:
             warnings.append('La base no permite comprobar la identidad de personas; revisa su identificación antes de comparar mediciones repetidas.')
+    else:
+        warnings.append('Falta la tabla de personas/evaluaciones: no se puede comprobar la identidad ni recomendar comparaciones pareadas.')
     return QuestionRecommendation(calculations, reason, base, tuple(warnings))
