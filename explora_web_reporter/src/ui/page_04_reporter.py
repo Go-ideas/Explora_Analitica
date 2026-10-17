@@ -156,7 +156,14 @@ def render() -> None:
                     )
         except Exception as exc:
             mark_analysis_failure(st.session_state, current_binding, exc)
-            st.error(f"No fue posible generar el reporte: {exc}")
+            if isinstance(exc, CanonicalResultRequiredError):
+                st.error(
+                    "Este modo requiere un resultado canónico vinculado a la pregunta. "
+                    "Para analizar una base creada desde SAV y Datamap, abre "
+                    "Opciones avanzadas y selecciona LEGACY en Modo de ejecución."
+                )
+            else:
+                st.error(f"No fue posible generar el reporte: {exc}")
 
     if not _has_current_analysis(current_binding):
         st.info(
@@ -396,15 +403,24 @@ def _report_controls(
                 args=(key_prefix,),
             )
         execution_modes = [mode.value for mode in ExecutionMode]
+        default_mode = (
+            ExecutionMode.LEGACY
+            if st.session_state.get("sav_datamap_workflow")
+            else resolve_execution_mode()
+        )
         execution_mode = st.selectbox(
             "Modo de ejecución",
             execution_modes,
-            index=execution_modes.index(resolve_execution_mode().value),
+            index=execution_modes.index(default_mode.value),
             key=f"{key_prefix}_execution_mode",
             help=(
                 "Elige cómo se ejecutará el análisis. Para una base creada "
                 "desde SAV y Datamap en esta aplicación, utiliza LEGACY."
             ),
+        )
+        st.caption(
+            "Para el flujo SAV + Datamap utiliza LEGACY. Los otros modos "
+            "son opciones de integración y validación técnica."
         )
         st.markdown(
             "**¿Qué significa cada modo?**\n\n"

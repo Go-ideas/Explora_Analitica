@@ -26,6 +26,7 @@ from src.utils.file_utils import file_bytes
 from src.utils.session_paths import session_file
 from src.utils.text_utils import truthy
 from src.utils.variable_safety import banner_filter_exclusion_reason
+from src.ui.page_01_upload import _render_person_summary
 
 
 def render() -> None:
@@ -40,9 +41,12 @@ def render() -> None:
         return
 
     c1, c2, c3 = st.columns(3)
-    c1.metric("Casos de entrada", f"{len(df_spss):,}")
+    c1.metric("Filas / evaluaciones de entrada", f"{len(df_spss):,}")
     c2.metric("Variables SPSS", f"{len(df_spss.columns):,}")
     c3.metric("Filas Datamap", f"{len(datamap):,}")
+    _render_person_summary(df_spss, datamap)
+    if not st.session_state.get("datamap_review_saved"):
+        st.info("La revisión aún no se ha guardado. Revisa las decisiones en 2. Revisar Datamap; los controles siguientes comprueban requisitos de construcción, no una aprobación metodológica completa.")
 
     validation = _validate_datamap_for_build(datamap, df_spss)
 
@@ -72,6 +76,7 @@ def render() -> None:
             st.session_state.analytic_tables = result["tables"]
             db_path = result["db_path"]
             st.success("Base analítica creada correctamente.")
+            st.info("Siguiente paso: abre 4. Reporteador, selecciona una pregunta y pulsa Generar tabla.")
         except Exception as exc:
             st.error(f"No fue posible crear la base: {exc}")
 
@@ -79,7 +84,7 @@ def render() -> None:
     if tables:
         summary_columns = st.columns(4)
         summary_columns[0].metric(
-            "Casos", len(tables.get("respondentes", []))
+            "Filas / evaluaciones", len(tables.get("respondentes", []))
         )
         summary_columns[1].metric(
             "Preguntas", len(tables.get("preguntas", []))

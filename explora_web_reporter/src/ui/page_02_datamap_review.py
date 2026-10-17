@@ -149,7 +149,9 @@ def render() -> None:
                 )
                 st.session_state.review_datamap = editor
                 st.session_state.datamap_final_path = path
+                st.session_state.datamap_review_saved = True
                 st.success(f"Datamap guardado: {path.name}")
+                st.info("Siguiente paso: abre 3. Crear base analítica. Guardar la revisión no certifica automáticamente las reglas metodológicas.")
             except Exception as exc:
                 st.error(
                     f"No fue posible guardar el Datamap: {exc}"
@@ -396,7 +398,7 @@ def _render_risks_review(
 ) -> None:
     risks = build_riesgos(sheets)
     if risks is None or risks.empty:
-        st.success("No hay riesgos metodológicos registrados.")
+        st.info("No hay riesgos metodológicos registrados en el archivo. Esto no confirma que se hayan revisado todas las reglas.")
         return
     summary = pd.DataFrame(
         {

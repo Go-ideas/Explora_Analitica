@@ -31,6 +31,9 @@ PAGES = {
 
 def main() -> None:
     _apply_styles()
+    # This entrypoint builds the historical analytic database from SAV/Datamap.
+    # Keep the global canonical default for the other entrypoints.
+    st.session_state["sav_datamap_workflow"] = True
     with st.sidebar:
         st.markdown("## EXPLORA")
         st.caption("WEB REPORTER")
