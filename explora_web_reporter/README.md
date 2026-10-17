@@ -143,6 +143,19 @@ la consola con datos de clientes mientras el acceso sea público.
 
 ## Datamaps, escalas y evaluaciones repetidas
 
+El reporteador muestra **Cómo analizar esta pregunta · recomendación** con
+cálculos sugeridos, su justificación, unidad de análisis y advertencias. Usa
+el tipo registrado y metadatos almacenados; no interpreta nombres de preguntas
+ni mínimos/máximos observados como límites de escala. JAR conserva categorías
+sin inventar agrupaciones o penalizaciones. RM distingue la base de selección
+del total de menciones y advierte si falta el universo de elegibilidad.
+
+Las recomendaciones describen la base antes de filtros. **Aplicar cálculos
+sugeridos** cambia únicamente la selección de cálculos de esa pregunta; no
+genera la tabla ni elige filtros, ponderadores o significancia. La base válida
+y las comprobaciones finales corresponden a **Generar tabla**. Las reglas de
+base válida se muestran para revisión y no se ejecutan como condiciones nuevas.
+
 La importación usa metadatos del estudio, sin reglas por nombre de archivo,
 cliente, producto o pregunta. Un tipo explícito en `tipo_pregunta` tiene prioridad;
 si falta, `tipo_tabla_sugerida` puede declarar Escala hedónica, Escala, JAR,
